@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // PERFILES: Solo el propio usuario puede leer y escribir sus configuraciones.
+    match /usuarios/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // LEADERBOARD: Público para LEER (1 solo doc), BLOQUEADO para escribir.
+    // Solo la Cloud Function (Admin SDK) puede escribir aquí.
+    match /leaderboard_torneo/{document=**} {
+      allow read: if true;
+      allow write: if false; 
+    }
+    
+    // Antiguas colecciones abiertas: ahora bloqueadas
+    match /high_scores/{document=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}

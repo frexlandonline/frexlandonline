@@ -1,0 +1,13 @@
+{
+  "_format": "hh3-artifact-1",
+  "contractName": "ByteHasher",
+  "sourceName": "contracts/TetrisRewards.sol",
+  "abi": [],
+  "bytecode": "0x6080806040523460175760399081601c823930815050f35b5f80fdfe5f80fdfea26469706673582212200b5003b656456ef61fe054daa40e3508cd719a7149561ebffdb7c1b03f4e819064736f6c63430008160033",
+  "deployedBytecode": "0x5f80fdfea26469706673582212200b5003b656456ef61fe054daa40e3508cd719a7149561ebffdb7c1b03f4e819064736f6c63430008160033",
+  "linkReferences": {},
+  "deployedLinkReferences": {},
+  "immutableReferences": {},
+  "inputSourceName": "project/contracts/TetrisRewards.sol",
+  "buildInfoId": "solc-0_8_22-fb8d2fbb18579375ac6a74896a28503182f4525b"
+}

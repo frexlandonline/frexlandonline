@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="BlockDrop - Juego de puzzle de bloques con integración Web3. Conecta tu wallet, compite en el leaderboard y gana recompensas en Polygon.">
+  <meta name="theme-color" content="#0a0a1a">
+  <title>FrexLand | Arcade del Futuro</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕹️</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+  <div id="app">
+    <div class="loading-overlay" style="position: fixed; inset: 0; background: #0a0a1a; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999;">
+      <div style="width: 80%; max-width: 320px; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+        <div style="color: #00f5ff; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.5rem; text-shadow: 0 0 10px rgba(0,245,255,0.5);" id="loading-text">0%</div>
+        <div style="width: 100%; height: 16px; background: rgba(0, 245, 255, 0.1); border: 2px solid #00f5ff; border-radius: 8px; overflow: hidden; box-shadow: 0 0 15px rgba(0, 245, 255, 0.2);">
+          <div id="loading-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #00f5ff, #00bfff); box-shadow: 0 0 10px #00f5ff; transition: width 0.1s ease-out;"></div>
+        </div>
+      </div>
+      <span id="loading-status" style="color: #a0a0b8; font-family: 'Inter', sans-serif; margin-top: 24px; font-size: 0.9rem; letter-spacing: 1px;">Inicializando entorno...</span>
+    </div>
+    <script>
+      let _p = 0;
+      const _b = document.getElementById('loading-bar');
+      const _t = document.getElementById('loading-text');
+      const _s = document.getElementById('loading-status');
+      const _stages = [
+        { p: 20, m: "Cargando archivos visuales..." },
+        { p: 45, m: "Preparando interfaz de usuario..." },
+        { p: 70, m: "Conectando entorno Web3..." },
+        { p: 90, m: "Sincronizando contratos inteligentes..." }
+      ];
+      let _stageIdx = 0;
+      const _i = setInterval(() => {
+        _p += Math.floor(Math.random() * 6) + 1;
+        if (_p >= 99) { _p = 99; clearInterval(_i); }
+        if (_b && _t) { 
+          _b.style.width = _p + '%'; 
+          _t.innerText = _p + '%'; 
+          if (_s && _stageIdx < _stages.length && _p >= _stages[_stageIdx].p) {
+            _s.innerText = _stages[_stageIdx].m;
+            _stageIdx++;
+          }
+        }
+      }, 40);
+      window.finishLoadingBar = () => {
+        clearInterval(_i);
+        if (_b && _t) { _b.style.width = '100%'; _t.innerText = '100%'; }
+        if (_s) _s.innerText = "¡Todo listo!";
+      };
+    </script>
+  </div>
+  
+  <!-- Web3 Ad Banner Container (A-Ads / CoinZilla) -->
+  <div id="web3-ad-container" style="display: none; width: 100%; text-align: center; background: #0a0a1a; border-top: 1px solid rgba(0, 245, 255, 0.2); padding: 5px 0; z-index: 1000; position: fixed; bottom: 0; left: 0; box-shadow: 0 -5px 15px rgba(0,0,0,0.5);">
+    <div style="color: #666; font-size: 0.5rem; font-family: 'Press Start 2P', cursive; margin-bottom: 4px;">PUBLICIDAD</div>
+    <!-- Aquí irá el script o iframe real de la red de anuncios (ej. A-Ads) -->
+    <iframe data-aa="2449644" src="//acceptable.a-ads.com/2449644/?size=Adaptive" style="border:0; padding:0; width:100%; max-width:320px; height:50px; overflow:hidden; margin: auto;"></iframe>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

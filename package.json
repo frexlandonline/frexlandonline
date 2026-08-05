@@ -1,0 +1,46 @@
+{
+  "name": "blockdrop",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"node server/index.js\" \"vite --host\"",
+    "dev:server": "node server/index.js",
+    "dev:client": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@lemoncash/mini-app-sdk": "^0.1.16",
+    "@openzeppelin/contracts": "^5.6.1",
+    "@reown/appkit": "^1.8.21",
+    "@reown/appkit-adapter-wagmi": "^1.8.21",
+    "@wagmi/core": "^3.4.12",
+    "@worldcoin/idkit-standalone": "^2.2.5",
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.7.0",
+    "concurrently": "^9.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.1",
+    "firebase-admin": "^13.10.0",
+    "jsonwebtoken": "^9.0.2",
+    "ngrok": "^5.0.0-beta.2",
+    "nodemailer": "^6.10.1",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "viem": "^2.49.3"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^4.0.13",
+    "@nomicfoundation/hardhat-toolbox": "^7.0.0",
+    "@nomicfoundation/hardhat-verify": "^3.0.21",
+    "@openzeppelin/contracts-upgradeable": "^5.6.1",
+    "@openzeppelin/hardhat-upgrades": "^4.0.2",
+    "ethers": "^6.17.0",
+    "hardhat": "^3.9.0",
+    "playwright": "^1.61.1",
+    "typescript": "^6.0.3",
+    "vite": "^6.0.0"
+  }
+}

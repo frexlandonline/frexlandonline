@@ -1,0 +1,328 @@
+import { Router } from 'express';
+import dbAPI from '../db.js';
+import { authenticateToken } from '../middleware/auth.js';
+
+const router = Router();
+
+// --- Check Wallet Ownership ---
+router.get('/check/:address', authenticateToken, async (req, res) => {
+  try {
+    const address = req.params.address.toLowerCase().trim();
+    const userId = req.user.id;
+    const existingUser = await dbAPI.getUserByWalletAddress(address);
+
+    if (existingUser && String(existingUser.id) !== String(userId)) {
+      return res.status(400).json({ error: 'Esta billetera ya está vinculada a otro perfil', isAvailable: false });
+    }
+    
+    return res.json({ isAvailable: true, linkedToCurrent: existingUser ? true : false });
+  } catch (error) {
+    console.error('Check wallet error:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// ─── Connect/Link Wallet to Active User Profile ─────────────────
+router.post('/connect', authenticateToken, async (req, res) => {
+  try {
+    const { walletAddress, chain } = req.body;
+    const userId = req.user.id;
+
+    if (!walletAddress) {
+      return res.status(400).json({ error: 'Dirección de wallet requerida' });
+    }
+
+    let selectedChain = chain;
+    if (!selectedChain) {
+      selectedChain = walletAddress.startsWith('0x') ? 'ethereum' : 'solana';
+    }
+
+    const normalizedAddress = walletAddress.toLowerCase().trim();
+
+    // Check if wallet is already linked to another user
+    const existingUser = await dbAPI.getUserByWalletAddress(normalizedAddress);
+    if (existingUser && String(existingUser.id) !== String(userId)) {
+      return res.status(400).json({ error: 'Esta billetera ya está vinculada a otro perfil' });
+    }
+
+    const user = await dbAPI.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    // Append wallet to the user's wallets list
+    const wallets = user.wallets || {};
+    wallets[selectedChain] = normalizedAddress;
+
+    const updatedUser = await dbAPI.updateUser(userId, { wallets });
+
+    // Exclude password hash from safe payload
+    const { passwordHash, ...safeUser } = updatedUser;
+
+    res.json({ message: 'Wallet conectada y vinculada exitosamente', user: safeUser });
+  } catch (error) {
+    console.error('Connect wallet error:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+// ─── Deposit USDC for Credits ──────────────────────────────────
+router.post('/deposit', authenticateToken, async (req, res) => {
+  try {
+    const { amount } = req.body;
+    const userId = req.user.id;
+
+    if (!amount || amount < 10 || amount % 10 !== 0) {
+      return res.status(400).json({ error: 'El monto mínimo de depósito es 10 USDC y debe ser múltiplo de 10.' });
+    }
+
+    const user = await dbAPI.checkAndResetDailyCredits(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    const creditsToAdd = amount / 10;
+    const currentCredits = user.creditos_escritura || 0;
+    const currentTotal = user.total_depositado || 0;
+
+    const updatedUser = await dbAPI.updateUser(userId, {
+      creditos_escritura: currentCredits + creditsToAdd,
+      total_depositado: currentTotal + amount
+    });
+
+    const { passwordHash, ...safeUser } = updatedUser;
+    res.json({ message: `Depósito de ${amount} USDC exitoso. Has recibido ${creditsToAdd} créditos.`, user: safeUser });
+  } catch (error) {
+    console.error('Deposit error:', error);
+    res.status(500).json({ error: 'Error interno del servidor al procesar el depósito.' });
+  }
+});
+
+// ─── Sync Deposit from Blockchain ──────────────────────────────────
+router.post('/sync-deposit', authenticateToken, async (req, res) => {
+  try {
+    const { amount } = req.body;
+    const userId = req.user.id;
+
+    if (amount === undefined || amount < 0) {
+      return res.status(400).json({ error: 'Monto inválido.' });
+    }
+
+    const user = await dbAPI.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    const currentTotal = user.total_depositado || 0;
+    
+    // Solo actualizamos si el balance on-chain es mayor al guardado
+    if (amount > currentTotal) {
+      const creditsToAdd = Math.floor((amount - currentTotal) / 10);
+      const currentCredits = user.creditos_escritura || 0;
+      
+      const updatedUser = await dbAPI.updateUser(userId, {
+        creditos_escritura: currentCredits + creditsToAdd,
+        total_depositado: amount
+      });
+      const { passwordHash, ...safeUser } = updatedUser;
+      return res.json({ synced: true, user: safeUser });
+    }
+
+    return res.json({ synced: false });
+  } catch (error) {
+    console.error('Sync deposit error:', error);
+    res.status(500).json({ error: 'Error al sincronizar depósito.' });
+  }
+});
+
+// ─── Request Withdraw (24h lock) ─────────────────────────────────────────────
+router.post('/request-withdraw', authenticateToken, async (req, res) => {
+  try {
+    const { amount } = req.body;
+    const userId = req.user.id;
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: 'Monto inválido para retirar.' });
+    }
+
+    const user = await dbAPI.getUserById(userId);
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    const currentTotal = user.total_depositado || 0;
+    if (amount > currentTotal) {
+      return res.status(400).json({ error: 'No puedes retirar más del saldo que tienes depositado.' });
+    }
+
+    const updatedUser = await dbAPI.updateUser(userId, {
+      withdraw_request_time: new Date().toISOString(),
+      withdraw_request_amount: amount
+    });
+
+    const { passwordHash, ...safeUser } = updatedUser;
+    res.json({ message: `Solicitud de retiro de ${amount} USDC registrada.`, user: safeUser });
+  } catch (error) {
+    console.error('Request withdraw error:', error);
+    res.status(500).json({ error: 'Error interno del servidor al procesar la solicitud de retiro.' });
+  }
+});
+
+// ─── Confirm Withdraw USDC ─────────────────────────────────────────────
+router.post('/confirm-withdraw', authenticateToken, async (req, res) => {
+  try {
+    const { amount, isAdmin } = req.body;
+    const userId = req.user.id;
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: 'Monto inválido para retirar.' });
+    }
+
+    const user = await dbAPI.getUserById(userId);
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    const currentTotal = user.total_depositado || 0;
+    if (amount > currentTotal) {
+      return res.status(400).json({ error: 'No puedes retirar más del saldo que tienes depositado.' });
+    }
+
+    // Valida las 24 horas si no es admin
+    if (!isAdmin) {
+      if (!user.withdraw_request_time || user.withdraw_request_amount !== amount) {
+         return res.status(400).json({ error: 'Solicitud de retiro no encontrada o monto no coincide.' });
+      }
+      const requestTime = new Date(user.withdraw_request_time).getTime();
+      const now = Date.now();
+      if (now - requestTime < 24 * 60 * 60 * 1000) {
+         return res.status(400).json({ error: 'Deben pasar 24 horas desde la solicitud para confirmar el retiro.' });
+      }
+    }
+
+    const newTotal = currentTotal - amount;
+    const maxCreditsNow = Math.floor(newTotal / 10);
+    const newCredits = Math.min(user.creditos_escritura || 0, maxCreditsNow);
+
+    const updatedUser = await dbAPI.updateUser(userId, {
+      total_depositado: newTotal,
+      creditos_escritura: newCredits,
+      withdraw_request_time: null,
+      withdraw_request_amount: 0
+    });
+
+    const { passwordHash, ...safeUser } = updatedUser;
+    res.json({ message: `Retiro de ${amount} USDC confirmado exitosamente.`, user: safeUser });
+  } catch (error) {
+    console.error('Confirm withdraw error:', error);
+    res.status(500).json({ error: 'Error interno del servidor al confirmar el retiro.' });
+  }
+});
+
+// ─── Get Polygon Tokens (Legacy helper, keep intact) ───────────
+router.get('/tokens/:address', async (req, res) => {
+  try {
+    const { address } = req.params;
+
+    if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
+      return res.status(400).json({ error: 'Dirección de wallet inválida' });
+    }
+
+    // Popular Polygon tokens
+    const tokens = [
+      { symbol: 'POL', name: 'POL (ex-MATIC)', address: 'native', decimals: 18, logo: '🟣' },
+      { symbol: 'USDC', name: 'USD Coin', address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359', decimals: 6, logo: '🔵' },
+      { symbol: 'USDT', name: 'Tether USD', address: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F', decimals: 6, logo: '🟢' },
+      { symbol: 'WETH', name: 'Wrapped Ether', address: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619', decimals: 18, logo: '💎' },
+      { symbol: 'WBTC', name: 'Wrapped Bitcoin', address: '0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6', decimals: 8, logo: '🟠' },
+      { symbol: 'DAI', name: 'Dai Stablecoin', address: '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063', decimals: 18, logo: '🟡' },
+      { symbol: 'AAVE', name: 'Aave', address: '0xD6DF932A45C0f255f85145f286eA0b292B21C90B', decimals: 18, logo: '👻' },
+      { symbol: 'LINK', name: 'Chainlink', address: '0x53E0bca35eC356BD5ddDFebbD1Fc0fD03FaBad39', decimals: 18, logo: '🔗' },
+    ];
+
+    const RPC_URL = 'https://polygon-rpc.com';
+
+    // Get native POL balance
+    const nativeBalanceResponse = await fetch(RPC_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'eth_getBalance',
+        params: [address, 'latest'],
+        id: 1
+      })
+    });
+
+    const nativeResult = await nativeBalanceResponse.json();
+    const nativeBalance = parseInt(nativeResult.result || '0', 16);
+
+    // Build batch request for ERC20 balances
+    const balanceOfSelector = '0x70a08231';
+    const paddedAddress = address.slice(2).toLowerCase().padStart(64, '0');
+
+    const batchRequests = tokens
+      .filter(t => t.address !== 'native')
+      .map((token, index) => ({
+        jsonrpc: '2.0',
+        method: 'eth_call',
+        params: [{
+          to: token.address,
+          data: balanceOfSelector + paddedAddress
+        }, 'latest'],
+        id: index + 2
+      }));
+
+    let tokenBalances = {};
+
+    if (batchRequests.length > 0) {
+      try {
+        const batchResponse = await fetch(RPC_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(batchRequests)
+        });
+
+        const batchResults = await batchResponse.json();
+
+        if (Array.isArray(batchResults)) {
+          batchResults.forEach((result) => {
+            const token = tokens.filter(t => t.address !== 'native')[result.id - 2];
+            if (token && result.result) {
+              const rawBalance = BigInt(result.result || '0x0');
+              tokenBalances[token.symbol] = rawBalance.toString();
+            }
+          });
+        }
+      } catch (err) {
+        console.error('Batch RPC error:', err.message);
+      }
+    }
+
+    // Format response
+    const result = tokens.map(token => {
+      let rawBalance, formattedBalance;
+
+      if (token.address === 'native') {
+        rawBalance = nativeBalance.toString();
+        formattedBalance = (nativeBalance / Math.pow(10, token.decimals)).toFixed(4);
+      } else {
+        const raw = tokenBalances[token.symbol] || '0';
+        rawBalance = raw;
+        const bal = Number(BigInt(raw)) / Math.pow(10, token.decimals);
+        formattedBalance = bal.toFixed(4);
+      }
+
+      return {
+        symbol: token.symbol,
+        name: token.name,
+        address: token.address,
+        balance: formattedBalance,
+        rawBalance: rawBalance,
+        logo: token.logo
+      };
+    });
+
+    res.json({ tokens: result, address });
+  } catch (error) {
+    console.error('Get tokens error:', error);
+    res.status(500).json({ error: 'Error consultando tokens de Polygon' });
+  }
+});
+
+export default router;
