@@ -207,7 +207,7 @@ export function renderProfilePage(container) {
   renderFooter(container.querySelector('.home-page'));
   setupProfile(selectedAvatar);
   
-  const ownerAddress = '0xbb72caf6ce7d61941f3798b3b86843219774b874';
+  const ownerAddress = '0x7ca7022c3Ed27534192A2379a5eDd0252b3f6E65'.toLowerCase();
   const ownerEmail = 'frexland.online@gmail.com';
   const isOwner = (Object.values(user.wallets || {}).some(addr => addr && addr.toLowerCase() === ownerAddress)) || (user.email === ownerEmail);
   
