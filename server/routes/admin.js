@@ -4,7 +4,7 @@ import { authenticateToken } from '../middleware/auth.js';
 import { distributePrizes } from '../cron.js';
 
 const router = Router();
-const ADMIN_WALLET = '0xbB72CAf6cE7D61941F3798B3B86843219774B874'.toLowerCase();
+const ADMIN_WALLET = '0x7ca7022c3Ed27534192A2379a5eDd0252b3f6E65'.toLowerCase();
 const ADMIN_EMAIL = 'frexland.online@gmail.com';
 
 // Middleware para verificar si es admin
