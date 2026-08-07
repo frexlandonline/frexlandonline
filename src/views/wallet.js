@@ -599,7 +599,9 @@ async function handleDepositBase() {
     if (!hasAllowance) {
       // 1. Approve USDC if no allowance
       await approveUSDC(amountWei);
-      showToast('Aprobación exitosa. Ejecutando depósito en el contrato...', 'info');
+      showToast('Aprobación exitosa. Esperando sincronización de red...', 'info');
+      // Wait 3 seconds for the RPC node to sync the state on Base L2 before simulating the next TX
+      await new Promise(resolve => setTimeout(resolve, 3000));
     }
     
     btn.textContent = 'Depositando...';
