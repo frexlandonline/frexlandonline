@@ -47,7 +47,7 @@ export function renderNavbar(container, activePage = 'game') {
             </div>
             
             <div id="profile-dropdown" class="profile-dropdown card-glass" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 10px; width: 200px; flex-direction: column; z-index: 100; box-shadow: var(--shadow-glow-purple); background: #131320;">
-              <a href="#/whitepaper" class="dropdown-item">📄 Whitepaper</a>
+              <a href="https://frexland-online.gitbook.io/frexland-online-docs/" target="_blank" rel="noopener noreferrer" class="dropdown-item">📄 Whitepaper</a>
               <a href="#/notifications" class="dropdown-item">🔔 Notificaciones</a>
               <a href="#/contact" class="dropdown-item">✉️ Contacto</a>
               <a href="#/faq" class="dropdown-item">❓ Preguntas Frec.</a>
