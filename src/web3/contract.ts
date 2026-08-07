@@ -2,7 +2,8 @@ import { createPublicClient, createWalletClient, custom, http, decodeAbiParamete
 import { base } from 'viem/chains';
 import { getConnectedAddress, ensureBaseMainnet } from './wallet.js';
 
-export const CONTRACT_ADDRESS = '0x8bb01A4e20638A58c168a9a6745d0F62231B0b94';
+// CONTRATO SEGURO DESPLEGADO EL 06-AGO-2026
+export const CONTRACT_ADDRESS = '0xa129A50c3303057eC25780da0f645a977Bbf66bb';
 
 export const CONTRACT_ABI = [
   {

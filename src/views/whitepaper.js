@@ -107,7 +107,7 @@ export function renderWhitepaperPage(container) {
             <p>La transparencia y seguridad de los fondos son el pilar más crítico de FrexLand. Nuestro contrato inteligente (Smart Contract) corre sobre la blockchain de <strong>Base</strong>.</p>
             <div style="background: rgba(0, 245, 255, 0.05); border: 1px solid rgba(0, 245, 255, 0.3); border-radius: 8px; padding: 15px; margin-bottom: 20px; overflow-wrap: break-word;">
               <strong style="color: var(--neon-cyan);">Contrato Oficial (Base Network):</strong><br>
-              <a href="https://basescan.org/address/0x8bb01A4e20638A58c168a9a6745d0F62231B0b94" target="_blank" style="color: #fff; text-decoration: underline; font-family: monospace; font-size: 1.1rem;">0x8bb01A4e20638A58c168a9a6745d0F62231B0b94</a>
+              <a href="https://basescan.org/address/0xa129A50c3303057eC25780da0f645a977Bbf66bb" target="_blank" style="color: #fff; text-decoration: underline; font-family: monospace; font-size: 1.1rem;">0xa129A50c3303057eC25780da0f645a977Bbf66bb</a>
             </div>
 
             <h3 style="color: var(--neon-cyan); margin-top: 30px;">Auditoría con Slither</h3>

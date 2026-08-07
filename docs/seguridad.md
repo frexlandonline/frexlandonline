@@ -3,7 +3,7 @@
 La transparencia y seguridad de los fondos son el pilar más crítico de FrexLand. Nuestro contrato inteligente (Smart Contract) corre sobre la blockchain de **Base**.
 
 > **Contrato Oficial (Base Network):**
-> [`0x8bb01A4e20638A58c168a9a6745d0F62231B0b94`](https://basescan.org/address/0x8bb01A4e20638A58c168a9a6745d0F62231B0b94)
+> [`0xa129A50c3303057eC25780da0f645a977Bbf66bb`](https://basescan.org/address/0xa129A50c3303057eC25780da0f645a977Bbf66bb)
 
 ### Auditoría con Slither
 
