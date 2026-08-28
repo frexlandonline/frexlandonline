@@ -2,8 +2,8 @@ import { createPublicClient, http } from 'viem';
 import { base } from 'viem/chains';
 import dbAPI from './db.js';
 
-// The address of your deployed Proxy contract
-const CONTRACT_ADDRESS = '0x8bb01A4e20638A58c168a9a6745d0F62231B0b94';
+// CONTRATO SEGURO DESPLEGADO EL 06-AGO-2026
+const CONTRACT_ADDRESS = '0xa129A50c3303057eC25780da0f645a977Bbf66bb';
 const aUSDCAddress = '0x4e65fE4DbA92790696d040ac24Aa414708F5c0AB';
 
 const CONTRACT_ABI = [{ name: 'totalCapitalDepositado', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ type: 'uint256' }] }];

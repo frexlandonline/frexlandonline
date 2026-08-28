@@ -1,4 +1,5 @@
 import { showTermsOnlyModal } from './termsModal.js';
+import { t } from '../utils/i18n.js';
 
 export function renderFooter(container) {
   // Check if footer already exists in the container to avoid duplicates
@@ -26,7 +27,7 @@ export function renderFooter(container) {
   
   footer.innerHTML = `
     <div>
-      FrexLand © 2026 🎮 El Arcade Web3 Multiplataforma con recompensas DeFi
+      ${t('footerCopy')}
     </div>
     <div style="display: flex; gap: 15px; margin-top: 15px; margin-bottom: 5px; flex-wrap: wrap; justify-content: center;">
       <a href="https://www.instagram.com/frexland.online/" target="_blank" style="color: #fff; text-decoration: none; font-family: 'Press Start 2P', cursive; font-size: 0.55rem; border: 2px solid #ff00ff; padding: 8px 10px; transition: all 0.2s; background: rgba(255,0,255,0.1); text-transform: uppercase;" onmouseover="this.style.background='#ff00ff'; this.style.color='#000';" onmouseout="this.style.background='rgba(255,0,255,0.1)'; this.style.color='#fff';">📷 INSTAGRAM</a>
@@ -34,10 +35,10 @@ export function renderFooter(container) {
       <a href="https://discord.gg/VbTyqgqrS" target="_blank" style="color: #fff; text-decoration: none; font-family: 'Press Start 2P', cursive; font-size: 0.55rem; border: 2px solid #39ff14; padding: 8px 10px; transition: all 0.2s; background: rgba(57,255,20,0.1); text-transform: uppercase;" onmouseover="this.style.background='#39ff14'; this.style.color='#000';" onmouseout="this.style.background='rgba(57,255,20,0.1)'; this.style.color='#fff';">💬 DISCORD</a>
     </div>
     <div style="margin-top: 10px;">
-      🎧 Música por <a href="https://open.spotify.com/intl-es/artist/6aLrzuqJKxnbfmDIxSzcDb?si=nF7QpgRrQUaWxQUNLCYRmA" target="_blank" style="color: #1DB954; text-decoration: none; font-weight: bold;">EdgarAllanMusic</a>
+      <a href="https://open.spotify.com/intl-es/artist/6aLrzuqJKxnbfmDIxSzcDb?si=nF7QpgRrQUaWxQUNLCYRmA" target="_blank" style="color: #1DB954; text-decoration: none; font-weight: bold;">${t('musicBy')}</a>
     </div>
     <div style="display: flex; gap: var(--space-md); margin-top: 10px;">
-      <span id="footer-link-terms" style="color: var(--neon-cyan); cursor: pointer; text-decoration: none; transition: color 0.2s ease;">📜 Términos de Servicio y Política de Privacidad</span>
+      <span id="footer-link-terms" style="color: var(--neon-cyan); cursor: pointer; text-decoration: none; transition: color 0.2s ease;">${t('footerTerms')}</span>
     </div>
   `;
   

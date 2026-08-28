@@ -1,3 +1,4 @@
+import { t } from '../utils/i18n.js';
 import { renderNavbar } from '../components/navbar.js';
 import { renderFooter } from '../components/footer.js';
 import api from '../services/api.js';
@@ -8,36 +9,36 @@ export function renderContactPage(container) {
     <div id="navbar-container"></div>
     <div class="home-page" style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 100vh;">
       <div class="card-glass" style="max-width: 900px; width: 90%; margin: 60px 20px; padding: 60px; text-align: left; position: relative; box-sizing: border-box; display: flex; flex-direction: column; align-items: center;">
-        <h2 class="text-gradient" style="font-family: var(--font-display); font-size: 2.5rem; margin-bottom: 20px; text-align: center;">Contacto</h2>
+        <h2 class="text-gradient" style="font-family: var(--font-display); font-size: 2.5rem; margin-bottom: 20px; text-align: center;">${t('contactTitle')}</h2>
         <p style="color: var(--text-secondary); text-align: justify; margin-bottom: 40px; font-size: 1.1rem; line-height: 1.8; width: 100%;">
-          ¿Tienes alguna duda, sugerencia o encontraste un error? Escríbenos y nos pondremos en contacto contigo lo antes posible.
+          ${t('contactDesc')}
         </p>
 
         <form id="contact-form" style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
           <!-- Honeypot field (hidden from real users, bots will fill it) -->
           <div style="display: none;">
-            <label for="honeypot">No llenar este campo si eres humano:</label>
+            <label for="honeypot">${t('contactHoneypot')}</label>
             <input type="text" id="honeypot" name="honeypot" tabindex="-1" autocomplete="off">
           </div>
 
           <div class="form-group">
-            <label style="color: var(--neon-cyan); font-weight: bold; margin-bottom: 5px; display: block;">Tu Correo Electrónico</label>
+            <label style="color: var(--neon-cyan); font-weight: bold; margin-bottom: 5px; display: block;">${t('contactEmail')}</label>
             <input type="email" id="contact-email" class="form-control" placeholder="tu@email.com" required style="width: 100%; padding: 12px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); color: #fff; border-radius: 8px;">
           </div>
 
           <div class="form-group">
-            <label style="color: var(--neon-cyan); font-weight: bold; margin-bottom: 5px; display: block;">Mensaje</label>
-            <textarea id="contact-message" class="form-control" rows="5" placeholder="Escribe tu mensaje aquí..." required style="width: 100%; padding: 12px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); color: #fff; border-radius: 8px; resize: vertical;"></textarea>
+            <label style="color: var(--neon-cyan); font-weight: bold; margin-bottom: 5px; display: block;">${t('contactMsgLabel')}</label>
+            <textarea id="contact-message" class="form-control" rows="5" placeholder="${t('contactMsgPlaceholder')}" required style="width: 100%; padding: 12px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); color: #fff; border-radius: 8px; resize: vertical;"></textarea>
           </div>
 
           <!-- Math Challenge -->
           <div class="form-group">
-            <label id="contact-math-label" style="color: var(--neon-pink); font-weight: bold; margin-bottom: 5px; display: block;">Pregunta de Seguridad: Cargando...</label>
-            <input type="number" id="contact-math" class="form-control" placeholder="Respuesta" required style="width: 100%; padding: 12px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,51,102,0.4); color: #fff; border-radius: 8px;">
+            <label id="contact-math-label" style="color: var(--neon-pink); font-weight: bold; margin-bottom: 5px; display: block;">${t('contactSecurity')}</label>
+            <input type="number" id="contact-math" class="form-control" placeholder="${t('contactAnswer')}" required style="width: 100%; padding: 12px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,51,102,0.4); color: #fff; border-radius: 8px;">
           </div>
 
           <button type="submit" class="btn btn-primary" id="btn-submit-contact" style="margin-top: 10px; width: 100%; padding: 14px; font-size: 1.1rem; box-shadow: var(--shadow-glow-cyan);">
-            Enviar Mensaje
+            ${t('contactSend')}
           </button>
         </form>
       </div>
@@ -60,11 +61,11 @@ export function renderContactPage(container) {
     try {
       const res = await api.get('/contact/challenge');
       currentChallengeId = res.challengeId;
-      document.getElementById('contact-math-label').textContent = 'Pregunta de Seguridad: ' + res.text;
+      document.getElementById('contact-math-label').textContent = t('contactSecurityPrefix') + res.text;
       document.getElementById('contact-math').value = '';
     } catch (err) {
       console.error('Failed to load challenge:', err);
-      document.getElementById('contact-math-label').textContent = 'Pregunta de Seguridad: ¿Cuánto es 7 + 4?';
+      document.getElementById('contact-math-label').textContent = t('contactSecurityPrefix') + '¿Cuánto es 7 + 4?';
     }
   }
 
@@ -82,7 +83,7 @@ export function renderContactPage(container) {
 
     try {
       btn.disabled = true;
-      btn.textContent = 'Enviando...';
+      btn.textContent = t('contactSending');
 
       const res = await api.post('/contact', { email, message, math_answer, challengeId: currentChallengeId, honeypot });
       showToast(res.message, 'success');
@@ -97,7 +98,9 @@ export function renderContactPage(container) {
       loadChallenge();
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Enviar Mensaje';
+      btn.textContent = t('contactSend');
     }
   });
 }
+
+

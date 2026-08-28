@@ -2,8 +2,8 @@ import '@worldcoin/idkit-standalone';
 const IDKit = window.IDKit;
 
 // Configuración de World ID
-// TODO: Reemplazar con el App ID real generado en el Developer Portal de Worldcoin
-const WORLDCOIN_APP_ID = 'app_staging_00000000000000000000000000000000';
+// App ID generado en el Developer Portal de Worldcoin
+const WORLDCOIN_APP_ID = 'app_16b6ce75c2caa92d0fd4d4e1f42cc2f6';
 // TODO: Reemplazar con el Action ID configurado en el portal
 const WORLDCOIN_ACTION = 'submit-score';
 

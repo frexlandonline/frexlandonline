@@ -7,7 +7,7 @@ const router = Router();
 // ─── Save Score ──────────────────────────────────────────────
 router.post('/', authenticateToken, async (req, res) => {
   try {
-    const { score, level, linesCleared, duracionPartidaSegundos, walletAddress } = req.body;
+    const { score, level, linesCleared, duracionPartidaSegundos, walletAddress, platform } = req.body;
     const userId = req.user.id;
 
     if (typeof score !== 'number' || score < 0) {
@@ -36,7 +36,7 @@ router.post('/', authenticateToken, async (req, res) => {
       }
     }
 
-    const saved = await dbAPI.saveHighScore(userId, score, level || 1, linesCleared || 0, walletAddress);
+    const saved = await dbAPI.saveHighScore(userId, score, level || 1, linesCleared || 0, platform || 'html5', walletAddress);
 
     res.status(201).json({
       message: 'Puntaje guardado',

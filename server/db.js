@@ -1,4 +1,5 @@
 import admin from 'firebase-admin';
+import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
 import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -110,7 +111,17 @@ const firebaseProjectId = process.env.FIREBASE_PROJECT_ID;
 const firebaseClientEmail = process.env.FIREBASE_CLIENT_EMAIL;
 const firebasePrivateKey = process.env.FIREBASE_PRIVATE_KEY;
 
-if (firebaseProjectId && firebaseClientEmail && firebasePrivateKey) {
+if (process.env.FUNCTIONS_EMULATOR || process.env.K_SERVICE) {
+  try {
+    admin.initializeApp();
+    firestoreDb = getFirestore();
+    useFirestore = true;
+    console.log('🔥 Initialized Firebase Firestore using default application credentials.');
+  } catch (error) {
+    console.error('❌ Failed to initialize Firebase Admin SDK automatically:', error);
+    console.log('ℹ️ Falling back to SQLite local database.');
+  }
+} else if (firebaseProjectId && firebaseClientEmail && firebasePrivateKey) {
   try {
     const privateKey = firebasePrivateKey.replace(/\\n/g, '\n');
     admin.initializeApp({
@@ -120,11 +131,11 @@ if (firebaseProjectId && firebaseClientEmail && firebasePrivateKey) {
         privateKey: privateKey,
       })
     });
-    firestoreDb = admin.firestore();
+    firestoreDb = getFirestore();
     useFirestore = true;
     console.log('🔥 Initialized Firebase Firestore database integration successfully.');
   } catch (error) {
-    console.error('❌ Failed to initialize Firebase Admin SDK:', error);
+    console.error('❌ Failed to initialize Firebase Admin SDK manually:', error);
     console.log('ℹ️ Falling back to SQLite local database.');
   }
 } else {
@@ -348,8 +359,8 @@ export const dbAPI = {
         total_depositado: 0,
         high_score: 0,
         last_credit_reset: now.toISOString().split('T')[0],
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp()
       };
       const docRef = await firestoreDb.collection('users').add(newUser);
       return { id: docRef.id, ...newUser, createdAt: now.toISOString(), updatedAt: now.toISOString() };
@@ -402,7 +413,7 @@ export const dbAPI = {
     }
 
     if (useFirestore) {
-      cleanedUpdates.updatedAt = admin.firestore.FieldValue.serverTimestamp();
+      cleanedUpdates.updatedAt = FieldValue.serverTimestamp();
       await firestoreDb.collection('users').doc(id).update(cleanedUpdates);
       return this.getUserById(id);
     } else {
@@ -481,7 +492,7 @@ export const dbAPI = {
         code,
         expiresAt: expiresAt,
         used: false,
-        createdAt: admin.firestore.FieldValue.serverTimestamp()
+        createdAt: FieldValue.serverTimestamp()
       });
     } else {
       sqliteDb.prepare(`
@@ -574,7 +585,7 @@ export const dbAPI = {
         const currentHighScore = userData.high_score || 0;
         const updates = {
           creditos_escritura: creditos - 1,
-          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+          updatedAt: FieldValue.serverTimestamp()
         };
         if (score > currentHighScore) {
           updates.high_score = score;
@@ -597,7 +608,7 @@ export const dbAPI = {
           score,
           level,
           linesCleared,
-          createdAt: admin.firestore.Timestamp.now()
+          createdAt: Timestamp.now()
         });
 
         // Ordenar descendente y mantener solo 10
@@ -708,7 +719,7 @@ export const dbAPI = {
           email,
           message,
           status: 'unread',
-          createdAt: admin.firestore.FieldValue.serverTimestamp()
+          createdAt: FieldValue.serverTimestamp()
         });
       } catch (error) {
         console.error('Firestore saveContactMessage error:', error);
@@ -777,7 +788,7 @@ export const dbAPI = {
       try {
         await firestoreDb.collection('admin_withdrawals').add({
           amount: Number(amount),
-          createdAt: admin.firestore.FieldValue.serverTimestamp()
+          createdAt: FieldValue.serverTimestamp()
         });
         return true;
       } catch (e) {

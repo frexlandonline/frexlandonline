@@ -1,11 +1,14 @@
-import { getUser, logout, updateLocalUser } from '../services/auth.js';
+﻿import { getUser, logout, updateLocalUser } from '../services/auth.js';
 import { wrapWithBadge } from './avatarBadge.js';
 import { getConnectedAddress, subscribeToAccountChanges } from '../web3/wallet.ts';
 import { getUserDepositedBalance } from '../web3/contract.ts';
 import { getPendingScore, clearPendingScore, subscribeToScoreChanges } from '../services/gameSession.js';
+import { isWorldAppWebView } from '../web3/world.ts';
+import { isLemonWebView } from '../web3/lemon.js';
 import api from '../services/api.js';
 import { showToast } from '../main.js';
 import { showInfoModal } from './infoModal.js';
+import { t, getLang, setLang } from '../utils/i18n.js';
 
 let navbarWalletUnsub = null;
 let navbarScoreUnsub = null;
@@ -14,12 +17,13 @@ export function renderNavbar(container, activePage = 'game') {
   const user = getUser();
   if (!user) return;
 
-  const initial = (user.username || 'U')[0].toUpperCase();
+  const initial = user.username ? user.username.charAt(0).toUpperCase() : '?';
   const avatarHtml = user.avatarUrl 
     ? `<img src="${user.avatarUrl}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid #000; background: var(--bg-secondary);">` 
     : `<div style="width: 32px; height: 32px; border-radius: 50%; background: var(--bg-secondary); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; border: 2px solid #000; color: #fff;">${initial}</div>`;
     
-  const platform = user.platform || (Object.keys(user.wallets || {}).includes('polygon') ? 'lemon' : 'html5');
+  const platform = isWorldAppWebView() ? 'worldchain' : (isLemonWebView() ? 'lemon' : (user.platform || 'html5'));
+  const lang = getLang();
 
   container.innerHTML = `
     <nav class="navbar" id="main-navbar">
@@ -31,13 +35,13 @@ export function renderNavbar(container, activePage = 'game') {
           <button id="nav-info" style="background: none; border: 1px solid var(--neon-cyan); border-radius: 50%; width: 28px; height: 28px; color: var(--neon-cyan); font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-left: 10px; transition: all 0.2s;" title="¿Cómo funciona?">?</button>
         </div>
         <div class="navbar-nav" style="flex: 1 1 auto; justify-content: center;">
-          <button class="navbar-link ${activePage === 'game' || activePage === 'home' ? 'active' : ''}" id="nav-game">🎮 Jugar</button>
+          <button class="navbar-link ${activePage === 'game' || activePage === 'home' ? 'active' : ''}" id="nav-game">🎮 ${t('navGames')}</button>
           
           <button class="navbar-link" id="nav-toggle-registro" style="display: flex; align-items: center; gap: 6px;">
-            <span id="nav-registro-indicator" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #666; transition: all 0.3s;"></span>Registro
+            <span id="nav-registro-indicator" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #666; transition: all 0.3s;"></span>${t('navHistory')}
           </button>
 
-          <button class="navbar-link ${activePage === 'wallet' ? 'active' : ''}" id="nav-wallet">💎 Wallet</button>
+          <button class="navbar-link ${activePage === 'wallet' ? 'active' : ''}" id="nav-wallet">💎 ${t('navWallet')}</button>
           
           <div class="navbar-user" id="nav-profile-trigger" style="position: relative; cursor: pointer;">
             <div style="display: flex; align-items: center; gap: 8px;">
@@ -47,10 +51,18 @@ export function renderNavbar(container, activePage = 'game') {
             </div>
             
             <div id="profile-dropdown" class="profile-dropdown card-glass" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 10px; width: 200px; flex-direction: column; z-index: 100; box-shadow: var(--shadow-glow-purple); background: #131320;">
-              <a href="https://frexland-online.gitbook.io/frexland-online-docs/" target="_blank" rel="noopener noreferrer" class="dropdown-item">📄 Whitepaper</a>
-              <a href="#/notifications" class="dropdown-item">🔔 Notificaciones</a>
-              <a href="#/contact" class="dropdown-item">✉️ Contacto</a>
-              <a href="#/faq" class="dropdown-item">❓ Preguntas Frec.</a>
+              <a href="https://frexland-online.gitbook.io/frexland-online-docs/" target="_blank" rel="noopener noreferrer" class="dropdown-item">📄 ${t('linkWhitepaper')}</a>
+              <a href="#/notifications" class="dropdown-item">🔔 ${t('notifTitle')}</a>
+              <a href="#/contact" class="dropdown-item">✉️ ${t('linkContact')}</a>
+              <a href="#/faq" class="dropdown-item">❓ ${t('linkFAQ')}</a>
+              <div style="height: 1px; background: rgba(255,255,255,0.1); margin: 4px 0;"></div>
+              <div style="padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: #a098c4; font-size: 0.9rem;">Idioma / Lang</span>
+                <div style="display: flex; gap: 5px;">
+                  <button class="lang-btn ${lang === 'es' ? 'active' : ''}" data-lang="es" style="background: ${lang === 'es' ? 'var(--neon-cyan)' : 'transparent'}; color: ${lang === 'es' ? '#000' : '#fff'}; border: 1px solid var(--neon-cyan); border-radius: 4px; padding: 2px 6px; cursor: pointer;">ES</button>
+                  <button class="lang-btn ${lang === 'en' ? 'active' : ''}" data-lang="en" style="background: ${lang === 'en' ? 'var(--neon-cyan)' : 'transparent'}; color: ${lang === 'en' ? '#000' : '#fff'}; border: 1px solid var(--neon-cyan); border-radius: 4px; padding: 2px 6px; cursor: pointer;">EN</button>
+                </div>
+              </div>
               <div style="height: 1px; background: rgba(255,255,255,0.1); margin: 4px 0;"></div>
               <button id="nav-logout" class="dropdown-item" style="color: var(--neon-pink); text-align: left; width: 100%; background: none; border: none; cursor: pointer;">✕ Cerrar Sesión</button>
             </div>
@@ -88,6 +100,15 @@ export function renderNavbar(container, activePage = 'game') {
     if (dropdownMenu && !document.getElementById('nav-profile-trigger')?.contains(e.target)) {
       dropdownMenu.style.display = 'none';
     }
+  });
+
+  // Language selectors
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const newLang = btn.getAttribute('data-lang');
+      setLang(newLang);
+    });
   });
 
   document.getElementById('nav-toggle-registro')?.addEventListener('click', () => {
@@ -171,6 +192,7 @@ function updateNavbarWalletInfo() {
 
 function updateButtonState() {
   const indicator = document.getElementById('nav-registro-indicator');
+  
   if (!indicator) return;
 
   const scoresObj = getPendingScore();
@@ -187,3 +209,4 @@ function updateButtonState() {
     indicator.style.boxShadow = 'none';
   }
 }
+

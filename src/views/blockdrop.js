@@ -1,4 +1,5 @@
 import { renderNavbar } from '../components/navbar.js';
+import { t } from '../utils/i18n.js';
 import { getUser } from '../services/auth.js';
 import { getAvatarBadge, wrapWithBadge } from '../components/avatarBadge.js';
 import api from '../services/api.js';
@@ -27,14 +28,14 @@ export async function renderBlockdropPage(container) {
             ⬢ BLOCKDROP
           </h1>
           <p style="color: var(--text-secondary); font-size: 0.95rem; max-width: 500px; margin: 0 auto; line-height: 1.5;">
-            Tetris web3 con tecnologia blockchain multiplataforma con pozo de recompensa DeFi.
+            ${t('bdSubtitle')}
           </p>
         </div>
 
         <!-- Dashboard Loader -->
         <div id="dashboard-loader" style="display: flex; flex-direction: column; align-items: center; gap: var(--space-md); padding: 50px;">
           <div class="spinner"></div>
-          <span style="color: var(--text-secondary); font-family: var(--font-display); font-size: 0.85rem; letter-spacing: 1px;">CARGANDO TABLERO DE PREMIOS...</span>
+          <span style="color: var(--text-secondary); font-family: var(--font-display); font-size: 0.85rem; letter-spacing: 1px;">${t('bdLoadingBoard')}</span>
         </div>
 
         <!-- Dashboard Content (hidden initially) -->
@@ -44,10 +45,10 @@ export async function renderBlockdropPage(container) {
           <div class="card card-glass" style="width: 100%; border: 1.5px solid var(--border-glow); box-shadow: var(--shadow-neon-purple); display: flex; flex-direction: column; align-items: center; gap: var(--space-lg); padding: var(--space-xl) var(--space-lg);">
             <div style="text-align: center;">
               <h2 style="font-family: var(--font-display); font-size: 1.4rem; color: #fff; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                🏆 PODIO DE GANADORES
+                🏆 ${t('bdPodiumTitle')}
               </h2>
               <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 4px;">
-                Los mejores jugadores de la temporada actual.
+                ${t('bdPodiumDesc')}
               </p>
             </div>
 
@@ -101,7 +102,7 @@ export async function renderBlockdropPage(container) {
             <!-- Leaderboard Table (Ranks 4-10) -->
             <div style="width: 100%; max-width: 500px; margin-top: var(--space-md); border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: var(--space-md);">
               <h3 style="font-family: var(--font-display); font-size: 0.9rem; color: var(--text-secondary); letter-spacing: 1px; margin-bottom: var(--space-sm); text-align: center;">
-                POSICIONES 4º A 10º
+                ${t('bdPositions4to10')}
               </h3>
               <div id="leaderboard-table-container" style="display: flex; flex-direction: column; gap: 6px;">
                 <!-- Dynamically populated rows -->
@@ -114,16 +115,16 @@ export async function renderBlockdropPage(container) {
           <div class="card" style="width: 100%; border: 1.5px solid var(--border-glow); display: flex; flex-direction: column; align-items: center; gap: var(--space-lg); padding: var(--space-xl);">
             <div style="text-align: center; width: 100%;">
               <span style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 800; letter-spacing: 0.1em;">
-                💰 POZO DE RECOMPENSAS DEFI
+                💰 ${t('bdRewardPool')}
               </span>
               <div id="prize-pool-total" style="font-family: var(--font-display); font-size: 2.8rem; font-weight: 900; color: var(--neon-green); text-shadow: 0 0 15px rgba(0, 255, 136, 0.4); margin: 8px 0;">
                 0.00 USDC
               </div>
               <p style="color: var(--text-muted); font-size: 0.8rem; max-width: 480px; margin: 0 auto; line-height: 1.4;">
-                Acumulado total de intereses del capital aportado para recompensas. Se sortea semanalmente.
+                ${t('bdRewardPoolDesc')}
               </p>
               <div id="weekly-countdown" style="display: inline-block; font-size: 0.9rem; color: var(--neon-cyan); margin-top: 15px; font-family: monospace; font-weight: bold; background: rgba(0, 245, 255, 0.1); padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(0, 245, 255, 0.3);">
-                Próximo sorteo en: --:--:--
+                ${t('bdNextDrawPrefix')} --:--:--
               </div>
             </div>
 
@@ -131,21 +132,21 @@ export async function renderBlockdropPage(container) {
             <div class="prize-grid" style="display: grid; gap: var(--space-md); width: 100%;">
               
               <div class="prize-card" style="border: 1px solid rgba(255, 215, 0, 0.3); background: rgba(255, 215, 0, 0.02); padding: 12px; border-radius: var(--radius-md); text-align: center; transition: all 0.2s ease;">
-                <span style="font-size: 0.7rem; color: var(--text-secondary); font-weight: bold;">1º Puesto (50%)</span>
+                <span style="font-size: 0.7rem; color: var(--text-secondary); font-weight: bold;">${t('bdPrize1st')}</span>
                 <div id="prize-amount-1st" style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; color: var(--neon-yellow); margin-top: 4px;">
                   0.00 USDC
                 </div>
               </div>
 
               <div class="prize-card" style="border: 1px solid rgba(0, 245, 255, 0.3); background: rgba(0, 245, 255, 0.02); padding: 12px; border-radius: var(--radius-md); text-align: center; transition: all 0.2s ease;">
-                <span style="font-size: 0.7rem; color: var(--text-secondary); font-weight: bold;">2º Puesto (35%)</span>
+                <span style="font-size: 0.7rem; color: var(--text-secondary); font-weight: bold;">${t('bdPrize2nd')}</span>
                 <div id="prize-amount-2nd" style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; color: var(--neon-cyan); margin-top: 4px;">
                   0.00 USDC
                 </div>
               </div>
 
               <div class="prize-card" style="border: 1px solid rgba(255, 0, 229, 0.3); background: rgba(255, 0, 229, 0.02); padding: 12px; border-radius: var(--radius-md); text-align: center; transition: all 0.2s ease;">
-                <span style="font-size: 0.7rem; color: var(--text-secondary); font-weight: bold;">3º Puesto (15%)</span>
+                <span style="font-size: 0.7rem; color: var(--text-secondary); font-weight: bold;">${t('bdPrize3rd')}</span>
                 <div id="prize-amount-3rd" style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; color: var(--neon-magenta); margin-top: 4px;">
                   0.00 USDC
                 </div>
@@ -157,7 +158,7 @@ export async function renderBlockdropPage(container) {
           <!-- PLAY CTA -->
           <div style="width: 100%; display: flex; justify-content: center; margin-top: var(--space-md);">
             <button class="btn btn-primary btn-lg" id="btn-goto-play" style="width: 100%; max-width: 320px; font-family: var(--font-display); font-size: 1.2rem; letter-spacing: 1px; box-shadow: var(--shadow-neon-cyan); text-transform: uppercase;">
-              🎮 ¡Ir a Jugar!
+              🎮 ${t('bdPlayBtn')}
             </button>
           </div>
 
@@ -181,9 +182,7 @@ async function loadDashboardData(container) {
       api.get('/stats/global?t=' + Date.now()).catch(() => ({ totalDeposited: undefined }))
     ]);
 
-    let totalSimulatedDeposit = (globalStats.totalDeposited !== undefined) 
-      ? globalStats.totalDeposited 
-      : (onChainStats.totalDeposited || 0);
+    let totalSimulatedDeposit = onChainStats.totalDeposited || 0;
       
     const currentBalance = onChainStats.currentBalance || 0;
     const trueInterest = Math.max(0, currentBalance - totalSimulatedDeposit);
@@ -229,16 +228,16 @@ async function loadDashboardData(container) {
       
       const el = document.getElementById('weekly-countdown');
       if (el) {
-        el.textContent = `Próximo sorteo en: ${days}d ${hours.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}s`;
+        el.textContent = `${t('bdNextDrawPrefix')} ${days}d ${hours.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}s`;
       }
     };
     updateCountdown();
     setInterval(updateCountdown, 1000);
 
     const emptyAvatar = (seed) => `https://api.dicebear.com/7.x/bottts/svg?seed=${seed}`;
-    const p1 = leaderboard[0] || { username: 'Vacante', score: 0 };
-    const p2 = leaderboard[1] || { username: 'Vacante', score: 0 };
-    const p3 = leaderboard[2] || { username: 'Vacante', score: 0 };
+    const p1 = leaderboard[0] || { username: t('bdVacant'), score: 0 };
+    const p2 = leaderboard[1] || { username: t('bdVacant'), score: 0 };
+    const p3 = leaderboard[2] || { username: t('bdVacant'), score: 0 };
 
     document.getElementById('podium-user-1st').textContent = p1.username;
     document.getElementById('podium-score-1st').textContent = p1.score > 0 ? `${p1.score.toLocaleString()} pts` : '-';
@@ -263,7 +262,7 @@ async function loadDashboardData(container) {
       if (extraPlayers.length === 0) {
         tableContainer.innerHTML = `
           <div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 10px;">
-            No hay jugadores registrados en estos puestos aún.
+            ${t('bdNoPlayersYet')}
           </div>
         `;
       } else {
@@ -323,7 +322,7 @@ async function loadDashboardData(container) {
 
   } catch (err) {
     console.error("Failed to load dashboard yield details:", err);
-    showToast("Error al cargar los datos del pozo de recompensas", "error");
+    showToast(t('bdErrorLoading'), "error");
   }
 }
 

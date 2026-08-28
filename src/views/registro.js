@@ -1,3 +1,4 @@
+import { t } from '../utils/i18n.js';
 import { renderNavbar } from '../components/navbar.js';
 import { getUser, updateLocalUser } from '../services/auth.js';
 import { getPendingScore, clearPendingScore } from '../services/gameSession.js';
@@ -19,14 +20,14 @@ export function renderRegistroPage(container) {
     <div class="page-content" style="padding: 100px 20px 20px 20px; max-width: 800px; margin: 0 auto; min-height: 80vh;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
         <h2 style="font-family: var(--font-display); color: #fff; margin: 0; text-transform: uppercase;">
-          Historial de Partidas
+          ${t('histTitle')}
         </h2>
         <div id="registro-credits-display" style="background: rgba(0, 245, 255, 0.1); border: 1px solid rgba(0, 245, 255, 0.4); padding: 8px 16px; border-radius: 8px; color: var(--neon-cyan); font-weight: bold; display: ${connectedAddress ? 'block' : 'none'};">
-          💳 <span id="registro-credits-count">${credits}</span> Créditos Disponibles
+          💳 <span id="registro-credits-count">${credits}</span> ${t('histCredits')}
         </div>
       </div>
       <p style="color: var(--text-secondary); margin-bottom: 30px;">
-        Aquí se muestran las últimas partidas jugadas de tus diferentes juegos. Puedes elegir en cuál de ellas deseas gastar un crédito para inscribir tu récord oficialmente.
+        ${t('histDesc')}
       </p>
       
       <div id="registro-list" style="display: flex; flex-direction: column; gap: 15px;">
@@ -67,7 +68,7 @@ function renderList() {
   if (!scoresObj || Object.keys(scoresObj).length === 0) {
     container.innerHTML = `
       <div style="background: rgba(255,255,255,0.05); padding: 30px; border-radius: 10px; text-align: center; color: var(--text-muted);">
-        No tienes partidas recientes pendientes de registro. ¡Ve a jugar!
+        ${t('histEmpty')}
       </div>
     `;
     return;
@@ -89,8 +90,8 @@ function renderList() {
   
   container.innerHTML = games.map(game => {
     if (!game) return '';
-    const gameName = game.gameId === 'snake' ? 'Snake' : 'BlockDrop';
-    const date = game.timestamp ? new Date(game.timestamp).toLocaleString() : 'Fecha desconocida';
+    const gameName = game.gameId === 'snake' ? 'Crypto Snake' : 'BlockDrop';
+    const date = game.timestamp ? new Date(game.timestamp).toLocaleString() : t('histDateUnknown');
     const scoreVal = game.score !== undefined ? game.score : (game.puntaje || 0);
     const levelVal = game.level || 1;
     const linesVal = game.linesCleared || 0;
@@ -102,12 +103,12 @@ function renderList() {
           <span style="color: var(--text-muted); font-size: 0.8rem;">${date}</span>
           <div style="color: #fff; margin-top: 5px;">
             <strong style="color: var(--neon-purple); font-size: 1.1rem;">${Number(scoreVal).toLocaleString()} pts</strong> 
-            <span style="color: var(--text-secondary); font-size: 0.9rem;">(Nivel ${levelVal} | ${linesVal} Líneas)</span>
+            <span style="color: var(--text-secondary); font-size: 0.9rem;">(${t('histLevel')} ${levelVal} | ${linesVal} ${t('histLines')})</span>
           </div>
         </div>
         
         <button class="btn btn-primary save-btn" data-game="${game.gameId || 'blockdrop'}" style="min-width: 200px;">
-          Guardar (1 Crédito)
+          ${t('histSaveBtn')}
         </button>
       </div>
       `;
@@ -121,7 +122,7 @@ function renderList() {
       if (!packet) return;
       
       const originalText = e.target.innerText;
-      e.target.innerText = 'Guardando...';
+      e.target.innerText = t('histSaving');
       e.target.disabled = true;
       
       try {
@@ -136,7 +137,7 @@ function renderList() {
            updateLocalUser(currentUser);
         }
 
-        showToast('¡Récord guardado exitosamente!', 'success');
+        showToast(t('histSuccess'), 'success');
         clearPendingScore(gameId);
         
         // Update header credits display
@@ -153,11 +154,13 @@ function renderList() {
         e.target.disabled = false;
         
         if (err.message.includes('créditos')) {
-          showToast('No tienes créditos suficientes. Ve a tu billetera y deposita USDC.', 'error');
+          showToast(t('histNoCredits'), 'error');
         } else {
-          showToast(err.message || 'Error al guardar el récord.', 'error');
+          showToast(err.message || t('histError'), 'error');
         }
       }
     });
   });
 }
+
+

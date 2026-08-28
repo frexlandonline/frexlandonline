@@ -1,3 +1,4 @@
+import { t } from '../utils/i18n.js';
 import { getUser, logout, updateLocalUser } from '../services/auth.js';
 import { wrapWithBadge } from '../components/avatarBadge.js';
 import { renderNavbar } from '../components/navbar.js';
@@ -6,6 +7,8 @@ import api from '../services/api.js';
 import { renderFooter } from '../components/footer.js';
 import { getAaveFinancialData, withdrawUSDC } from '../web3/contract.ts';
 import { parseUnits } from 'viem';
+import { isWorldAppWebView } from '../web3/world.ts';
+import { isLemonWebView } from '../web3/lemon.js';
 
 export function renderProfilePage(container) {
   const user = getUser();
@@ -25,10 +28,10 @@ export function renderProfilePage(container) {
         
         <div style="text-align: center; margin-bottom: var(--space-xl);">
           <h2 class="text-gradient" style="font-family: var(--font-display); font-size: 1.8rem; letter-spacing: 1px; text-shadow: 0 0 10px rgba(139, 92, 246, 0.4);">
-            ⚙️ MI PERFIL
+            ⚙️ ${t('profTitle')}
           </h2>
           <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 4px;">
-            Personaliza tus datos de juego y visualización
+            ${t('profDesc')}
           </p>
         </div>
 
@@ -37,12 +40,12 @@ export function renderProfilePage(container) {
           <!-- Avatar Preview and Chooser -->
           <div style="display: flex; flex-direction: column; align-items: center; gap: 15px; padding-bottom: var(--space-md); border-bottom: 1px solid var(--border-color);">
             <div style="display: flex; justify-content: center;">
-              ${wrapWithBadge(`<img id="avatar-preview-img" src="${selectedAvatar}" style="width: 96px; height: 96px; border-radius: 50%; border: 2px solid #000; background: var(--bg-secondary); object-fit: cover; box-sizing: border-box;">`, user.platform || 'html5')}
+              ${wrapWithBadge(`<img id="avatar-preview-img" src="${selectedAvatar}" style="width: 96px; height: 96px; border-radius: 50%; border: 2px solid #000; background: var(--bg-secondary); object-fit: cover; box-sizing: border-box;">`, isWorldAppWebView() ? 'worldchain' : (isLemonWebView() ? 'lemon' : (user.platform || 'html5')))}
             </div>
             
             <div style="text-align: center; width: 100%;">
               <label style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">
-                Elige tu Avatar
+                ${t('profChooseAvatar')}
               </label>
               
               <!-- Avatar Seed List -->
@@ -73,7 +76,7 @@ export function renderProfilePage(container) {
               <!-- Custom image upload option -->
               <div style="margin-top: var(--space-md); width: 100%; max-width: 280px; display: inline-flex; flex-direction: column; align-items: center; gap: 8px;">
                 <label for="avatar-upload" class="btn btn-secondary btn-sm" style="cursor: pointer; width: 100%; text-align: center; font-size: 0.8rem; padding: 6px;">
-                  Sube tu propia imagen
+                  ${t('profUploadAvatar')}
                 </label>
                 <input type="file" id="avatar-upload" accept="image/jpeg, image/png, image/webp" style="display: none;">
               </div>
@@ -82,14 +85,14 @@ export function renderProfilePage(container) {
 
           <!-- Email (Read Only) -->
           <div class="input-group">
-            <label>Correo Electrónico (Verificado)</label>
+            <label>${t('profEmailLabel')}</label>
             <input type="email" value="${user.email || 'Conectado con Wallet'}" class="input-field" disabled style="opacity: 0.6; cursor: not-allowed; background: rgba(0,0,0,0.2);">
           </div>
 
           <!-- Username -->
           <div class="input-group">
-            <label for="profile-username">Nombre de Usuario</label>
-            <input type="text" id="profile-username" class="input-field" value="${user.username || ''}" required minlength="2" placeholder="Tu nombre en el ranking" autocomplete="username">
+            <label for="profile-username">${t('profUserLabel')}</label>
+            <input type="text" id="profile-username" class="input-field" value="${user.username || ''}" required minlength="2" placeholder="${t('authUsernamePlaceholder')}" autocomplete="username">
           </div>
 
           <!-- Twitter / X -->
@@ -113,11 +116,11 @@ export function renderProfilePage(container) {
           <!-- Wallets count / details -->
           <div class="input-group" style="background: rgba(0,0,0,0.15); border: 1px dashed var(--border-color); padding: var(--space-md); border-radius: var(--radius-md);">
             <span style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em;">
-              🔌 Billeteras Vinculadas
+              🔌 ${t('walletLinked')}
             </span>
             <div style="display: flex; flex-direction: column; gap: var(--space-xs); margin-top: 6px; font-size: 0.85rem;">
               ${Object.entries(user.wallets || {}).length === 0 ? `
-                <div style="color: var(--text-muted);">Ninguna billetera vinculada. Puedes vincularlas en la sección <a href="#/wallet" style="color: var(--neon-cyan); font-weight: 600;">Wallet</a>.</div>
+                <div style="color: var(--text-muted);">${t('profNoWallets')} <a href="#/wallet" style="color: var(--neon-cyan); font-weight: 600;">Wallet</a>.</div>
               ` : Object.entries(user.wallets).map(([chain, address]) => `
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 4px;">
                   <span style="text-transform: capitalize; color: var(--text-secondary); font-weight: 500;">${chain}:</span>
@@ -164,11 +167,11 @@ export function renderProfilePage(container) {
                   <span id="owner-stats-bd-1st">0.000000 USDC</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px; padding-left: 15px;">
-                  <span>🥈 2do Puesto (30%):</span>
+                  <span>🥈 2do Puesto (35%):</span>
                   <span id="owner-stats-bd-2nd">0.000000 USDC</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px; padding-left: 15px;">
-                  <span>🥉 3er Puesto (20%):</span>
+                  <span>🥉 3er Puesto (15%):</span>
                   <span id="owner-stats-bd-3rd">0.000000 USDC</span>
                 </div>
               </div>
@@ -190,11 +193,11 @@ export function renderProfilePage(container) {
               ⚠️ PROBAR DISTRIBUCIÓN DE PREMIOS (ADMIN)
             </button>
             <button type="submit" class="btn btn-primary btn-full btn-lg" id="btn-save-profile">
-              💾 Guardar Cambios
+              💾 ${t('profSaveBtn')}
             </button>
             
             <button type="button" class="btn btn-secondary btn-full" id="btn-profile-logout" style="border: 1px solid rgba(255, 51, 102, 0.4); color: var(--neon-red); background: rgba(255, 51, 102, 0.03);">
-              🚪 Cerrar Sesión
+              🚪 ${t('profLogout')}
             </button>
           </div>
 
@@ -288,8 +291,8 @@ async function loadOwnerStats() {
     // 100% to BlockDrop currently
     document.getElementById('owner-stats-blockdrop-total').textContent = `${poolProfit.toFixed(6)} USDC`;
     document.getElementById('owner-stats-bd-1st').textContent = `${(poolProfit * 0.50).toFixed(6)} USDC`;
-    document.getElementById('owner-stats-bd-2nd').textContent = `${(poolProfit * 0.30).toFixed(6)} USDC`;
-    document.getElementById('owner-stats-bd-3rd').textContent = `${(poolProfit * 0.20).toFixed(6)} USDC`;
+    document.getElementById('owner-stats-bd-2nd').textContent = `${(poolProfit * 0.35).toFixed(6)} USDC`;
+    document.getElementById('owner-stats-bd-3rd').textContent = `${(poolProfit * 0.15).toFixed(6)} USDC`;
     
     const btnWithdrawEarnings = document.getElementById('btn-admin-withdraw');
     if (btnWithdrawEarnings) {
@@ -488,3 +491,5 @@ function setupProfile(selectedAvatar) {
     window.location.hash = '#/auth';
   });
 }
+
+

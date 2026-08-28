@@ -5,6 +5,7 @@ import api from '../services/api.js';
 import { showToast } from '../main.js';
 import { getConnectedAddress } from '../web3/wallet.ts';
 import { isLemonWebView } from '../web3/lemon.js';
+import { t } from '../utils/i18n.js';
 
 
 import { renderFooter } from '../components/footer.js';
@@ -25,26 +26,31 @@ export function renderPlayPage(container) {
           <!-- Fullscreen & Mode Header -->
           <div style="display: flex; justify-content: space-between; width: 100%; max-width: 400px; margin-bottom: 8px;" id="game-header-buttons">
             <button class="btn btn-secondary btn-sm" id="btn-back-game" style="gap: var(--space-xs); border-color: rgba(255, 51, 102, 0.4); color: var(--neon-red); box-shadow: 0 0 10px rgba(255, 51, 102, 0.15);">
-              ◀ Volver
+              ◀ ${t('btnBack')}
             </button>
-            <button class="btn btn-secondary btn-sm" id="btn-fullscreen" style="gap: var(--space-xs); border-color: var(--border-glow); color: var(--neon-cyan); box-shadow: 0 0 10px rgba(0, 245, 255, 0.15);">
-              🖥️ Pantalla Completa
-            </button>
+            <div style="display: flex; gap: 5px;">
+              <button class="btn btn-secondary btn-sm" id="btn-quality" style="gap: var(--space-xs); border-color: var(--neon-purple); color: var(--neon-purple); box-shadow: 0 0 10px rgba(188, 19, 254, 0.15);">
+                ${localStorage.getItem('frexland_quality') === 'low' ? '⚡ ' + t('qualityLow') : '✨ ' + t('qualityHigh')}
+              </button>
+              <button class="btn btn-secondary btn-sm" id="btn-fullscreen" style="gap: var(--space-xs); border-color: var(--border-glow); color: var(--neon-cyan); box-shadow: 0 0 10px rgba(0, 245, 255, 0.15);">
+                🖥️ ${t('btnFullscreen')}
+              </button>
+            </div>
           </div>
 
           <div class="game-section" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
             
             <div class="game-info">
               <div class="game-stat">
-                <div class="game-stat-label">Puntaje</div>
+                <div class="game-stat-label">${t('gameScore')}</div>
                 <div class="game-stat-value" id="stat-score">0</div>
               </div>
               <div class="game-stat">
-                <div class="game-stat-label">Nivel</div>
+                <div class="game-stat-label">${t('gameLevel')}</div>
                 <div class="game-stat-value" id="stat-level">1</div>
               </div>
               <div class="game-stat">
-                <div class="game-stat-label">Líneas</div>
+                <div class="game-stat-label">${t('gameLines')}</div>
                 <div class="game-stat-value" id="stat-lines">0</div>
               </div>
             </div>
@@ -54,15 +60,15 @@ export function renderPlayPage(container) {
                 
                 <!-- Mini Audio Player -->
                 <div id="mini-audio-player" class="mini-audio-player" style="position: absolute; right: -55px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; background: rgba(0, 0, 0, 0.6); padding: 12px 8px; border-radius: 20px; border: 1px solid var(--border-glow); backdrop-filter: blur(5px); z-index: 10; transition: opacity 0.3s;">
-                  <button id="btn-vol-up" style="background: none; border: none; font-size: 0.9rem; color: var(--text-secondary); cursor: pointer; transition: color 0.2s;" title="Subir Volumen">➕</button>
+                  <button id="btn-vol-up" style="background: none; border: none; font-size: 0.9rem; color: var(--text-secondary); cursor: pointer; transition: color 0.2s;" title="${t('volUp')}">➕</button>
                   
-                  <button id="btn-audio-toggle" style="background: none; border: none; font-size: 1.2rem; color: var(--neon-cyan); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; transition: all 0.2s; text-shadow: 0 0 8px var(--neon-cyan);" title="Música On/Off">
+                  <button id="btn-audio-toggle" style="background: none; border: none; font-size: 1.2rem; color: var(--neon-cyan); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; transition: all 0.2s; text-shadow: 0 0 8px var(--neon-cyan);" title="${t('musicToggle')}">
                     🎵
                   </button>
                   
-                  <button id="btn-vol-down" style="background: none; border: none; font-size: 0.9rem; color: var(--text-secondary); cursor: pointer; transition: color 0.2s;" title="Bajar Volumen">➖</button>
+                  <button id="btn-vol-down" style="background: none; border: none; font-size: 0.9rem; color: var(--text-secondary); cursor: pointer; transition: color 0.2s;" title="${t('volDown')}">➖</button>
                   
-                  <a href="https://open.spotify.com/intl-es/artist/6aLrzuqJKxnbfmDIxSzcDb?si=nF7QpgRrQUaWxQUNLCYRmA" target="_blank" title="Música por EdgarAllanMusic" style="color: #1DB954; font-size: 1.5rem; text-decoration: none; transition: transform 0.2s; display: flex; padding-top: 5px; border-top: 1px solid rgba(255,255,255,0.1);">
+                  <a href="https://open.spotify.com/intl-es/artist/6aLrzuqJKxnbfmDIxSzcDb?si=nF7QpgRrQUaWxQUNLCYRmA" target="_blank" title="${t('musicBy')}" style="color: #1DB954; font-size: 1.5rem; text-decoration: none; transition: transform 0.2s; display: flex; padding-top: 5px; border-top: 1px solid rgba(255,255,255,0.1);">
                     <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
                       <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.24 1.021zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.24 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.38 4.26-1.32 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
                     </svg>
@@ -74,11 +80,11 @@ export function renderPlayPage(container) {
 
                 <div class="game-previews">
                   <div class="game-next">
-                    <div class="game-preview-label">Siguiente</div>
+                    <div class="game-preview-label">${t('gameNext')}</div>
                     <canvas id="next-canvas"></canvas>
                   </div>
                   <div class="game-hold">
-                    <div class="game-preview-label">Hold <kbd>C</kbd></div>
+                    <div class="game-preview-label">${t('gameHold')} <kbd>C</kbd></div>
                     <canvas id="hold-canvas"></canvas>
                   </div>
                 </div>
@@ -87,14 +93,10 @@ export function renderPlayPage(container) {
                   <canvas id="game-canvas"></canvas>
                   <div class="game-overlay" id="game-overlay">
                     <div class="game-overlay-title text-gradient">⬢ BLOCKDROP</div>
-                    <button class="btn btn-primary btn-lg" id="btn-start">▶ Jugar</button>
+                    <button class="btn btn-primary btn-lg" id="btn-start">▶ ${t('btnStart')}</button>
                     <div class="game-controls-hint">
-                      <span class="control-key"><kbd>←</kbd><kbd>→</kbd> Mover</span>
-                      <span class="control-key"><kbd>↑</kbd> Rotar</span>
-                      <span class="control-key"><kbd>↓</kbd> Bajar</span>
-                      <span class="control-key"><kbd>Espacio</kbd> Drop</span>
-                      <span class="control-key"><kbd>C</kbd> Hold</span>
-                      <span class="control-key"><kbd>P</kbd> Pausa</span>
+                      <span class="control-key"><kbd>C</kbd> ${t('ctrlHold')}</span>
+                      <span class="control-key"><kbd>P</kbd> ${t('ctrlPause')}</span>
                     </div>
                     <div class="game-controls-hint-mobile">
                       <span class="control-key"><kbd>◀</kbd><kbd>▶</kbd> Mover</span>
@@ -113,17 +115,17 @@ export function renderPlayPage(container) {
               <div class="mobile-ctrl-group-left">
                 <button class="mobile-btn-overlay" id="mb-left">◀</button>
                 <div class="mobile-action-stack">
-                  <button class="mobile-btn-overlay mobile-btn-sm" id="mb-drop" title="Hard Drop">⏬</button>
+                  <button class="mobile-btn-overlay mobile-btn-sm" id="mb-drop" title="${t('ctrlDrop')}">⏬</button>
                   <button class="mobile-btn-overlay" id="mb-down">▼</button>
                 </div>
                 <button class="mobile-btn-overlay" id="mb-right">▶</button>
               </div>
-              <button class="mobile-btn-overlay mobile-btn-pause" id="mb-pause" title="Pausa">⏸</button>
+              <button class="mobile-btn-overlay mobile-btn-pause" id="mb-pause" title="${t('ctrlPause')}">⏸</button>
               <div class="mobile-ctrl-group-right">
                 <div class="mobile-action-stack">
-                  <button class="mobile-btn-overlay mobile-btn-sm" id="mb-hold" title="Hold">⇅</button>
+                  <button class="mobile-btn-overlay mobile-btn-sm" id="mb-hold" title="${t('ctrlHold')}">⇅</button>
                 </div>
-                <button class="mobile-btn-overlay mobile-btn-rotate" id="mb-rotate" title="Rotar">↻</button>
+                <button class="mobile-btn-overlay mobile-btn-rotate" id="mb-rotate" title="${t('ctrlRotate')}">↻</button>
               </div>
             </div>
 
@@ -153,23 +155,39 @@ function setupFullscreen() {
     });
   }
 
+  const qualityBtn = document.getElementById('btn-quality');
+  if (qualityBtn) {
+    qualityBtn.addEventListener('click', () => {
+      let current = localStorage.getItem('frexland_quality') || 'high';
+      let next = current === 'high' ? 'low' : 'high';
+      localStorage.setItem('frexland_quality', next);
+      qualityBtn.innerHTML = next === 'low' ? '⚡ ' + t('qualityLow') : '✨ ' + t('qualityHigh');
+      showToast(t('qualityChanged'), 'success');
+      // If we want it to apply immediately to an ongoing game, we could reload, 
+      // but reloading loses state. We will just tell Renderer to read it.
+      if (engine && engine.renderer) {
+        engine.renderer.updateQuality();
+      }
+    });
+  }
+
   const toggleFullscreen = () => {
     const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
     if (!isFullscreen) {
       if (gameWrapper.requestFullscreen) {
         gameWrapper.requestFullscreen().then(() => {
           gameWrapper.classList.add('fullscreen-mode');
-          btn.textContent = '🚪 Salir';
+          btn.textContent = t('btnFullscreenExit');
         }).catch(err => {
-          showToast(`Error al activar pantalla completa: ${err.message}`, 'error');
+          showToast(`${t('errorFullscreenActive')}${err.message}`, 'error');
         });
       } else if (gameWrapper.webkitRequestFullscreen) {
         // Fallback for Safari (iPad)
         gameWrapper.webkitRequestFullscreen();
         gameWrapper.classList.add('fullscreen-mode');
-        btn.textContent = '🚪 Salir';
+        btn.textContent = t('btnFullscreenExit');
       } else {
-        showToast('Tu navegador no soporta pantalla completa nativa.', 'warning');
+        showToast(t('errorFullscreen'), 'warning');
       }
     } else {
       if (document.exitFullscreen) {
@@ -186,7 +204,7 @@ function setupFullscreen() {
     const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
     if (!isFullscreen) {
       gameWrapper.classList.remove('fullscreen-mode');
-      btn.innerHTML = '🖥️ Pantalla Completa';
+      btn.innerHTML = '🖥️ ' + t('btnFullscreen');
     }
   };
 
@@ -282,28 +300,28 @@ async function renderGameOverOverlay(score, level, lines) {
   
   let saveSection = '';
   if (!user) {
-    saveSection = `<div style="font-size: 0.85rem; color: var(--neon-red); margin-top: 12px;">Debes iniciar sesión para que tu puntaje se registre.</div>`;
+    saveSection = `<div style="font-size: 0.85rem; color: var(--neon-red); margin-top: 12px;">${t('playNoLogin')}</div>`;
   } else if (credits <= 0) {
     saveSection = `
       <div style="margin-top: 12px; padding: 12px; background: rgba(255, 51, 102, 0.05); border: 1px solid rgba(255, 51, 102, 0.2); border-radius: 8px;">
-        <div style="font-size: 0.85rem; color: var(--neon-red); margin-bottom: 8px;">No tienes créditos suficientes para registrar puntajes.</div>
+        <div style="font-size: 0.85rem; color: var(--neon-red); margin-bottom: 8px;">${t('playNoCredits')}</div>
         <button class="btn btn-secondary btn-md" onclick="window.location.hash='#/wallet'" style="width: 100%;">
-          💳 Recargar Créditos
+          ${t('playReloadCredits')}
         </button>
       </div>
     `;
   } else {
-    saveSection = `<div style="font-size: 0.85rem; color: var(--neon-cyan); margin-top: 12px; padding: 8px; background: rgba(0, 245, 255, 0.05); border: 1px dashed rgba(0, 245, 255, 0.3); border-radius: 8px; text-align: center;">💾 Tu puntaje está pendiente. Ve a la sección "Registro" para inscribirlo oficialmente.</div>`;
+    saveSection = `<div style="font-size: 0.85rem; color: var(--neon-cyan); margin-top: 12px; padding: 8px; background: rgba(0, 245, 255, 0.05); border: 1px dashed rgba(0, 245, 255, 0.3); border-radius: 8px; text-align: center;">💾 ${t('playPendingScore')}</div>`;
   }
 
   overlay.classList.remove('hidden');
   overlay.innerHTML = `
-    <div class="game-overlay-title" style="color: var(--neon-red);">Game Over</div>
-    <div class="game-overlay-score">Puntaje: ${score.toLocaleString()}</div>
-    <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">Nivel ${level} • ${lines} líneas</div>
+    <div class="game-overlay-title" style="color: var(--neon-red);">${t('gameOver')}</div>
+    <div class="game-overlay-score">${t('playScorePrefix')} ${score.toLocaleString()}</div>
+    <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">${t('playLevelPrefix')} ${level} • ${lines} ${t('playLinesSuffix')}</div>
     
     <div style="display: flex; flex-direction: column; gap: 8px; max-width: 280px; margin: 0 auto;">
-      <button class="btn btn-primary btn-lg" id="btn-restart">↻ Jugar de Nuevo</button>
+      <button class="btn btn-primary btn-lg" id="btn-restart">↻ ${t('btnPlayAgain')}</button>
       ${saveSection}
     </div>
   `;
@@ -322,7 +340,7 @@ function startGame() {
         gameWrapper.requestFullscreen().then(() => {
           gameWrapper.classList.add('fullscreen-mode');
           const btn = document.getElementById('btn-fullscreen');
-          if (btn) btn.textContent = '🚪 Salir';
+          if (btn) btn.textContent = t('btnFullscreenExit');
         }).catch(err => {
           console.error("Auto-fullscreen failed:", err);
         });

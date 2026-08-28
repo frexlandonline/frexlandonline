@@ -1,17 +1,15 @@
-import { register, login, verifyEmail, resendCode, loginWithMetaMask, loginWithGoogle, getUser, logout } from '../services/auth.js';
+import { t } from '../utils/i18n.js';
+import { login, register, isLoggedIn as checkAuth, getUser as getPendingVerificationUser, logout, loginWithGoogle } from '../services/auth.js';
 import { showToast } from '../main.js';
 import api from '../services/api.js';
 import { checkAndShowTermsModal } from '../components/termsModal.js';
-import { connectWallet, signAuthMessage } from '../web3/wallet.ts';
-import { checkAndShowPrizeModal } from '../components/prizeModal.js';
-import { isLemonWebView, authenticateLemon } from '../web3/lemon.js';
-import { loginWithLemon } from '../services/auth.js';
+import { checkAndShowWinnerModal } from '../components/winnerModal.js';
 
 let currentTab = 'login';
 let cachedGoogleClientId = null;
 
 export function renderAuthPage(container) {
-  const user = getUser();
+  const user = getPendingVerificationUser();
   if (user && !user.emailVerified && user.email) {
     container.innerHTML = `
       <div class="auth-page">
@@ -19,7 +17,7 @@ export function renderAuthPage(container) {
           <div class="auth-logo">
             <span class="auth-logo-icon" style="font-size: 3rem;">🕹️</span>
             <div class="auth-logo-text" style="font-family: 'Press Start 2P', cursive; font-size: 2rem; color: var(--neon-cyan); text-shadow: 4px 4px 0 var(--neon-magenta), 8px 8px 0 var(--neon-purple); margin-bottom: 10px;">FREXLAND</div>
-            <div class="auth-logo-sub" style="font-family: 'Press Start 2P', cursive; font-size: 0.8rem; color: var(--neon-purple); margin-top: 15px; text-shadow: 1px 1px 2px #000;">El Arcade Web3 Multiplataforma</div>
+            <div class="auth-logo-sub" style="font-family: 'Press Start 2P', cursive; font-size: 0.8rem; color: var(--neon-purple); margin-top: 15px; text-shadow: 1px 1px 2px #000;">${t('authSubtitle')}</div>
           </div>
           <div id="verify-modal-container"></div>
         </div>
@@ -35,22 +33,19 @@ export function renderAuthPage(container) {
         <div class="auth-logo">
           <span class="auth-logo-icon" style="font-size: 3rem;">🕹️</span>
           <div class="auth-logo-text" style="font-family: 'Press Start 2P', cursive; font-size: 2rem; color: var(--neon-cyan); text-shadow: 4px 4px 0 var(--neon-magenta), 8px 8px 0 var(--neon-purple); margin-bottom: 10px;">FREXLAND</div>
-          <div class="auth-logo-sub" style="font-family: 'Press Start 2P', cursive; font-size: 0.8rem; color: var(--neon-purple); margin-top: 15px; text-shadow: 1px 1px 2px #000;">El Arcade Web3 Multiplataforma</div>
+          <div class="auth-logo-sub" style="font-family: 'Press Start 2P', cursive; font-size: 0.8rem; color: var(--neon-purple); margin-top: 15px; text-shadow: 1px 1px 2px #000;">${t('authSubtitle')}</div>
         </div>
         <div class="auth-card">
           <div class="auth-tabs">
-            <button class="auth-tab ${currentTab === 'login' ? 'active' : ''}" id="tab-login">Iniciar Sesión</button>
-            <button class="auth-tab ${currentTab === 'register' ? 'active' : ''}" id="tab-register">Registrarse</button>
+            <button class="auth-tab ${currentTab === 'login' ? 'active' : ''}" id="tab-login">${t('authLoginTab')}</button>
+            <button class="auth-tab ${currentTab === 'register' ? 'active' : ''}" id="tab-register">${t('authRegTab')}</button>
           </div>
           <div id="auth-form-container"></div>
-          <div class="divider">o continúa con</div>
+          <div class="divider">${t('authOrContinue')}</div>
           <div class="auth-social">
             <button class="btn btn-google btn-full" id="btn-google">
               <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
               Google
-            </button>
-            <button class="btn btn-secondary btn-full" id="btn-wallets" style="border: 1px solid var(--border-glow); background: rgba(0, 245, 255, 0.05);">
-              🔌 Billeteras
             </button>
           </div>
         </div>
@@ -62,7 +57,6 @@ export function renderAuthPage(container) {
   renderForm();
   bindEvents(container);
 
-  // Pre-fetch Google config to avoid popup blocker issues on click
   if (!cachedGoogleClientId) {
     api.get('/auth/config').then(config => {
       cachedGoogleClientId = config.googleClientId;
@@ -70,39 +64,8 @@ export function renderAuthPage(container) {
       console.warn('Failed to pre-fetch Google config:', err);
     });
   }
-
-  // Comprobar si estamos en la mini-app de Lemon para auto-login
-  if (isLemonWebView()) {
-    handleLemonAutoLogin(container);
-  }
 }
 
-async function handleLemonAutoLogin(container) {
-  const formContainer = document.getElementById('auth-form-container');
-  if (formContainer) {
-    formContainer.innerHTML = `
-      <div style="text-align: center; padding: 40px 0;">
-        <div style="font-size: 3rem; margin-bottom: 20px;">🍋</div>
-        <h3 style="color: var(--neon-cyan); margin-bottom: 10px;">Conectando con Lemon...</h3>
-        <p style="color: var(--text-secondary);">Por favor espera un momento.</p>
-      </div>
-    `;
-  }
-  
-  try {
-    const authResult = await authenticateLemon();
-    if (authResult && authResult.data && authResult.data.wallet) {
-      await loginWithLemon(authResult.data.wallet);
-      showToast('¡Sesión iniciada con Lemon Cash!', 'success');
-      checkAndShowPrizeModal();
-      window.location.hash = '#/home';
-    }
-  } catch (error) {
-    console.error('Error al auto-loguear con Lemon:', error);
-    showToast('Error al conectar con Lemon Cash. Intenta iniciar sesión de otra forma.', 'error');
-    renderForm(); // Vuelve al formulario normal si falla
-  }
-}
 
 function renderForm() {
   const formContainer = document.getElementById('auth-form-container');
@@ -112,36 +75,36 @@ function renderForm() {
     formContainer.innerHTML = `
       <form class="auth-form" id="auth-form">
         <div class="input-group">
-          <label for="login-email">Email</label>
+          <label for="login-email">${t('authEmail')}</label>
           <input type="email" id="login-email" class="input-field" placeholder="tu@email.com" required autocomplete="email">
         </div>
         <div class="input-group">
-          <label for="login-password">Contraseña</label>
+          <label for="login-password">${t('authPassword')}</label>
           <input type="password" id="login-password" class="input-field" placeholder="••••••••" required autocomplete="current-password">
         </div>
-        <button type="submit" class="btn btn-primary btn-full btn-lg" id="btn-submit">Iniciar Sesión</button>
+        <button type="submit" class="btn btn-primary btn-full btn-lg" id="btn-submit">${t('authSubmitLogin')}</button>
       </form>
     `;
   } else {
     formContainer.innerHTML = `
       <form class="auth-form" id="auth-form">
         <div class="input-group">
-          <label for="reg-username">Nombre de usuario</label>
-          <input type="text" id="reg-username" class="input-field" placeholder="TuNombre" required minlength="2" autocomplete="username">
+          <label for="reg-username">${t('authUsername')}</label>
+          <input type="text" id="reg-username" class="input-field" placeholder="${t('authUsernamePlaceholder')}" required minlength="2" autocomplete="username">
         </div>
         <div class="input-group">
-          <label for="reg-email">Email</label>
+          <label for="reg-email">${t('authEmail')}</label>
           <input type="email" id="reg-email" class="input-field" placeholder="tu@email.com" required autocomplete="email">
         </div>
         <div class="input-group">
-          <label for="reg-password">Contraseña</label>
-          <input type="password" id="reg-password" class="input-field" placeholder="Mínimo 6 caracteres" required minlength="6" autocomplete="new-password">
+          <label for="reg-password">${t('authPassword')}</label>
+          <input type="password" id="reg-password" class="input-field" placeholder="${t('authPassPlaceholder')}" required minlength="6" autocomplete="new-password">
         </div>
         <div class="input-group">
-          <label for="reg-password-confirm">Confirmar Contraseña</label>
-          <input type="password" id="reg-password-confirm" class="input-field" placeholder="Repite tu contraseña" required minlength="6" autocomplete="new-password">
+          <label for="reg-password-confirm">${t('authConfirmPass')}</label>
+          <input type="password" id="reg-password-confirm" class="input-field" placeholder="${t('authConfirmPassPlaceholder')}" required minlength="6" autocomplete="new-password">
         </div>
-        <button type="submit" class="btn btn-primary btn-full btn-lg" id="btn-submit">Crear Cuenta</button>
+        <button type="submit" class="btn btn-primary btn-full btn-lg" id="btn-submit">${t('authSubmitReg')}</button>
       </form>
     `;
   }
@@ -163,8 +126,6 @@ function bindEvents(container) {
     renderForm();
     bindFormSubmit();
   });
-
-  document.getElementById('btn-wallets')?.addEventListener('click', handleWalletsClick);
   document.getElementById('btn-google')?.addEventListener('click', handleGoogle);
   bindFormSubmit();
 }
@@ -185,7 +146,7 @@ function bindFormSubmit() {
           showVerifyModal(email, true);
         } else {
           showToast('¡Bienvenido de vuelta!', 'success');
-          checkAndShowPrizeModal();
+          checkAndShowWinnerModal();
           window.location.hash = '#/home';
         }
       } else {
@@ -212,33 +173,6 @@ function bindFormSubmit() {
   });
 }
 
-async function handleWalletsClick() {
-  try {
-    const address = await connectWallet();
-    if (!address || address === '0x0') {
-      // The modal opened but they didn't connect immediately, or it's pending.
-      // Usually AppKit handles UI for this. We can just wait for connection.
-      // For this simple login, we might need them to click again if they just connected.
-      return;
-    }
-    
-    // Si ya está conectado, procedemos a firmar
-    const message = `Iniciar sesión en FrexLand\n\nWallet: ${address}\nTimestamp: ${Date.now()}`;
-    const signature = await signAuthMessage(message);
-    
-    await loginWithMetaMask(address, null, 'ethereum', message, signature);
-    showToast(`¡Conectado con billetera!`, 'success');
-    checkAndShowPrizeModal();
-    window.location.hash = '#/home';
-  } catch (err) {
-    if (err.message && err.message.includes('User rejected')) {
-      showToast('Firma cancelada por el usuario', 'info');
-    } else {
-      console.error(err);
-      showToast(err.message || 'Error al iniciar sesión con tu billetera', 'error');
-    }
-  }
-}
 
 async function handleGoogle() {
   const btn = document.getElementById('btn-google');
@@ -479,4 +413,6 @@ function showGoogleMockModal() {
     }
   });
 }
+
+
 

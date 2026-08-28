@@ -2,6 +2,7 @@ import './styles/index.css';
 import './styles/auth.css';
 import './styles/game.css';
 import './styles/wallet.css';
+import './styles/landing.css';
 
 import { renderAuthPage } from './views/auth.js';
 import { renderFrexlandPage, cleanupFrexlandPage } from './views/frexland.js';
@@ -14,10 +15,12 @@ import { renderNotificationsPage } from './views/notifications.js';
 import { renderWhitepaperPage } from './views/whitepaper.js';
 import { renderFaqPage } from './views/faq.js';
 import { renderRegistroPage } from './views/registro.js';
+import { renderLandingPage } from './views/landing.js';
 import { isLoggedIn, fetchCurrentUser, getUser, logout } from './services/auth.js';
 import { checkAndShowTermsModal } from './components/termsModal.js';
 import { showInfoModal } from './components/infoModal.js';
-import { checkAndShowPrizeModal } from './components/prizeModal.js';
+import { checkAndShowWinnerModal } from './components/winnerModal.js';
+import { MiniKit } from '@worldcoin/minikit-js';
 
 const app = document.getElementById('app');
 
@@ -51,17 +54,20 @@ function navigate() {
     currentCleanup = null;
   }
 
-  const hash = window.location.hash || '#/auth';
+  const hash = window.location.hash || '#/';
   const route = hash.replace('#', '');
 
   const loggedIn = isLoggedIn();
   const user = getUser();
   const isEmailVerified = !user || user.emailVerified;
 
+  // Public routes that anyone can access (no login required)
+  const publicRoutes = ['/auth', '/', '/landing', '/faq', '/contact', '/whitepaper'];
+
   // Auth & verification guard
-  if (route !== '/auth') {
+  if (!publicRoutes.includes(route)) {
     if (!loggedIn) {
-      window.location.hash = '#/auth';
+      window.location.hash = '#/';
       return;
     }
     if (!isEmailVerified && route !== '/verify') {
@@ -70,14 +76,14 @@ function navigate() {
     }
   }
 
-  // Redirect verified logged-in users from auth
-  if (route === '/auth' && loggedIn && isEmailVerified) {
+  // Redirect verified logged-in users from auth and landing
+  if ((route === '/auth' || route === '/' || route === '/landing') && loggedIn && isEmailVerified) {
     window.location.hash = '#/home';
     return;
   }
 
   // Terms and conditions acceptance guard
-  if (route !== '/auth' && loggedIn && isEmailVerified) {
+  if (!publicRoutes.includes(route) && route !== '/registro' && loggedIn && isEmailVerified) {
     if (localStorage.getItem('blockdrop_hide_info') !== 'true') {
       showInfoModal();
     }
@@ -99,6 +105,10 @@ function navigate() {
   }
 
   switch (route) {
+    case '/':
+    case '/landing':
+      renderLandingPage(app);
+      break;
     case '/auth':
       renderAuthPage(app);
       break;
@@ -136,7 +146,7 @@ function navigate() {
       renderFaqPage(app);
       break;
     default:
-      window.location.hash = isLoggedIn() ? '#/home' : '#/auth';
+      window.location.hash = isLoggedIn() ? '#/home' : '#/';
   }
 }
 
@@ -146,7 +156,7 @@ async function init() {
   if (isLoggedIn()) {
     try {
       await fetchCurrentUser();
-      checkAndShowPrizeModal();
+      checkAndShowWinnerModal();
     } catch (e) {
       // Token invalid, redirect to auth
     }
@@ -175,6 +185,13 @@ function resetIdleTimer() {
 ['mousemove', 'keydown', 'mousedown', 'touchstart'].forEach(evt => {
   window.addEventListener(evt, resetIdleTimer);
 });
+
+// Init World App SDK if available
+try {
+  MiniKit.install('app_16b6ce75c2caa92d0fd4d4e1f42cc2f6');
+} catch (e) {
+  console.warn("MiniKit no instalado o no soportado en este entorno.");
+}
 
 // Setup initial timer if already logged in on load
 window.addEventListener('load', resetIdleTimer);

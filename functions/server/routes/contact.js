@@ -14,7 +14,7 @@ setInterval(() => {
       challenges.delete(id);
     }
   }
-}, 60000);
+}, 60000).unref();
 
 router.get('/challenge', (req, res) => {
   const num1 = Math.floor(Math.random() * 10) + 1;

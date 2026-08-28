@@ -287,6 +287,43 @@ router.post('/metamask-login', async (req, res) => {
   }
 });
 
+// ─── Lemon WebView Login ─────────────────────────────────────
+router.post('/lemon', async (req, res) => {
+  try {
+    const { walletAddress } = req.body;
+    if (!walletAddress) {
+      return res.status(400).json({ error: 'Dirección de wallet requerida' });
+    }
+
+    const normalizedAddress = walletAddress.toLowerCase().trim();
+
+    let user = await dbAPI.getUserByWalletAddress(normalizedAddress);
+
+    if (!user) {
+      const displayName = `LemonUser_${normalizedAddress.slice(2, 8)}`;
+      const walletsMap = { polygon: walletAddress };
+
+      user = await dbAPI.createUser({
+        username: displayName,
+        emailVerified: true,
+        wallets: walletsMap
+      });
+    }
+
+    const token = generateToken(user);
+
+    res.json({
+      message: 'Login con Lemon exitoso',
+      token,
+      user,
+      isNewUser: !user.email
+    });
+  } catch (error) {
+    console.error('Lemon login error:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
 // ─── Google OAuth Callback ───────────────────────────────────
 router.post('/google', async (req, res) => {
   try {

@@ -1,10 +1,15 @@
+import { t } from '../utils/i18n.js';
 import { renderNavbar } from '../components/navbar.js';
 import { getUser, updateLocalUser, fetchCurrentUser } from '../services/auth.js';
 import { showToast } from '../main.js';
 import api from '../services/api.js';
 import { renderFooter } from '../components/footer.js';
 import { getPendingScore } from '../services/gameSession.js';
+import { getWalletClient } from '../web3/contract.ts';
 import { isLemonWebView, depositLemon, withdrawLemon } from '../web3/lemon.js';
+import { isWorldAppWebView } from '../web3/world.ts';
+import { bridgeUSDCToBase } from '../web3/cctp.ts';
+import { verifyHumanity } from '../web3/worldId.ts';
 
 // Modern Web3 EVM imports from Agent 3 TypeScript module
 import { 
@@ -63,6 +68,8 @@ let walletState = {
 };
 
 export function renderWalletPage(container) {
+  const currentUser = getUser();
+
   container.innerHTML = `
     <div id="navbar-container"></div>
     <div class="wallet-page">
@@ -77,6 +84,12 @@ export function renderWalletPage(container) {
   if (activeAddress) {
     walletState.address = activeAddress;
     walletState.chain = 'ethereum';
+  } else if (isWorldAppWebView() || (currentUser && currentUser.wallets && currentUser.wallets.worldchain)) {
+    walletState.address = currentUser?.wallets?.worldchain;
+    walletState.chain = 'worldchain';
+    walletState.networkName = 'World Chain';
+    walletState.nativeSymbol = 'WLD';
+    walletState.chainId = 480; // World Chain ID
   }
 
   // Reactive subscription to EVM account changes (WAGMI)
@@ -124,12 +137,12 @@ function renderWalletContent() {
     content.innerHTML = `
       <div class="card wallet-connect-card" style="border: 1px solid var(--border-color); background: var(--bg-card); border-radius: var(--radius-lg); box-shadow: 0 0 30px rgba(0, 245, 255, 0.05);">
         <div class="wallet-connect-icon" style="filter: drop-shadow(0 0 20px rgba(0, 245, 255, 0.3));">🌐</div>
-        <h2 class="text-gradient" style="font-family: var(--font-display); font-size: 1.8rem; margin-bottom: 8px;">Conecta tu Wallet</h2>
+        <h2 class="text-gradient" style="font-family: var(--font-display); font-size: 1.8rem; margin-bottom: 8px;">${t('walletConnect')}</h2>
         <p style="color: var(--text-secondary); max-width: 400px; margin: 0 auto 24px auto; font-size: 0.95rem; line-height: 1.5;">
-          Conecta MetaMask, Coinbase o Phantom para ver tus balances nativos, vincular tu perfil y participar en el ranking.
+          ${t('walletConnectDesc')}
         </p>
         <button class="btn btn-primary btn-lg" id="btn-connect-wallet" style="box-shadow: var(--shadow-glow-cyan); margin-bottom: var(--space-md);">
-          🔌 Conectar Billetera
+          ${t('walletConnectBtn')}
         </button>
         
         ${renderLinkedWalletsSection(false)}
@@ -159,7 +172,7 @@ function renderWalletContent() {
           <span class="wallet-address-text" id="wallet-addr" style="font-family: monospace; font-size: 0.9rem; color: var(--neon-cyan); letter-spacing: 0.5px;">
             ${walletState.address}
           </span>
-          <button class="wallet-copy-btn" id="btn-copy" title="Copiar dirección" style="background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--text-muted);">📋</button>
+          <button class="wallet-copy-btn" id="btn-copy" title="Copiar ${t('walletAddress')}" style="background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--text-muted);">📋</button>
         </div>
         <div style="margin-top: 12px; display: flex; gap: var(--space-sm); justify-content: center; align-items: center; flex-wrap: wrap;">
           <span class="wallet-network-badge" style="background: rgba(0, 245, 255, 0.1); border-color: rgba(0, 245, 255, 0.3); color: var(--neon-cyan); font-weight: 600; margin-top: 0;">
@@ -167,7 +180,7 @@ function renderWalletContent() {
           </span>
           ${!isAlreadyLinked ? `
             <button class="btn btn-sm btn-primary" id="btn-link-active-wallet" style="font-size: 0.75rem; padding: 4px 10px; box-shadow: var(--shadow-neon-purple); background: var(--gradient-secondary);">
-              🔗 Vincular a mi Perfil
+              🔗 ${t('walletBtnLink')}
             </button>
           ` : `
             <span style="font-size: 0.75rem; color: var(--neon-green); font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
@@ -193,7 +206,7 @@ function renderWalletContent() {
               <div style="font-family: var(--font-display); font-size: 1.8rem; color: var(--neon-cyan); margin: 8px 0;">
                 💎 ${walletState.chain === 'ethereum' ? formatBalance(walletState.tokenBalance) : '0.00'} <span style="font-size: 1rem; font-family: var(--font-ui); color: var(--text-secondary);">USDC</span>
               </div>
-              <span style="font-size: 0.75rem; color: var(--text-muted);">Saldo actual en tu billetera</span>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">${t('walletBalance')}</span>
             </div>
 
           </div>
@@ -240,6 +253,27 @@ function renderWalletContent() {
                     </div>
                   </div>
                 </div>
+
+                ${currentUser ? `
+                  <div class="card" style="background: rgba(139, 92, 246, 0.05); border: 1px solid rgba(139, 92, 246, 0.2); padding: 15px; border-radius: var(--radius-sm); margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                      <span style="font-size: 1.5rem;">🌍</span>
+                      <h4 style="margin: 0; font-family: var(--font-display); font-size: 1.05rem; color: var(--neon-purple);">Verificación de Humanidad (World ID)</h4>
+                    </div>
+                    ${currentUser.isWorldIdVerified ? `
+                      <div style="color: var(--neon-green); font-size: 0.85rem; font-weight: 600;">
+                        ✅ Cuenta verificada con World ID (+1 crédito recibido)
+                      </div>
+                    ` : `
+                      <p style="color: var(--text-secondary); font-size: 0.8rem; margin: 0 0 12px 0; line-height: 1.4;">
+                        Verifica tu humanidad con World ID para obtener <strong>1 crédito extra gratis</strong>. (Solo válido si ya tienes al menos 1 crédito disponible).
+                      </p>
+                      <button class="btn btn-primary btn-sm" id="btn-verify-worldid" style="width: 100%; font-size: 0.85rem; padding: 8px; box-shadow: var(--shadow-neon-purple); background: var(--gradient-secondary);">
+                        ${t('walletBtnWorldID')}
+                      </button>
+                    `}
+                  </div>
+                ` : ''}
 
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                   <div style="flex: 1; min-width: 200px;">
@@ -310,7 +344,7 @@ function renderWalletContent() {
           <div style="text-align: center; margin-top: 20px; display: flex; justify-content: center; gap: 12px;">
             <button class="btn btn-secondary btn-sm" id="btn-refresh-wallet">↻ Actualizar Datos</button>
             <button class="btn btn-secondary btn-sm" id="btn-disconnect" style="color: var(--neon-red); border-color: rgba(255, 51, 102, 0.2); background: rgba(255, 51, 102, 0.02);">
-              🛑 Desconectar Wallet
+              🛑 ${t('walletBtnDisconnect')}
             </button>
           </div>
         </div>
@@ -319,12 +353,58 @@ function renderWalletContent() {
 
     document.getElementById('btn-copy')?.addEventListener('click', () => {
       navigator.clipboard.writeText(walletState.address);
-      showToast('Dirección copiada', 'success');
+      showToast(`${t('walletAddress')} copiada`, 'success');
     });
 
     document.getElementById('btn-refresh-wallet')?.addEventListener('click', () => loadWeb3Data(walletState.address));
     document.getElementById('btn-disconnect')?.addEventListener('click', handleDisconnect);
     document.getElementById('btn-link-active-wallet')?.addEventListener('click', handleLinkActiveWallet);
+
+    document.getElementById('btn-verify-worldid')?.addEventListener('click', async () => {
+      const currentUser = getUser();
+      const credits = currentUser?.creditos_escritura || 0;
+      if (credits < 1) {
+        showToast('Necesitas tener al menos 1 crédito disponible para recibir el crédito extra al verificar.', 'warning');
+        return;
+      }
+
+      const btn = document.getElementById('btn-verify-worldid');
+      if (!btn) return;
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '⏳ Verificando...';
+      btn.disabled = true;
+
+      try {
+        const address = walletState.address || currentUser?.wallets?.worldchain || '0x0000000000000000000000000000000000000000';
+        const proof = await verifyHumanity(address);
+        
+        const res = await api.post('/auth/world/verify', {
+          proof: proof.proof,
+          merkle_root: proof.merkle_root,
+          nullifier_hash: proof.nullifier_hash,
+          action: 'auth',
+          signal: address,
+          userId: currentUser.id
+        });
+
+        if (res.success) {
+          showToast('¡Verificación exitosa! Se te ha asignado +1 crédito extra.', 'success');
+          updateLocalUser(res.user);
+          renderWalletContent();
+        } else {
+          showToast('La verificación no pudo completarse.', 'error');
+        }
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || 'Error al verificar con World ID', 'error');
+      } finally {
+        const freshBtn = document.getElementById('btn-verify-worldid');
+        if (freshBtn) {
+          freshBtn.innerHTML = originalText;
+          freshBtn.disabled = false;
+        }
+      }
+    });
 
     document.getElementById('btn-recover-history')?.addEventListener('click', async () => {
       const btn = document.getElementById('btn-recover-history');
@@ -381,7 +461,7 @@ function renderLinkedWalletsSection(isUserConnected) {
   return `
     <div class="card" style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 20px; border-radius: var(--radius-md); text-align: left;">
       <h3 style="font-family: var(--font-display); font-size: 1.1rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-        🔗 Billeteras Vinculadas en Perfil
+        🔗 ${t('walletLinked')}
       </h3>
       ${walletListHtml ? `
         <div style="display: flex; flex-direction: column;">
@@ -586,6 +666,34 @@ async function handleDepositBase() {
     return;
   }
 
+  if (isWorldAppWebView()) {
+    btn.textContent = 'Preparando bridge...';
+    btn.disabled = true;
+    try {
+      const address = getConnectedAddress() || currentUser?.wallets?.worldchain;
+      if (!address) throw new Error("Wallet de World App no encontrada");
+
+      const amountWei = BigInt(amount * 1e6); // 6 decimals
+      await bridgeUSDCToBase(amountWei, address, (step) => {
+        btn.textContent = step;
+      });
+
+      const result = await api.post('/wallet/deposit', { amount, platform: 'worldchain' });
+      updateLocalUser(result.user);
+      
+      showToast('Depósito vía World Chain exitoso. Créditos actualizados.', 'success');
+      input.value = '';
+      renderWalletContent();
+    } catch (error) {
+      console.error("World Chain Deposit error:", error);
+      showToast(error.shortMessage || error.message || 'Falló el depósito vía World Chain', 'error');
+    } finally {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
+    return;
+  }
+
   btn.textContent = 'Aprobando USDC...';
   btn.disabled = true;
 
@@ -665,6 +773,14 @@ function handleWithdrawBaseClick() {
     executeWithdraw(amount, false);
     return;
   }
+  
+  if (isWorldAppWebView()) {
+    // También procesaremos el retiro a través de un request normal o directamente según la lógica.
+    // Asumiremos que el backend requiere las 24h, o bypass si se decide. Para mantener seguridad, hacemos el flujo estándar.
+    // Si queremos bypass como Lemon:
+    // executeWithdraw(amount, false);
+    // return;
+  }
 
   // Comprobar si ya tiene una solicitud
   if (currentUser.withdraw_request_time && currentUser.withdraw_request_amount === amount) {
@@ -712,6 +828,17 @@ async function executeWithdraw(amount, isAdmin) {
       const isFiat = document.getElementById('lemon-fiat-disclaimer')?.style.display === 'block';
       const tokenName = isFiat ? 'ARS' : 'USDC';
       txHash = await withdrawLemon(amount, tokenName);
+    } else if (isWorldAppWebView()) {
+      // Para World App, el backend orquesta el CCTP reverse bridge
+      const result = await api.post('/wallet/confirm-withdraw-world', { amount });
+      updateLocalUser(result.user);
+      
+      showToast('Retiro a World Chain exitoso.', 'success');
+      if (input) input.value = '';
+      
+      btn.style = '';
+      renderWalletContent();
+      return; // Salimos temprano ya que el backend hizo todo
     } else {
       const amountWei = BigInt(amount * 1e6); // 6 decimals
       txHash = await withdrawUSDC(amountWei);
@@ -819,3 +946,5 @@ async function handleDeposit() {
     showToast(err.message || 'Error al realizar el depósito', 'error');
   }
 }
+
+

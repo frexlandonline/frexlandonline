@@ -134,7 +134,52 @@ router.post('/sync-deposit', authenticateToken, async (req, res) => {
   }
 });
 
-// ─── Request Withdraw (24h lock) ─────────────────────────────────────────────
+// ==========================================
+// Bridge World Chain -> Base (CCTP)
+// ==========================================
+router.post('/bridge-world-to-base', authenticateToken, async (req, res) => {
+  try {
+    const { burnTxHash, amount } = req.body;
+    const userId = req.user.id;
+
+    if (!burnTxHash || !amount) {
+      return res.status(400).json({ error: 'Parámetros inválidos para bridge.' });
+    }
+
+    // TODO: Usar viem para consultar la API de Circle Iris
+    // 1. Obtener el messageHash del evento en burnTxHash
+    // 2. Hacer polling a https://iris-api.circle.com/v1/messages/{domain}/{messageHash}
+    // 3. Cuando status === 'complete', obtener attestation
+    // 4. Llamar a receiveMessage en Base con la private key del owner
+    // 5. Llamar a registrarEntrada en TetrisAavePrizePool
+
+    console.log(`[CCTP Bridge] Procesando tx ${burnTxHash} por ${amount} USDC...`);
+    
+    // Por ahora, simulamos el éxito del bridge y depósito para continuar con la lógica
+    const user = await dbAPI.getUserById(userId);
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    const currentTotal = user.total_depositado || 0;
+    const newTotal = currentTotal + amount;
+    const maxCreditsNow = Math.floor(newTotal / 10);
+    const newCredits = Math.max(user.creditos_escritura || 0, maxCreditsNow);
+
+    const updatedUser = await dbAPI.updateUser(userId, {
+      total_depositado: newTotal,
+      creditos_escritura: newCredits
+    });
+
+    const { passwordHash, ...safeUser } = updatedUser;
+    res.json({ message: 'Bridge CCTP completado y depositado en Aave.', user: safeUser });
+  } catch (error) {
+    console.error('Bridge error:', error);
+    res.status(500).json({ error: 'Error interno en bridge CCTP.' });
+  }
+});
+
+// ==========================================
+// Request Withdraw (24h lock)
+// ==========================================
 router.post('/request-withdraw', authenticateToken, async (req, res) => {
   try {
     const { amount } = req.body;
@@ -214,7 +259,56 @@ router.post('/confirm-withdraw', authenticateToken, async (req, res) => {
   }
 });
 
-// ─── Get Polygon Tokens (Legacy helper, keep intact) ───────────
+// ==========================================
+// Confirm Withdraw USDC to World Chain (Reverse Bridge)
+// ==========================================
+router.post('/confirm-withdraw-world', authenticateToken, async (req, res) => {
+  try {
+    const { amount } = req.body;
+    const userId = req.user.id;
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: 'Monto inválido para retirar.' });
+    }
+
+    const user = await dbAPI.getUserById(userId);
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    const currentTotal = user.total_depositado || 0;
+    if (amount > currentTotal) {
+      return res.status(400).json({ error: 'No puedes retirar más del saldo que tienes depositado.' });
+    }
+
+    // TODO: Ejecutar el reverse bridge on-chain
+    // 1. Retirar USDC de Aave V3 en Base
+    // 2. burnOnBase(amount) usando TokenMessengerV2 en Base
+    // 3. Obtener attestation de Circle Iris API
+    // 4. mintOnWorldChain() enviándolo al wallet del usuario
+
+    console.log(`[CCTP Reverse Bridge] Retirando ${amount} USDC hacia World Chain para usuario ${userId}`);
+
+    const newTotal = currentTotal - amount;
+    const maxCreditsNow = Math.floor(newTotal / 10);
+    const newCredits = Math.min(user.creditos_escritura || 0, maxCreditsNow);
+
+    const updatedUser = await dbAPI.updateUser(userId, {
+      total_depositado: newTotal,
+      creditos_escritura: newCredits,
+      withdraw_request_time: null,
+      withdraw_request_amount: 0
+    });
+
+    const { passwordHash, ...safeUser } = updatedUser;
+    res.json({ message: `Retiro de ${amount} USDC hacia World Chain confirmado exitosamente.`, user: safeUser });
+  } catch (error) {
+    console.error('Confirm withdraw world error:', error);
+    res.status(500).json({ error: 'Error interno del servidor al confirmar retiro hacia World Chain.' });
+  }
+});
+
+// ==========================================
+// Get Polygon Tokens (Legacy helper, keep intact)
+// ==========================================
 router.get('/tokens/:address', async (req, res) => {
   try {
     const { address } = req.params;

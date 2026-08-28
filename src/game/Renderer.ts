@@ -22,6 +22,7 @@ export class Renderer {
   private nextCellSize: number;
   private cols: number;
   private rows: number;
+  private isLowQuality: boolean;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -50,7 +51,12 @@ export class Renderer {
       holdCanvas.height = 4 * config.nextCellSize;
     }
 
+    this.isLowQuality = localStorage.getItem('frexland_quality') === 'low';
     this.particles = new ParticleSystem(canvas);
+  }
+
+  updateQuality(): void {
+    this.isLowQuality = localStorage.getItem('frexland_quality') === 'low';
   }
 
   /** Get the main canvas dimensions */
@@ -127,8 +133,10 @@ export class Renderer {
       }
     }
 
-    // Particles on top
-    this.particles.draw();
+    // Particles on top (skip if low quality)
+    if (!this.isLowQuality) {
+      this.particles.draw();
+    }
 
     // Pause Overlay
     if (state.isPaused) {
@@ -236,8 +244,11 @@ export class Renderer {
     const s = size - pad * 2;
 
     ctx.save();
-    ctx.shadowColor = shadow || color;
-    ctx.shadowBlur = 10;
+    
+    if (!this.isLowQuality) {
+      ctx.shadowColor = shadow || color;
+      ctx.shadowBlur = 10;
+    }
 
     // Main block
     ctx.fillStyle = color;
@@ -246,10 +257,16 @@ export class Renderer {
     ctx.roundRect(x + pad, y + pad, s, s, 3);
     ctx.fill();
 
-    // Highlight (top edge shine)
-    ctx.globalAlpha = 0.3 * alpha;
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(x + pad + 2, y + pad + 2, s - 4, s / 3);
+    if (!this.isLowQuality) {
+      // Highlight (top edge shine)
+      ctx.globalAlpha = 0.3 * alpha;
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.roundRect(x + pad, y + pad, s, s / 3, 3);
+      ctx.fill();
+    }
+    
+    ctx.restore();
 
     // Inner border
     ctx.globalAlpha = 0.5 * alpha;

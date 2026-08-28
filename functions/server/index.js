@@ -1,28 +1,28 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import { onRequest } from 'firebase-functions/v2/https';
 
 // Import routes
 import authRoutes from './routes/auth.js';
+import worldRoutes from './routes/world.js';
 import walletRoutes from './routes/wallet.js';
 import scoreRoutes from './routes/scores.js';
 import statsRoutes from './routes/stats.js';
 import adminRoutes from './routes/admin.js';
 import contactRoutes from './routes/contact.js';
+import { onRequest } from 'firebase-functions/v2/https';
 
 const app = express();
 
 // Middleware
 app.use(cors({
-  origin: true, // Allow all origins in production, or set to specific domain later
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
   credentials: true
 }));
 app.use(express.json());
 
 // Routes
-// Note: when Firebase Hosting rewrites /api/** to this function, 
-// the request path will still include /api, so we keep /api prefixes.
+app.use('/api/auth/world', worldRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/scores', scoreRoutes);
@@ -41,8 +41,8 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Error interno del servidor' });
 });
 
-// Export the express app as a Firebase Cloud Function named "api"
-export const api = onRequest(app);
+export const api = onRequest({ invoker: 'public' }, app);
 
-// Also export any cron jobs from cron.js here
 export * from './cron.js';
+
+export default app;

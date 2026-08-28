@@ -16,6 +16,8 @@ export async function distributePrizes() {
     const client = createPublicClient({ chain: base, transport: http() });
     
     // 1. Obtener interés generado
+    // En lugar de obtener totalCapitalDepositado del contrato, usamos la suma real
+    // en base de datos de todo lo que los usuarios han depositado/ganado, para que refleje fielmente los retiros y premios.
     const totalDeposited = await dbAPI.getTotalDepositedAllUsers();
     
     const currentBalanceRaw = await client.readContract({
@@ -28,6 +30,9 @@ export async function distributePrizes() {
     const currentBalance = Number(currentBalanceRaw) / 1e6;
     let interest = Math.max(0, currentBalance - totalDeposited);
     
+    // El interés actual medido (currentBalance - totalDeposited) representa el interés generado no retirado.
+    // El 70% de este interés va al pool de premios. 
+    
     const prizePool = interest * 0.70;
     
     if (prizePool <= 0) {
@@ -36,7 +41,7 @@ export async function distributePrizes() {
       return;
     }
 
-    // 2. Obtener Top 3 Scores
+    // 2. Obtener Top 3 Scores (no usuarios, sino puntajes)
     const topScores = await dbAPI.getLeaderboard(3);
     
     if (topScores.length === 0) {
@@ -73,7 +78,7 @@ export async function distributePrizes() {
         await dbAPI.updateUser(userId, {
           total_depositado: newDeposit,
           pending_prize_amount: data.totalReward,
-          pending_prize_rank: ranksString,
+          pending_prize_rank: ranksString, // We store it as a string now
           high_score: 0
         });
         console.log(`🏆 Premio acumulado de ${data.totalReward.toFixed(4)} USDC asignado al usuario ${user.username} (Puestos: ${ranksString})`);
@@ -95,3 +100,7 @@ export const distributePrizesCron = onSchedule({
 }, async (event) => {
   await distributePrizes();
 });
+
+export function startCron() {
+  // Dummy function for compatibility with index.js imports in functions environment
+}
