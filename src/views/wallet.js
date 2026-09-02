@@ -81,15 +81,18 @@ export function renderWalletPage(container) {
   
   // Set initial active address
   const activeAddress = getConnectedAddress();
-  if (activeAddress) {
-    walletState.address = activeAddress;
-    walletState.chain = 'ethereum';
-  } else if (isWorldAppWebView() || (currentUser && currentUser.wallets && currentUser.wallets.worldchain)) {
-    walletState.address = currentUser?.wallets?.worldchain;
+  if (isWorldAppWebView() || (currentUser && currentUser.wallets && currentUser.wallets.worldchain) || currentUser?.platform === 'worldchain') {
+    walletState.address = currentUser?.wallets?.worldchain || activeAddress || (currentUser?.wallets ? Object.values(currentUser.wallets)[0] : null);
     walletState.chain = 'worldchain';
     walletState.networkName = 'World Chain';
     walletState.nativeSymbol = 'WLD';
     walletState.chainId = 480; // World Chain ID
+  } else if (activeAddress) {
+    walletState.address = activeAddress;
+    walletState.chain = 'ethereum';
+  } else if (currentUser && currentUser.wallets && currentUser.wallets.ethereum) {
+    walletState.address = currentUser.wallets.ethereum;
+    walletState.chain = 'ethereum';
   }
 
   // Reactive subscription to EVM account changes (WAGMI)
@@ -200,23 +203,21 @@ function renderWalletContent() {
           
           <!-- SECCIÓN DE BALANCES DE RED -->
           <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
-            
             <div class="card" style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 20px; border-radius: var(--radius-md);">
-              <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Saldo USDC (Base)</span>
+              <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Saldo USDC (${walletState.chain === 'worldchain' ? 'World Chain' : 'Base'})</span>
               <div style="font-family: var(--font-display); font-size: 1.8rem; color: var(--neon-cyan); margin: 8px 0;">
-                💎 ${walletState.chain === 'ethereum' ? formatBalance(walletState.tokenBalance) : '0.00'} <span style="font-size: 1rem; font-family: var(--font-ui); color: var(--text-secondary);">USDC</span>
+                💎 ${formatBalance(walletState.tokenBalance || 0)} <span style="font-size: 1rem; font-family: var(--font-ui); color: var(--text-secondary);">USDC</span>
               </div>
               <span style="font-size: 0.75rem; color: var(--text-muted);">${t('walletBalance')}</span>
             </div>
-
           </div>
 
-          <!-- SECCIÓN DE DEPÓSITOS EN BASE (EVM only) -->
-          ${(walletState.chain === 'ethereum' || isLemonWebView()) ? `
+          <!-- SECCIÓN DE DEPÓSITOS Y CRÉDITOS -->
+          ${(walletState.chain === 'ethereum' || isLemonWebView() || walletState.chain === 'worldchain' || isWorldAppWebView()) ? `
             <div class="card" style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 20px; border-radius: var(--radius-md);">
               <h3 style="font-family: var(--font-display); font-size: 1.1rem; margin-bottom: 8px;">📥 Depósitos para Créditos</h3>
               <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 16px; line-height: 1.4;">
-                La red oficial del juego es <strong>Base</strong>. Deposita USDC para obtener créditos. (10 USDC = 1 Crédito). El registro de tu récord consume 1 crédito.
+                ${walletState.chain === 'worldchain' ? 'Operando en la red <strong>World Chain</strong>. Deposita USDC para obtener créditos. (10 USDC = 1 Crédito).' : 'La red oficial del juego es <strong>Base</strong>. Deposita USDC para obtener créditos. (10 USDC = 1 Crédito). El registro de tu récord consume 1 crédito.'}
               </p>
               
               ${isLemonWebView() ? `
@@ -231,7 +232,7 @@ function renderWalletContent() {
                 </div>
               ` : ''}
 
-              ${!isLemonWebView() && walletState.chainId !== 8453 ? `
+              ${(!isLemonWebView() && !isWorldAppWebView() && walletState.chain === 'ethereum' && walletState.chainId !== 8453) ? `
                 <div style="padding: 12px; background: rgba(255, 51, 102, 0.1); border: 1px solid rgba(255, 51, 102, 0.3); border-radius: var(--radius-sm); color: var(--neon-red); font-size: 0.85rem; text-align: center;">
                   ⚠️ Estás en una red incorrecta. Por favor, cambia a la red Base para depositar.
                   <button id="btn-connect-evm" class="btn-primary" style="margin:0 auto; display:block;">Conectar MetaMask / Injected</button>
@@ -239,41 +240,63 @@ function renderWalletContent() {
               ` : `
                 <div id="lemon-deposit-section">
                   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-                  <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                    <span style="font-size: 0.75rem; color: var(--text-muted);">Saldo Depositado</span>
-                    <div style="font-size: 1.2rem; font-weight: bold; margin-top: 4px; color: var(--neon-cyan);">
-                      💰 ${formatBalance(currentUser?.total_depositado || 0)} <span style="font-size: 0.8rem; color: var(--text-muted);">USDC</span>
-                    </div>
-                  </div>
-                  
-                  <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                    <span style="font-size: 0.75rem; color: var(--text-muted);">Créditos Disponibles</span>
-                    <div style="font-size: 1.2rem; font-weight: bold; margin-top: 4px; color: var(--neon-green);">
-                      🪙 ${currentUser?.creditos_escritura || 0}
-                    </div>
-                  </div>
-                </div>
-
-                ${currentUser ? `
-                  <div class="card" style="background: rgba(139, 92, 246, 0.05); border: 1px solid rgba(139, 92, 246, 0.2); padding: 15px; border-radius: var(--radius-sm); margin-bottom: 20px;">
-                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                      <span style="font-size: 1.5rem;">🌍</span>
-                      <h4 style="margin: 0; font-family: var(--font-display); font-size: 1.05rem; color: var(--neon-purple);">Verificación de Humanidad (World ID)</h4>
-                    </div>
-                    ${currentUser.isWorldIdVerified ? `
-                      <div style="color: var(--neon-green); font-size: 0.85rem; font-weight: 600;">
-                        ✅ Cuenta verificada con World ID (+1 crédito recibido)
+                    <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                      <span style="font-size: 0.75rem; color: var(--text-muted);">Saldo Depositado</span>
+                      <div style="font-size: 1.2rem; font-weight: bold; margin-top: 4px; color: var(--neon-cyan);">
+                        💰 ${formatBalance(currentUser?.total_depositado || 0)} <span style="font-size: 0.8rem; color: var(--text-muted);">USDC</span>
                       </div>
-                    ` : `
-                      <p style="color: var(--text-secondary); font-size: 0.8rem; margin: 0 0 12px 0; line-height: 1.4;">
-                        Verifica tu humanidad con World ID para obtener <strong>1 crédito extra gratis</strong>. (Solo válido si ya tienes al menos 1 crédito disponible).
-                      </p>
-                      <button class="btn btn-primary btn-sm" id="btn-verify-worldid" style="width: 100%; font-size: 0.85rem; padding: 8px; box-shadow: var(--shadow-neon-purple); background: var(--gradient-secondary);">
-                        ${t('walletBtnWorldID')}
-                      </button>
-                    `}
+                    </div>
+                    
+                    <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                      <span style="font-size: 0.75rem; color: var(--text-muted);">Créditos Disponibles</span>
+                      <div style="font-size: 1.2rem; font-weight: bold; margin-top: 4px; color: var(--neon-green);">
+                        🪙 ${currentUser?.creditos_escritura || 0}
+                      </div>
+                    </div>
                   </div>
-                ` : ''}
+
+                  ${currentUser ? `
+                    <div class="card" style="background: radial-gradient(circle at top left, rgba(139, 92, 246, 0.15) 0%, rgba(10, 10, 26, 0.8) 100%); border: 1px solid var(--neon-purple); padding: 20px; border-radius: var(--radius-md); margin-bottom: 24px; box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);">
+                      <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                          <span style="font-size: 1.8rem;">🌍</span>
+                          <div>
+                            <h4 style="margin: 0; font-family: var(--font-display); font-size: 1.05rem; color: var(--neon-cyan);">Verificación de Humanidad (World ID)</h4>
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">Prueba de persona única libre de bots</span>
+                          </div>
+                        </div>
+                        ${currentUser.isWorldIdVerified ? `
+                          <span style="font-size: 0.8rem; background: rgba(57, 255, 20, 0.1); border: 1px solid var(--neon-green); color: var(--neon-green); padding: 4px 10px; border-radius: 20px; font-weight: bold;">
+                            ✅ Humano Verificado
+                          </span>
+                        ` : ''}
+                      </div>
+
+                      ${currentUser.isWorldIdVerified ? `
+                        <div style="background: rgba(57, 255, 20, 0.05); border: 1px dashed rgba(57, 255, 20, 0.3); padding: 12px; border-radius: 8px; color: var(--text-primary); font-size: 0.85rem; line-height: 1.4;">
+                          🎉 <strong>¡Tu cuenta está verificada!</strong> Ya has recibido tu crédito extra por verificar tu humanidad con World ID.
+                        </div>
+                      ` : `
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.5; margin-bottom: 14px;">
+                          🛡️ <strong>Beneficio Exclusivo:</strong> Si ya tienes <strong>al menos 1 crédito disponible</strong>, verificar que eres humano con World ID te otorgará <strong>+1 crédito extra de regalo</strong> para registrar tus mejores puntajes.
+                        </div>
+
+                        ${(currentUser?.creditos_escritura || 0) >= 1 ? `
+                          <div style="margin-bottom: 14px; font-size: 0.8rem; color: var(--neon-green); display: flex; align-items: center; gap: 6px;">
+                            <span>✨</span> Cumples el requisito (${currentUser.creditos_escritura} créditos disponibles). ¡Verifica tu humanidad ahora y suma +1 crédito extra!
+                          </div>
+                        ` : `
+                          <div style="margin-bottom: 14px; font-size: 0.8rem; color: #FFA500; background: rgba(255, 165, 0, 0.08); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255, 165, 0, 0.2);">
+                            ⚠️ Actualmente tienes 0 créditos. Realiza un depósito (mín. 10 USDC) para obtener tu primer crédito y desbloquear el crédito extra por verificación de humano.
+                          </div>
+                        `}
+
+                        <button class="btn btn-primary btn-lg" id="btn-verify-worldid" style="width: 100%; box-shadow: 0 0 15px rgba(139, 92, 246, 0.4); background: linear-gradient(135deg, #8b5cf6 0%, #00f5ff 100%); border: none; font-weight: bold; font-family: var(--font-display); letter-spacing: 0.5px;">
+                          🛡️ Verificar que soy humano (+1 Crédito Extra)
+                        </button>
+                      `}
+                    </div>
+                  ` : ''}
 
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                   <div style="flex: 1; min-width: 200px;">
@@ -427,9 +450,9 @@ function renderWalletContent() {
       }
     });
 
-    // Deposit and Withdraw on Base network
-    if (walletState.chain === 'ethereum') {
-      if (walletState.chainId === 8453) {
+    // Deposit and Withdraw on Base / World Chain network
+    if (walletState.chain === 'ethereum' || walletState.chain === 'worldchain' || isLemonWebView() || isWorldAppWebView()) {
+      if (walletState.chainId === 8453 || walletState.chain === 'worldchain' || isLemonWebView() || isWorldAppWebView()) {
         document.getElementById('btn-deposit-base')?.addEventListener('click', handleDepositBase);
         document.getElementById('btn-withdraw-base')?.addEventListener('click', handleWithdrawBaseClick);
       } else {
@@ -504,6 +527,17 @@ async function loadWeb3Data(address) {
       walletState.solBalance = (lamports / 1e9).toFixed(4);
       walletState.ethBalance = '0.0000';
       walletState.tokenBalance = '0.0000';
+    } else if (walletState.chain === 'worldchain') {
+      walletState.chainId = 480;
+      walletState.networkName = 'World Chain';
+      walletState.nativeSymbol = 'WLD';
+      walletState.ethBalance = '0.0000';
+      try {
+        const usdcBal = await getUSDCBalance(address, 480);
+        walletState.tokenBalance = usdcBal;
+      } catch (e) {
+        walletState.tokenBalance = '0.00';
+      }
     } else {
       // Fetch EVM balance
       let chainId = 8453; // Default to Base

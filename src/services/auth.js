@@ -83,6 +83,12 @@ export async function loginWithLemon(walletAddress) {
   return data;
 }
 
+export async function loginWithWorld(walletAddress, message, signature) {
+  const data = await api.post('/auth/world', { walletAddress, message, signature });
+  saveSession(data.token, data.user);
+  return data;
+}
+
 export async function fetchCurrentUser() {
   try {
     const data = await api.get('/auth/me');

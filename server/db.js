@@ -1,4 +1,5 @@
 import admin from 'firebase-admin';
+import { initializeApp, cert, getApps } from 'firebase-admin/app';
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
 import Database from 'better-sqlite3';
 import path from 'path';
@@ -111,35 +112,40 @@ const firebaseProjectId = process.env.FIREBASE_PROJECT_ID;
 const firebaseClientEmail = process.env.FIREBASE_CLIENT_EMAIL;
 const firebasePrivateKey = process.env.FIREBASE_PRIVATE_KEY;
 
-if (process.env.FUNCTIONS_EMULATOR || process.env.K_SERVICE) {
-  try {
-    admin.initializeApp();
-    firestoreDb = getFirestore();
-    useFirestore = true;
-    console.log('🔥 Initialized Firebase Firestore using default application credentials.');
-  } catch (error) {
-    console.error('❌ Failed to initialize Firebase Admin SDK automatically:', error);
-    console.log('ℹ️ Falling back to SQLite local database.');
-  }
-} else if (firebaseProjectId && firebaseClientEmail && firebasePrivateKey) {
-  try {
-    const privateKey = firebasePrivateKey.replace(/\\n/g, '\n');
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: firebaseProjectId,
-        clientEmail: firebaseClientEmail,
-        privateKey: privateKey,
-      })
-    });
-    firestoreDb = getFirestore();
-    useFirestore = true;
-    console.log('🔥 Initialized Firebase Firestore database integration successfully.');
-  } catch (error) {
-    console.error('❌ Failed to initialize Firebase Admin SDK manually:', error);
-    console.log('ℹ️ Falling back to SQLite local database.');
+if (getApps().length === 0) {
+  if (process.env.FUNCTIONS_EMULATOR || process.env.K_SERVICE) {
+    try {
+      initializeApp();
+      firestoreDb = getFirestore();
+      useFirestore = true;
+      console.log('🔥 Initialized Firebase Firestore using default application credentials.');
+    } catch (error) {
+      console.error('❌ Failed to initialize Firebase Admin SDK automatically:', error);
+      console.log('ℹ️ Falling back to SQLite local database.');
+    }
+  } else if (firebaseProjectId && firebaseClientEmail && firebasePrivateKey) {
+    try {
+      const privateKey = firebasePrivateKey.replace(/\\n/g, '\n');
+      initializeApp({
+        credential: cert({
+          projectId: firebaseProjectId,
+          clientEmail: firebaseClientEmail,
+          privateKey: privateKey,
+        })
+      });
+      firestoreDb = getFirestore();
+      useFirestore = true;
+      console.log('🔥 Initialized Firebase Firestore database integration successfully.');
+    } catch (error) {
+      console.error('❌ Failed to initialize Firebase Admin SDK manually:', error);
+      console.log('ℹ️ Falling back to SQLite local database.');
+    }
+  } else {
+    console.log('ℹ️ Firebase credentials not configured. Running database on local SQLite fallback.');
   }
 } else {
-  console.log('ℹ️ Firebase credentials not configured. Running database on local SQLite fallback.');
+  firestoreDb = getFirestore();
+  useFirestore = true;
 }
 
 // Helper to format timestamps to ISO string safely

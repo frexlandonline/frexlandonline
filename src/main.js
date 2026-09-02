@@ -16,6 +16,8 @@ import { renderWhitepaperPage } from './views/whitepaper.js';
 import { renderFaqPage } from './views/faq.js';
 import { renderRegistroPage } from './views/registro.js';
 import { renderLandingPage } from './views/landing.js';
+import { renderWorldAuthPage } from './views/worldAuth.js';
+import { isWorldAppWebView } from './web3/world.ts';
 import { isLoggedIn, fetchCurrentUser, getUser, logout } from './services/auth.js';
 import { checkAndShowTermsModal } from './components/termsModal.js';
 import { showInfoModal } from './components/infoModal.js';
@@ -60,14 +62,21 @@ function navigate() {
   const loggedIn = isLoggedIn();
   const user = getUser();
   const isEmailVerified = !user || user.emailVerified;
+  const inWorldApp = isWorldAppWebView();
+
+  // World App Guard: If opened in World App and not logged in, show World Auth directly
+  if (inWorldApp && !loggedIn) {
+    renderWorldAuthPage(app);
+    return;
+  }
 
   // Public routes that anyone can access (no login required)
-  const publicRoutes = ['/auth', '/', '/landing', '/faq', '/contact', '/whitepaper'];
+  const publicRoutes = ['/auth', '/', '/landing', '/faq', '/contact', '/whitepaper', '/world-auth'];
 
   // Auth & verification guard
   if (!publicRoutes.includes(route)) {
     if (!loggedIn) {
-      window.location.hash = '#/';
+      window.location.hash = inWorldApp ? '#/world-auth' : '#/';
       return;
     }
     if (!isEmailVerified && route !== '/verify') {
@@ -77,7 +86,7 @@ function navigate() {
   }
 
   // Redirect verified logged-in users from auth and landing
-  if ((route === '/auth' || route === '/' || route === '/landing') && loggedIn && isEmailVerified) {
+  if ((route === '/auth' || route === '/' || route === '/landing' || route === '/world-auth') && loggedIn && isEmailVerified) {
     window.location.hash = '#/home';
     return;
   }
@@ -108,6 +117,9 @@ function navigate() {
     case '/':
     case '/landing':
       renderLandingPage(app);
+      break;
+    case '/world-auth':
+      renderWorldAuthPage(app);
       break;
     case '/auth':
       renderAuthPage(app);
@@ -146,7 +158,7 @@ function navigate() {
       renderFaqPage(app);
       break;
     default:
-      window.location.hash = isLoggedIn() ? '#/home' : '#/';
+      window.location.hash = isLoggedIn() ? '#/home' : (inWorldApp ? '#/world-auth' : '#/');
   }
 }
 
@@ -159,6 +171,18 @@ async function init() {
       checkAndShowWinnerModal();
     } catch (e) {
       // Token invalid, redirect to auth
+    }
+  }
+
+  if (isWorldAppWebView()) {
+    if (!isLoggedIn()) {
+      if (!window.location.hash || window.location.hash === '#/' || window.location.hash === '#/landing' || window.location.hash === '#/auth') {
+        window.location.hash = '#/world-auth';
+      }
+    } else {
+      if (!window.location.hash || window.location.hash === '#/' || window.location.hash === '#/landing' || window.location.hash === '#/auth') {
+        window.location.hash = '#/home';
+      }
     }
   }
 

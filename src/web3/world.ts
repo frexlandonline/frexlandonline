@@ -5,10 +5,18 @@ import { MiniKit } from '@worldcoin/minikit-js';
  */
 export function isWorldAppWebView(): boolean {
   if (typeof window === 'undefined') return false;
+  try {
+    if (MiniKit.isInstalled() && MiniKit.isInWorldApp()) {
+      return true;
+    }
+  } catch (e) {}
+
   return Boolean(
     (window as any).WorldApp || 
     (window as any).webkit?.messageHandlers?.minikit || 
-    (window as any).Android?.postMessage
+    (window as any).Android?.postMessage ||
+    navigator.userAgent?.toLowerCase().includes('worldapp') ||
+    window.location.search?.includes('worldapp=true')
   );
 }
 

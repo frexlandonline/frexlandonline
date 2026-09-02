@@ -34,9 +34,17 @@ router.post('/', async (req, res) => {
         platform: 'worldchain'
       });
     } else {
-      // Si ya existe pero no tenía plataforma asignada (por error previo)
+      const updates = {};
+      const currentWallets = user.wallets || {};
+      if (!currentWallets.worldchain || currentWallets.worldchain.toLowerCase() !== normalizedAddress) {
+        currentWallets.worldchain = walletAddress;
+        updates.wallets = currentWallets;
+      }
       if (user.platform !== 'worldchain') {
-        user = await dbAPI.updateUser(user.id, { platform: 'worldchain' });
+        updates.platform = 'worldchain';
+      }
+      if (Object.keys(updates).length > 0) {
+        user = await dbAPI.updateUser(user.id, updates);
       }
     }
 
