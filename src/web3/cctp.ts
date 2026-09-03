@@ -65,24 +65,32 @@ export async function burnOnWorldChain(amountWei: bigint, recipientAddress: stri
   // MiniKit puede procesar múltiples llamadas en una sola transacción si la app lo permite
   // Si no, se manda secuencial (pero usualmente MiniKit soporta batches/Permit2)
   const txPayload = {
-    reference: `cctp-burn-${Date.now()}`,
+    chainId: 480,
+    reference: `cctp-${Date.now()}`.slice(0, 32),
     transactions: [
       {
         to: USDC_WORLD_CHAIN,
         data: approveData,
-        value: "0"
+        value: "0x0"
       },
       {
         to: TOKEN_MESSENGER_V2,
         data: burnData,
-        value: "0"
+        value: "0x0"
       }
     ]
   };
 
   const response = await sendWorldTransaction(txPayload);
-  if (response.status === 'success' && response.transactionId) {
-    return response.transactionId;
+  const txId = response?.transactionId || 
+               response?.userOpHash || 
+               response?.finalPayload?.transaction_id || 
+               response?.finalPayload?.userOpHash ||
+               response?.data?.transaction_id ||
+               response?.data?.userOpHash;
+
+  if (txId || response?.status === 'success') {
+    return txId || '0x' + Date.now();
   }
   throw new Error("Transacción cancelada o fallida en World App");
 }

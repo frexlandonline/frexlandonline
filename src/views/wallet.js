@@ -7,7 +7,7 @@ import { renderFooter } from '../components/footer.js';
 import { getPendingScore } from '../services/gameSession.js';
 import { getWalletClient } from '../web3/contract.ts';
 import { isLemonWebView, depositLemon, withdrawLemon } from '../web3/lemon.js';
-import { isWorldAppWebView } from '../web3/world.ts';
+import { isWorldAppWebView, payWorld } from '../web3/world.ts';
 import { bridgeUSDCToBase } from '../web3/cctp.ts';
 import { verifyHumanity } from '../web3/worldId.ts';
 
@@ -730,18 +730,29 @@ async function handleDepositBase() {
   }
 
   if (isWorldAppWebView() || walletState.chain === 'worldchain' || currentUser?.platform === 'worldchain') {
-    btn.textContent = 'Preparando bridge...';
+    btn.textContent = 'Procesando en World App...';
     btn.disabled = true;
     try {
       const address = walletState.address || getConnectedAddress() || currentUser?.wallets?.worldchain;
       if (!address) throw new Error("Wallet de World App no encontrada");
 
-      const amountWei = BigInt(amount * 1e6); // 6 decimals
-      await bridgeUSDCToBase(amountWei, address, (step) => {
-        btn.textContent = step;
-      });
+      let txHash = null;
+      try {
+        btn.textContent = 'Confirmando en World App...';
+        const payRes = await payWorld(amount);
+        txHash = payRes.transactionId;
+      } catch (payErr) {
+        console.warn("MiniKit.pay fallback to CCTP bridge:", payErr);
+        if (payErr.message && payErr.message.includes('cancelado')) {
+          throw payErr;
+        }
+        const amountWei = BigInt(amount * 1e6); // 6 decimals
+        await bridgeUSDCToBase(amountWei, address, (step) => {
+          btn.textContent = step;
+        });
+      }
 
-      const result = await api.post('/wallet/deposit', { amount, platform: 'worldchain' });
+      const result = await api.post('/wallet/deposit', { amount, platform: 'worldchain', txHash });
       updateLocalUser(result.user);
       
       showToast('Depósito vía World Chain exitoso. Créditos actualizados.', 'success');
