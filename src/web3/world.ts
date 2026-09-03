@@ -1,4 +1,5 @@
 import { MiniKit } from '@worldcoin/minikit-js';
+import { Tokens, tokenToDecimals } from '@worldcoin/minikit-js/commands';
 
 /**
  * Detecta si la web app se está ejecutando dentro de World App
@@ -94,22 +95,40 @@ export async function payWorld(amount: number, recipientAddress: string = '0x7ca
   } catch (e) {}
 
   const reference = crypto.randomUUID().replace(/-/g, '').slice(0, 32);
+  const tokenAmountStr = tokenToDecimals(amount, Tokens.USDC).toString();
   
   const payload = {
     reference,
     to: recipientAddress,
     tokens: [
       {
-        symbol: 'USDCE' as any, // Símbolo de USDC en World App MiniKit
-        token_amount: amount.toString()
+        symbol: Tokens.USDC, // 'USDCE'
+        token_amount: tokenAmountStr
       }
     ],
     description: `Depósito de ${amount} USDC en Frexland`
   };
 
+  console.log("Iniciando MiniKit.pay con payload:", payload);
+
   try {
     const response: any = await MiniKit.pay(payload);
     console.log("Respuesta de MiniKit.pay:", response);
+
+    if (!response) {
+      throw new Error("No se recibió respuesta de World App.");
+    }
+
+    if (response.status === 'error') {
+      const errCode = response.error_code || response.errorCode || 'unknown';
+      if (errCode === 'user_rejected') {
+        throw new Error("Depósito cancelado por el usuario en World App.");
+      }
+      if (errCode === 'insufficient_balance') {
+        throw new Error("Saldo insuficiente de USDC en tu billetera de World App.");
+      }
+      throw new Error(`Error en el pago de World App: ${errCode}`);
+    }
 
     const txId = response?.transactionId || 
                  response?.finalPayload?.transaction_id || 
@@ -121,8 +140,12 @@ export async function payWorld(amount: number, recipientAddress: string = '0x7ca
     return { transactionId: txId };
   } catch (error: any) {
     console.error("Error en payWorld:", error);
-    if (error?.message?.includes('user_rejected') || error?.code === 'user_rejected') {
+    const msg = error?.message || '';
+    if (msg.includes('user_rejected') || error?.code === 'user_rejected') {
       throw new Error("Depósito cancelado por el usuario en World App.");
+    }
+    if (msg.includes('insufficient_balance') || error?.code === 'insufficient_balance') {
+      throw new Error("Saldo insuficiente de USDC en tu billetera de World App.");
     }
     throw error;
   }

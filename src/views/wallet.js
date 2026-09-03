@@ -273,7 +273,7 @@ function renderWalletContent() {
                     </div>
                   </div>
 
-                  ${currentUser ? `
+                  ${((isWorldAppWebView() || currentUser?.platform === 'worldchain' || window.location.search?.includes('worldapp=true')) && currentUser) ? `
                     <div class="card" style="background: radial-gradient(circle at top left, rgba(139, 92, 246, 0.15) 0%, rgba(10, 10, 26, 0.8) 100%); border: 1px solid var(--neon-purple); padding: 14px 12px; border-radius: var(--radius-md); margin-bottom: 20px; box-shadow: 0 0 20px rgba(139, 92, 246, 0.15); box-sizing: border-box;">
                       <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
                         <div style="display: flex; align-items: center; gap: 8px;">
@@ -733,34 +733,20 @@ async function handleDepositBase() {
     btn.textContent = 'Procesando en World App...';
     btn.disabled = true;
     try {
-      const address = walletState.address || getConnectedAddress() || currentUser?.wallets?.worldchain;
-      if (!address) throw new Error("Wallet de World App no encontrada");
+      btn.textContent = 'Confirmando en World App...';
+      const payRes = await payWorld(amount);
+      const txHash = payRes.transactionId;
 
-      let txHash = null;
-      try {
-        btn.textContent = 'Confirmando en World App...';
-        const payRes = await payWorld(amount);
-        txHash = payRes.transactionId;
-      } catch (payErr) {
-        console.warn("MiniKit.pay fallback to CCTP bridge:", payErr);
-        if (payErr.message && payErr.message.includes('cancelado')) {
-          throw payErr;
-        }
-        const amountWei = BigInt(amount * 1e6); // 6 decimals
-        await bridgeUSDCToBase(amountWei, address, (step) => {
-          btn.textContent = step;
-        });
-      }
-
+      btn.textContent = 'Acreditando depósito...';
       const result = await api.post('/wallet/deposit', { amount, platform: 'worldchain', txHash });
       updateLocalUser(result.user);
       
-      showToast('Depósito vía World Chain exitoso. Créditos actualizados.', 'success');
+      showToast('¡Depósito exitoso! Créditos acreditados a tu cuenta.', 'success');
       input.value = '';
       renderWalletContent();
     } catch (error) {
       console.error("World Chain Deposit error:", error);
-      showToast(error.shortMessage || error.message || 'Falló el depósito vía World Chain', 'error');
+      showToast(error.shortMessage || error.message || 'Falló el depósito en World App', 'error');
     } finally {
       btn.textContent = originalText;
       btn.disabled = false;

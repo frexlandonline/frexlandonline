@@ -129,6 +129,15 @@
     flex-shrink: 0;
   }
   .navbar-username { display: none; }
+  #nav-dropdown-btn {
+    margin-left: 10px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
   .navbar-wallet-info {
     width: 100%;
     justify-content: center;

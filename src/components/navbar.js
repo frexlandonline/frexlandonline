@@ -1,4 +1,4 @@
-﻿import { getUser, logout, updateLocalUser } from '../services/auth.js';
+import { getUser, logout, updateLocalUser } from '../services/auth.js';
 import { wrapWithBadge } from './avatarBadge.js';
 import { getConnectedAddress, subscribeToAccountChanges } from '../web3/wallet.ts';
 import { getUserDepositedBalance } from '../web3/contract.ts';
@@ -43,12 +43,12 @@ export function renderNavbar(container, activePage = 'game') {
 
           <button class="navbar-link ${activePage === 'wallet' ? 'active' : ''}" id="nav-wallet">💎 ${t('navWallet')}</button>
           
-          <div class="navbar-user" id="nav-profile-trigger" style="position: relative; cursor: pointer;">
-            <div style="display: flex; align-items: center; gap: 8px;">
+          <div class="navbar-user" style="position: relative; display: flex; align-items: center;">
+            <div id="nav-profile-avatar" style="display: flex; align-items: center; gap: 8px; cursor: pointer;" title="Mi Perfil">
               ${wrapWithBadge(avatarHtml, platform)}
               <span class="navbar-username">${user.username}</span>
-              <button class="navbar-logout" id="nav-dropdown-btn" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:1.2rem; padding: 0 4px;">⋮</button>
             </div>
+            <button class="navbar-logout" id="nav-dropdown-btn" title="Menú de opciones" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); color: var(--text-secondary); cursor: pointer; font-size: 1.35rem; min-width: 38px; min-height: 38px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; margin-left: 12px; padding: 0; transition: all 0.2s; touch-action: manipulation;">⋮</button>
             
             <div id="profile-dropdown" class="profile-dropdown card-glass" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 10px; width: 200px; flex-direction: column; z-index: 100; box-shadow: var(--shadow-glow-purple); background: #131320;">
               <a href="https://frexland-online.gitbook.io/frexland-online-docs/" target="_blank" rel="noopener noreferrer" class="dropdown-item">📄 ${t('linkWhitepaper')}</a>
@@ -86,8 +86,8 @@ export function renderNavbar(container, activePage = 'game') {
   const dropdownBtn = document.getElementById('nav-dropdown-btn');
   const dropdownMenu = document.getElementById('profile-dropdown');
   
-  document.getElementById('nav-profile-trigger')?.addEventListener('click', (e) => { 
-    if (e.target === dropdownBtn || dropdownMenu.contains(e.target)) return;
+  document.getElementById('nav-profile-avatar')?.addEventListener('click', (e) => { 
+    e.stopPropagation();
     window.location.hash = '#/profile';
   });
 
@@ -97,7 +97,7 @@ export function renderNavbar(container, activePage = 'game') {
   });
 
   document.addEventListener('click', (e) => {
-    if (dropdownMenu && !document.getElementById('nav-profile-trigger')?.contains(e.target)) {
+    if (dropdownMenu && !dropdownBtn?.contains(e.target) && !dropdownMenu.contains(e.target)) {
       dropdownMenu.style.display = 'none';
     }
   });
