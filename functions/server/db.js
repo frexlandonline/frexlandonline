@@ -415,6 +415,7 @@ export const dbAPI = {
     if (updates.googleId !== undefined) cleanedUpdates.googleId = updates.googleId;
     if (updates.platform !== undefined) cleanedUpdates.platform = updates.platform;
     if (updates.isWorldIdVerified !== undefined) cleanedUpdates.isWorldIdVerified = updates.isWorldIdVerified;
+    if (updates.worldId_nullifier_hash !== undefined) cleanedUpdates.worldId_nullifier_hash = updates.worldId_nullifier_hash;
     if (updates.wallets !== undefined) {
       cleanedUpdates.wallets = updates.wallets;
       cleanedUpdates.walletAddresses = Object.values(updates.wallets).map(addr => addr.toLowerCase());
