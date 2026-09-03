@@ -15,9 +15,9 @@ export function renderAuthPage(container) {
       <div class="auth-page">
         <div class="auth-container">
           <div class="auth-logo">
-            <span class="auth-logo-icon" style="font-size: 3rem;">🕹️</span>
-            <div class="auth-logo-text" style="font-family: 'Press Start 2P', cursive; font-size: 2rem; color: var(--neon-cyan); text-shadow: 4px 4px 0 var(--neon-magenta), 8px 8px 0 var(--neon-purple); margin-bottom: 10px;">FREXLAND</div>
-            <div class="auth-logo-sub" style="font-family: 'Press Start 2P', cursive; font-size: 0.8rem; color: var(--neon-purple); margin-top: 15px; text-shadow: 1px 1px 2px #000;">${t('authSubtitle')}</div>
+            <span class="auth-logo-icon" style="font-size: 2.8rem;">🕹️</span>
+            <div class="auth-logo-text" style="font-family: 'Press Start 2P', cursive; font-size: clamp(1.2rem, 5.5vw, 1.8rem); color: var(--neon-cyan); text-shadow: 3px 3px 0 var(--neon-magenta), 6px 6px 0 var(--neon-purple); margin-bottom: 8px; line-height: 1.3;">FREXLAND</div>
+            <div class="auth-logo-sub" style="font-family: 'Press Start 2P', cursive; font-size: clamp(0.55rem, 2.5vw, 0.75rem); color: var(--neon-purple); margin-top: 10px; text-shadow: 1px 1px 2px #000;">${t('authSubtitle')}</div>
           </div>
           <div id="verify-modal-container"></div>
         </div>
@@ -31,9 +31,9 @@ export function renderAuthPage(container) {
     <div class="auth-page">
       <div class="auth-container">
         <div class="auth-logo">
-          <span class="auth-logo-icon" style="font-size: 3rem;">🕹️</span>
-          <div class="auth-logo-text" style="font-family: 'Press Start 2P', cursive; font-size: 2rem; color: var(--neon-cyan); text-shadow: 4px 4px 0 var(--neon-magenta), 8px 8px 0 var(--neon-purple); margin-bottom: 10px;">FREXLAND</div>
-          <div class="auth-logo-sub" style="font-family: 'Press Start 2P', cursive; font-size: 0.8rem; color: var(--neon-purple); margin-top: 15px; text-shadow: 1px 1px 2px #000;">${t('authSubtitle')}</div>
+          <span class="auth-logo-icon" style="font-size: 2.8rem;">🕹️</span>
+          <div class="auth-logo-text" style="font-family: 'Press Start 2P', cursive; font-size: clamp(1.2rem, 5.5vw, 1.8rem); color: var(--neon-cyan); text-shadow: 3px 3px 0 var(--neon-magenta), 6px 6px 0 var(--neon-purple); margin-bottom: 8px; line-height: 1.3;">FREXLAND</div>
+          <div class="auth-logo-sub" style="font-family: 'Press Start 2P', cursive; font-size: clamp(0.55rem, 2.5vw, 0.75rem); color: var(--neon-purple); margin-top: 10px; text-shadow: 1px 1px 2px #000;">${t('authSubtitle')}</div>
         </div>
         <div class="auth-card">
           <div class="auth-tabs">

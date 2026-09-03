@@ -620,24 +620,112 @@ a:hover {
   }
 }
 
-/* ─── Responsive ──────────────────────────────────────────── */
+/* ─── Responsive (Tablets & Mobiles) ───────────────────────── */
 @media (max-width: 768px) {
   :root {
+    --space-md: 12px;
     --space-lg: 16px;
-    --space-xl: 24px;
-    --space-2xl: 32px;
+    --space-xl: 20px;
+    --space-2xl: 28px;
+    --space-3xl: 36px;
   }
 
-  h1 { font-size: 1.5rem; }
-  h2 { font-size: 1.25rem; }
+  body {
+    padding-left: env(safe-area-inset-left, 0);
+    padding-right: env(safe-area-inset-right, 0);
+  }
+
+  h1 { font-size: clamp(1.4rem, 5.5vw, 1.8rem); }
+  h2 { font-size: clamp(1.15rem, 4.5vw, 1.4rem); }
+  h3 { font-size: clamp(1rem, 3.8vw, 1.2rem); }
+
+  .card {
+    padding: var(--space-md);
+  }
+
+  .card-glass {
+    padding: var(--space-md);
+  }
 
   .toast-container {
-    left: var(--space-md);
-    right: var(--space-md);
+    left: var(--space-sm);
+    right: var(--space-sm);
+    top: var(--space-sm);
   }
 
   .toast {
     max-width: 100%;
+    font-size: 0.85rem;
+    padding: 10px 14px;
+  }
+}
+
+/* ─── Narrow Phones (e.g. Galaxy A22, iPhone SE, <= 400px) ─── */
+@media (max-width: 400px) {
+  :root {
+    --space-xs: 3px;
+    --space-sm: 6px;
+    --space-md: 10px;
+    --space-lg: 12px;
+    --space-xl: 16px;
+    --space-2xl: 22px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+  }
+
+  html {
+    font-size: 14.5px;
+  }
+
+  .btn {
+    padding: 10px 16px;
+    font-size: 0.85rem;
+  }
+
+  .btn-lg {
+    padding: 12px 20px;
+    font-size: 0.95rem;
+  }
+
+  .modal {
+    width: calc(100% - 16px);
+    padding: 18px 12px;
+  }
+
+  .code-digit {
+    width: 38px;
+    height: 48px;
+    font-size: 1.15rem;
+  }
+
+  .code-input-group {
+    gap: 5px;
+  }
+
+  .prize-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .prize-grid .prize-card:first-child {
+    grid-column: span 1;
+  }
+}
+
+/* ─── Ultra Narrow Phones (<= 340px) ───────────────────────── */
+@media (max-width: 340px) {
+  html {
+    font-size: 13.5px;
+  }
+
+  .btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+
+  .code-digit {
+    width: 32px;
+    height: 42px;
+    font-size: 1rem;
   }
 }
 

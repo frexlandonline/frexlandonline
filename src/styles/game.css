@@ -58,6 +58,24 @@
   box-shadow: inset 0 0 30px rgba(0, 245, 255, 0.05);
 }
 
+.mini-audio-player {
+  position: absolute;
+  right: -55px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 12px 8px;
+  border-radius: 20px;
+  border: 1px solid var(--border-glow);
+  backdrop-filter: blur(5px);
+  z-index: 10;
+  transition: opacity 0.3s;
+}
+
 /* ─── Overlay (Start / Game Over / Pause) ─────────────────────── */
 .game-overlay {
   position: absolute;
@@ -836,46 +854,120 @@
   box-shadow: 0 0 24px rgba(0, 245, 255, 0.7) !important;
 }
 
-@media (max-width: 480px) {
-  .mobile-btn-rotate {
-    width: 54px !important;
-    height: 54px !important;
-    font-size: 1.3rem !important;
+@media (max-width: 768px) {
+  .mini-audio-player {
+    position: absolute !important;
+    right: 4px !important;
+    top: 4px !important;
+    transform: none !important;
+    padding: 6px 4px !important;
+    gap: 4px !important;
+    border-radius: 12px !important;
+    background: rgba(0, 0, 0, 0.75) !important;
   }
 }
 
+@media (max-width: 480px) {
+  .mobile-btn-rotate {
+    width: 52px !important;
+    height: 52px !important;
+    font-size: 1.25rem !important;
+  }
+}
+
+@media (max-width: 400px) {
+  .game-mobile-controls-block {
+    max-width: 100% !important;
+    padding: 0 4px !important;
+    margin-top: 4px !important;
+  }
+  .mobile-ctrl-group-left {
+    gap: 3px !important;
+  }
+  .mobile-ctrl-group-right {
+    gap: 4px !important;
+  }
+  #mb-left, #mb-right {
+    width: 46px !important;
+    height: 46px !important;
+    font-size: 1.2rem !important;
+  }
+  #mb-down {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 1.1rem !important;
+  }
+  .mobile-btn-rotate {
+    width: 48px !important;
+    height: 48px !important;
+    font-size: 1.2rem !important;
+  }
+  .mobile-btn-sm {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 0.85rem !important;
+  }
+  .game-stat {
+    padding: 3px 4px !important;
+  }
+  .game-stat-label {
+    font-size: 0.6rem !important;
+  }
+  .game-stat-value {
+    font-size: 0.95rem !important;
+  }
+}
 
 @media (max-width: 600px) {
   .podium-container {
-    gap: 16px;
+    gap: 8px;
     max-width: 100%;
-    padding: 0 10px;
-    flex-wrap: wrap;
+    padding: 0 4px;
+    display: flex;
+    flex-direction: row;
     align-items: flex-end;
     justify-content: center;
+    min-height: auto;
+  }
+  .podium-col {
+    flex: 1;
+    min-width: 0;
   }
   .podium-step-1 {
-    order: -1;
-    width: 100%;
-    margin-bottom: 20px;
+    order: 2;
+    margin-bottom: 0;
   }
   .podium-step-2 {
     order: 1;
-    width: 45%;
   }
   .podium-step-3 {
-    order: 2;
-    width: 45%;
+    order: 3;
   }
   .podium-avatar {
-    width: 56px;
-    height: 56px;
+    width: 44px;
+    height: 44px;
+  }
+  .podium-step-1 .podium-avatar {
+    width: 54px;
+    height: 54px;
   }
   .podium-username {
-    max-width: 100px;
-    font-size: 0.8rem;
+    max-width: 85px;
+    font-size: 0.7rem;
   }
   .podium-score {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
+  }
+  .podium-step-num {
+    font-size: 1.6rem;
+  }
+  .podium-step-body {
+    height: 70px !important;
+  }
+  .podium-step-1 .podium-step-body {
+    height: 100px !important;
+  }
+  .podium-step-2 .podium-step-body {
+    height: 80px !important;
   }
 }

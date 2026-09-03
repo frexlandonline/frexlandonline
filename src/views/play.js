@@ -59,7 +59,7 @@ export function renderPlayPage(container) {
               <div class="game-wrapper" style="position: relative;">
                 
                 <!-- Mini Audio Player -->
-                <div id="mini-audio-player" class="mini-audio-player" style="position: absolute; right: -55px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; background: rgba(0, 0, 0, 0.6); padding: 12px 8px; border-radius: 20px; border: 1px solid var(--border-glow); backdrop-filter: blur(5px); z-index: 10; transition: opacity 0.3s;">
+                <div id="mini-audio-player" class="mini-audio-player">
                   <button id="btn-vol-up" style="background: none; border: none; font-size: 0.9rem; color: var(--text-secondary); cursor: pointer; transition: color 0.2s;" title="${t('volUp')}">➕</button>
                   
                   <button id="btn-audio-toggle" style="background: none; border: none; font-size: 1.2rem; color: var(--neon-cyan); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; transition: all 0.2s; text-shadow: 0 0 8px var(--neon-cyan);" title="${t('musicToggle')}">

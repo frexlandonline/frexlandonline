@@ -21,33 +21,33 @@ export async function renderBlockdropPage(container) {
   container.innerHTML = `
     <div id="navbar-container"></div>
     <div class="home-page" style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-bottom: var(--space-2xl);">
-      <div class="home-content" style="max-width: 900px; width: 100%; display: flex; flex-direction: column; gap: var(--space-xl); align-items: center; padding: var(--space-lg);">
+      <div class="home-content" style="max-width: 900px; width: 100%; display: flex; flex-direction: column; gap: var(--space-xl); align-items: center; padding: var(--space-md); box-sizing: border-box;">
         
-        <div style="text-align: center; margin-top: var(--space-md);">
-          <h1 class="text-gradient text-glow" style="font-family: var(--font-display); font-size: 2.8rem; letter-spacing: 2px; margin-bottom: 8px; animation: float 3s ease-in-out infinite;">
+        <div style="text-align: center; margin-top: var(--space-sm); width: 100%;">
+          <h1 class="text-gradient text-glow" style="font-family: var(--font-display); font-size: clamp(1.5rem, 6.5vw, 2.6rem); letter-spacing: 2px; margin-bottom: 6px; animation: float 3s ease-in-out infinite;">
             ⬢ BLOCKDROP
           </h1>
-          <p style="color: var(--text-secondary); font-size: 0.95rem; max-width: 500px; margin: 0 auto; line-height: 1.5;">
+          <p style="color: var(--text-secondary); font-size: 0.85rem; max-width: 500px; margin: 0 auto; line-height: 1.4;">
             ${t('bdSubtitle')}
           </p>
         </div>
 
         <!-- Dashboard Loader -->
-        <div id="dashboard-loader" style="display: flex; flex-direction: column; align-items: center; gap: var(--space-md); padding: 50px;">
+        <div id="dashboard-loader" style="display: flex; flex-direction: column; align-items: center; gap: var(--space-md); padding: 40px 10px;">
           <div class="spinner"></div>
-          <span style="color: var(--text-secondary); font-family: var(--font-display); font-size: 0.85rem; letter-spacing: 1px;">${t('bdLoadingBoard')}</span>
+          <span style="color: var(--text-secondary); font-family: var(--font-display); font-size: 0.8rem; letter-spacing: 1px;">${t('bdLoadingBoard')}</span>
         </div>
 
         <!-- Dashboard Content (hidden initially) -->
-        <div id="dashboard-main-content" class="hidden" style="width: 100%; display: flex; flex-direction: column; gap: var(--space-xl); align-items: center;">
+        <div id="dashboard-main-content" class="hidden" style="width: 100%; display: flex; flex-direction: column; gap: var(--space-lg); align-items: center;">
           
           <!-- PODIUM SECTION -->
-          <div class="card card-glass" style="width: 100%; border: 1.5px solid var(--border-glow); box-shadow: var(--shadow-neon-purple); display: flex; flex-direction: column; align-items: center; gap: var(--space-lg); padding: var(--space-xl) var(--space-lg);">
-            <div style="text-align: center;">
-              <h2 style="font-family: var(--font-display); font-size: 1.4rem; color: #fff; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <div class="card card-glass" style="width: 100%; border: 1.5px solid var(--border-glow); box-shadow: var(--shadow-neon-purple); display: flex; flex-direction: column; align-items: center; gap: var(--space-md); padding: var(--space-md); box-sizing: border-box;">
+            <div style="text-align: center; width: 100%;">
+              <h2 style="font-family: var(--font-display); font-size: clamp(1.1rem, 4.5vw, 1.4rem); color: #fff; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 6px;">
                 🏆 ${t('bdPodiumTitle')}
               </h2>
-              <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 4px;">
+              <p style="color: var(--text-muted); font-size: 0.78rem; margin-top: 2px;">
                 ${t('bdPodiumDesc')}
               </p>
             </div>
@@ -100,11 +100,11 @@ export async function renderBlockdropPage(container) {
             </div>
 
             <!-- Leaderboard Table (Ranks 4-10) -->
-            <div style="width: 100%; max-width: 500px; margin-top: var(--space-md); border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: var(--space-md);">
-              <h3 style="font-family: var(--font-display); font-size: 0.9rem; color: var(--text-secondary); letter-spacing: 1px; margin-bottom: var(--space-sm); text-align: center;">
+            <div style="width: 100%; max-width: 500px; margin-top: var(--space-sm); border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: var(--space-sm);">
+              <h3 style="font-family: var(--font-display); font-size: 0.85rem; color: var(--text-secondary); letter-spacing: 1px; margin-bottom: var(--space-xs); text-align: center;">
                 ${t('bdPositions4to10')}
               </h3>
-              <div id="leaderboard-table-container" style="display: flex; flex-direction: column; gap: 6px;">
+              <div id="leaderboard-table-container" style="display: flex; flex-direction: column; gap: 4px;">
                 <!-- Dynamically populated rows -->
               </div>
             </div>
@@ -112,42 +112,42 @@ export async function renderBlockdropPage(container) {
           </div>
 
           <!-- REWARD POOL SECTION -->
-          <div class="card" style="width: 100%; border: 1.5px solid var(--border-glow); display: flex; flex-direction: column; align-items: center; gap: var(--space-lg); padding: var(--space-xl);">
+          <div class="card" style="width: 100%; border: 1.5px solid var(--border-glow); display: flex; flex-direction: column; align-items: center; gap: var(--space-md); padding: var(--space-md); box-sizing: border-box;">
             <div style="text-align: center; width: 100%;">
-              <span style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 800; letter-spacing: 0.1em;">
+              <span style="font-size: 0.72rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 800; letter-spacing: 0.1em;">
                 💰 ${t('bdRewardPool')}
               </span>
-              <div id="prize-pool-total" style="font-family: var(--font-display); font-size: 2.8rem; font-weight: 900; color: var(--neon-green); text-shadow: 0 0 15px rgba(0, 255, 136, 0.4); margin: 8px 0;">
+              <div id="prize-pool-total" style="font-family: var(--font-display); font-size: clamp(1.3rem, 5.5vw, 2.2rem); font-weight: 900; color: var(--neon-green); text-shadow: 0 0 15px rgba(0, 255, 136, 0.4); margin: 6px 0; word-break: break-all;">
                 0.00 USDC
               </div>
-              <p style="color: var(--text-muted); font-size: 0.8rem; max-width: 480px; margin: 0 auto; line-height: 1.4;">
+              <p style="color: var(--text-muted); font-size: 0.78rem; max-width: 480px; margin: 0 auto; line-height: 1.35;">
                 ${t('bdRewardPoolDesc')}
               </p>
-              <div id="weekly-countdown" style="display: inline-block; font-size: 0.9rem; color: var(--neon-cyan); margin-top: 15px; font-family: monospace; font-weight: bold; background: rgba(0, 245, 255, 0.1); padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(0, 245, 255, 0.3);">
+              <div id="weekly-countdown" style="display: inline-block; font-size: clamp(0.75rem, 3vw, 0.9rem); color: var(--neon-cyan); margin-top: 12px; font-family: monospace; font-weight: bold; background: rgba(0, 245, 255, 0.1); padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(0, 245, 255, 0.3);">
                 ${t('bdNextDrawPrefix')} --:--:--
               </div>
             </div>
 
             <!-- Distribution Cards Grid -->
-            <div class="prize-grid" style="display: grid; gap: var(--space-md); width: 100%;">
+            <div class="prize-grid" style="display: grid; gap: var(--space-sm); width: 100%;">
               
-              <div class="prize-card" style="border: 1px solid rgba(255, 215, 0, 0.3); background: rgba(255, 215, 0, 0.02); padding: 12px; border-radius: var(--radius-md); text-align: center; transition: all 0.2s ease;">
-                <span style="font-size: 0.7rem; color: var(--text-secondary); font-weight: bold;">${t('bdPrize1st')}</span>
-                <div id="prize-amount-1st" style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; color: var(--neon-yellow); margin-top: 4px;">
+              <div class="prize-card" style="border: 1px solid rgba(255, 215, 0, 0.3); background: rgba(255, 215, 0, 0.02); padding: 10px 6px; border-radius: var(--radius-md); text-align: center; transition: all 0.2s ease;">
+                <span style="font-size: 0.68rem; color: var(--text-secondary); font-weight: bold;">${t('bdPrize1st')}</span>
+                <div id="prize-amount-1st" style="font-family: var(--font-display); font-size: clamp(0.95rem, 3.5vw, 1.15rem); font-weight: 700; color: var(--neon-yellow); margin-top: 2px;">
                   0.00 USDC
                 </div>
               </div>
 
-              <div class="prize-card" style="border: 1px solid rgba(0, 245, 255, 0.3); background: rgba(0, 245, 255, 0.02); padding: 12px; border-radius: var(--radius-md); text-align: center; transition: all 0.2s ease;">
-                <span style="font-size: 0.7rem; color: var(--text-secondary); font-weight: bold;">${t('bdPrize2nd')}</span>
-                <div id="prize-amount-2nd" style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; color: var(--neon-cyan); margin-top: 4px;">
+              <div class="prize-card" style="border: 1px solid rgba(0, 245, 255, 0.3); background: rgba(0, 245, 255, 0.02); padding: 10px 6px; border-radius: var(--radius-md); text-align: center; transition: all 0.2s ease;">
+                <span style="font-size: 0.68rem; color: var(--text-secondary); font-weight: bold;">${t('bdPrize2nd')}</span>
+                <div id="prize-amount-2nd" style="font-family: var(--font-display); font-size: clamp(0.95rem, 3.5vw, 1.15rem); font-weight: 700; color: var(--neon-cyan); margin-top: 2px;">
                   0.00 USDC
                 </div>
               </div>
 
-              <div class="prize-card" style="border: 1px solid rgba(255, 0, 229, 0.3); background: rgba(255, 0, 229, 0.02); padding: 12px; border-radius: var(--radius-md); text-align: center; transition: all 0.2s ease;">
-                <span style="font-size: 0.7rem; color: var(--text-secondary); font-weight: bold;">${t('bdPrize3rd')}</span>
-                <div id="prize-amount-3rd" style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; color: var(--neon-magenta); margin-top: 4px;">
+              <div class="prize-card" style="border: 1px solid rgba(255, 0, 229, 0.3); background: rgba(255, 0, 229, 0.02); padding: 10px 6px; border-radius: var(--radius-md); text-align: center; transition: all 0.2s ease;">
+                <span style="font-size: 0.68rem; color: var(--text-secondary); font-weight: bold;">${t('bdPrize3rd')}</span>
+                <div id="prize-amount-3rd" style="font-family: var(--font-display); font-size: clamp(0.95rem, 3.5vw, 1.15rem); font-weight: 700; color: var(--neon-magenta); margin-top: 2px;">
                   0.00 USDC
                 </div>
               </div>
@@ -156,8 +156,8 @@ export async function renderBlockdropPage(container) {
           </div>
 
           <!-- PLAY CTA -->
-          <div style="width: 100%; display: flex; justify-content: center; margin-top: var(--space-md);">
-            <button class="btn btn-primary btn-lg" id="btn-goto-play" style="width: 100%; max-width: 320px; font-family: var(--font-display); font-size: 1.2rem; letter-spacing: 1px; box-shadow: var(--shadow-neon-cyan); text-transform: uppercase;">
+          <div style="width: 100%; display: flex; justify-content: center; margin-top: var(--space-xs);">
+            <button class="btn btn-primary btn-lg" id="btn-goto-play" style="width: 100%; max-width: 320px; font-family: var(--font-display); font-size: clamp(0.95rem, 3.8vw, 1.15rem); letter-spacing: 1px; box-shadow: var(--shadow-neon-cyan); text-transform: uppercase;">
               🎮 ${t('bdPlayBtn')}
             </button>
           </div>

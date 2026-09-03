@@ -94,62 +94,113 @@
 
 @media (max-width: 768px) {
   .wallet-page {
-    padding-top: 115px !important;
+    padding-top: 110px !important;
   }
   .navbar {
     height: auto;
-    padding: 12px 10px;
+    padding: 10px 8px;
     flex-direction: column;
     align-items: stretch;
   }
   .navbar-inner {
     flex-direction: column;
-    gap: 12px !important;
+    gap: 8px !important;
+  }
+  .navbar-logo {
+    font-size: 1rem;
   }
   .navbar-nav {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 4px;
     width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .navbar-nav::-webkit-scrollbar {
+    display: none;
+  }
+  .navbar-link {
+    padding: 6px 8px;
+    font-size: 0.78rem;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   .navbar-username { display: none; }
   .navbar-wallet-info {
     width: 100%;
     justify-content: center;
-    gap: 8px;
-    order: 3; /* Push wallet info (credits/btn) below links */
+    gap: 6px;
+    order: 3;
+    flex-wrap: wrap;
   }
   #nav-profile-trigger {
     margin-left: 0;
+    flex-shrink: 0;
   }
   .navbar-network-badge,
   .navbar-usdc-badge {
     font-size: 0.65rem;
-    padding: 3px 8px;
+    padding: 2px 6px;
+  }
+  .wallet-header {
+    margin-bottom: var(--space-lg);
+  }
+  .wallet-header h1 {
+    font-size: clamp(1.2rem, 5vw, 1.7rem);
+  }
+  .wallet-address-display {
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
   }
   .wallet-address-text {
-    font-size: 0.75rem;
+    font-size: clamp(0.68rem, 2.7vw, 0.82rem);
     word-break: break-all;
-    max-width: 240px;
+    max-width: calc(100% - 28px);
     display: inline-block;
+  }
+  .wallet-connect-card {
+    padding: 24px 14px;
   }
 }
 
 @media (max-width: 400px) {
+  .wallet-page {
+    padding-top: 105px !important;
+  }
+  .navbar-link {
+    padding: 5px 6px !important;
+    font-size: 0.72rem !important;
+  }
   .navbar-network-badge {
     display: none;
   }
-  .wallet-address-text {
-    max-width: 180px;
+  .token-card {
+    padding: 10px 8px;
+    gap: 8px;
   }
-  .navbar-nav {
-    flex-wrap: nowrap !important;
-    gap: 4px !important;
-    justify-content: space-between !important;
+  .token-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 1.4rem;
   }
+  .token-name {
+    font-size: 0.85rem;
+  }
+  .token-balance-value {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 340px) {
   .navbar-link {
-    padding: 6px 8px !important;
-    font-size: 0.8rem !important;
+    padding: 4px 4px !important;
+    font-size: 0.68rem !important;
   }
 }
 

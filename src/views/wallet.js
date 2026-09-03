@@ -239,82 +239,82 @@ function renderWalletContent() {
                 </div>
               ` : `
                 <div id="lemon-deposit-section">
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-                    <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                      <span style="font-size: 0.75rem; color: var(--text-muted);">Saldo Depositado</span>
-                      <div style="font-size: 1.2rem; font-weight: bold; margin-top: 4px; color: var(--neon-cyan);">
-                        💰 ${formatBalance(currentUser?.total_depositado || 0)} <span style="font-size: 0.8rem; color: var(--text-muted);">USDC</span>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
+                    <div style="background: rgba(255,255,255,0.02); padding: 10px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
+                      <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">Saldo Depositado</span>
+                      <div style="font-size: clamp(0.95rem, 3.5vw, 1.2rem); font-weight: bold; margin-top: 2px; color: var(--neon-cyan); word-break: break-all;">
+                        💰 ${formatBalance(currentUser?.total_depositado || 0)} <span style="font-size: 0.72rem; color: var(--text-muted);">USDC</span>
                       </div>
                     </div>
                     
-                    <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                      <span style="font-size: 0.75rem; color: var(--text-muted);">Créditos Disponibles</span>
-                      <div style="font-size: 1.2rem; font-weight: bold; margin-top: 4px; color: var(--neon-green);">
+                    <div style="background: rgba(255,255,255,0.02); padding: 10px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
+                      <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">Créditos Disponibles</span>
+                      <div style="font-size: clamp(0.95rem, 3.5vw, 1.2rem); font-weight: bold; margin-top: 2px; color: var(--neon-green);">
                         🪙 ${currentUser?.creditos_escritura || 0}
                       </div>
                     </div>
                   </div>
 
                   ${currentUser ? `
-                    <div class="card" style="background: radial-gradient(circle at top left, rgba(139, 92, 246, 0.15) 0%, rgba(10, 10, 26, 0.8) 100%); border: 1px solid var(--neon-purple); padding: 20px; border-radius: var(--radius-md); margin-bottom: 24px; box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);">
-                      <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                          <span style="font-size: 1.8rem;">🌍</span>
+                    <div class="card" style="background: radial-gradient(circle at top left, rgba(139, 92, 246, 0.15) 0%, rgba(10, 10, 26, 0.8) 100%); border: 1px solid var(--neon-purple); padding: 14px 12px; border-radius: var(--radius-md); margin-bottom: 20px; box-shadow: 0 0 20px rgba(139, 92, 246, 0.15); box-sizing: border-box;">
+                      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                          <span style="font-size: 1.5rem;">🌍</span>
                           <div>
-                            <h4 style="margin: 0; font-family: var(--font-display); font-size: 1.05rem; color: var(--neon-cyan);">Verificación de Humanidad (World ID)</h4>
-                            <span style="font-size: 0.75rem; color: var(--text-muted);">Prueba de persona única libre de bots</span>
+                            <h4 style="margin: 0; font-family: var(--font-display); font-size: clamp(0.85rem, 3.5vw, 1.05rem); color: var(--neon-cyan);">Verificación de Humanidad (World ID)</h4>
+                            <span style="font-size: 0.7rem; color: var(--text-muted);">Prueba de persona única libre de bots</span>
                           </div>
                         </div>
                         ${currentUser.isWorldIdVerified ? `
-                          <span style="font-size: 0.8rem; background: rgba(57, 255, 20, 0.1); border: 1px solid var(--neon-green); color: var(--neon-green); padding: 4px 10px; border-radius: 20px; font-weight: bold;">
+                          <span style="font-size: 0.75rem; background: rgba(57, 255, 20, 0.1); border: 1px solid var(--neon-green); color: var(--neon-green); padding: 3px 8px; border-radius: 20px; font-weight: bold;">
                             ✅ Humano Verificado
                           </span>
                         ` : ''}
                       </div>
 
                       ${currentUser.isWorldIdVerified ? `
-                        <div style="background: rgba(57, 255, 20, 0.05); border: 1px dashed rgba(57, 255, 20, 0.3); padding: 12px; border-radius: 8px; color: var(--text-primary); font-size: 0.85rem; line-height: 1.4;">
+                        <div style="background: rgba(57, 255, 20, 0.05); border: 1px dashed rgba(57, 255, 20, 0.3); padding: 10px; border-radius: 8px; color: var(--text-primary); font-size: 0.8rem; line-height: 1.4;">
                           🎉 <strong>¡Tu cuenta está verificada!</strong> Ya has recibido tu crédito extra por verificar tu humanidad con World ID.
                         </div>
                       ` : `
-                        <div style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.5; margin-bottom: 14px;">
+                        <div style="color: var(--text-secondary); font-size: 0.8rem; line-height: 1.4; margin-bottom: 12px;">
                           🛡️ <strong>Beneficio Exclusivo:</strong> Si ya tienes <strong>al menos 1 crédito disponible</strong>, verificar que eres humano con World ID te otorgará <strong>+1 crédito extra de regalo</strong> para registrar tus mejores puntajes.
                         </div>
 
                         ${(currentUser?.creditos_escritura || 0) >= 1 ? `
-                          <div style="margin-bottom: 14px; font-size: 0.8rem; color: var(--neon-green); display: flex; align-items: center; gap: 6px;">
+                          <div style="margin-bottom: 12px; font-size: 0.78rem; color: var(--neon-green); display: flex; align-items: center; gap: 6px;">
                             <span>✨</span> Cumples el requisito (${currentUser.creditos_escritura} créditos disponibles). ¡Verifica tu humanidad ahora y suma +1 crédito extra!
                           </div>
                         ` : `
-                          <div style="margin-bottom: 14px; font-size: 0.8rem; color: #FFA500; background: rgba(255, 165, 0, 0.08); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255, 165, 0, 0.2);">
+                          <div style="margin-bottom: 12px; font-size: 0.78rem; color: #FFA500; background: rgba(255, 165, 0, 0.08); padding: 8px 10px; border-radius: 6px; border: 1px solid rgba(255, 165, 0, 0.2); line-height: 1.35;">
                             ⚠️ Actualmente tienes 0 créditos. Realiza un depósito (mín. 10 USDC) para obtener tu primer crédito y desbloquear el crédito extra por verificación de humano.
                           </div>
                         `}
 
-                        <button class="btn btn-primary btn-lg" id="btn-verify-worldid" style="width: 100%; box-shadow: 0 0 15px rgba(139, 92, 246, 0.4); background: linear-gradient(135deg, #8b5cf6 0%, #00f5ff 100%); border: none; font-weight: bold; font-family: var(--font-display); letter-spacing: 0.5px;">
+                        <button class="btn btn-primary" id="btn-verify-worldid" style="width: 100%; box-shadow: 0 0 15px rgba(139, 92, 246, 0.4); background: linear-gradient(135deg, #8b5cf6 0%, #00f5ff 100%); border: none; font-weight: bold; font-family: var(--font-display); font-size: clamp(0.75rem, 2.8vw, 0.9rem); padding: 12px 8px; white-space: normal; line-height: 1.3;">
                           🛡️ Verificar que soy humano (+1 Crédito Extra)
                         </button>
                       `}
                     </div>
                   ` : ''}
 
-                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                  <div style="flex: 1; min-width: 200px;">
-                    <input type="number" id="deposit-amount" class="form-input" placeholder="Monto (mín. 10 USDC)" min="10" step="10" style="width: 100%; height: 42px; font-family: var(--font-display);">
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                  <div style="flex: 1; min-width: 140px;">
+                    <input type="number" id="deposit-amount" class="form-input" placeholder="Monto (mín. 10 USDC)" min="10" step="10" style="width: 100%; height: 40px; font-family: var(--font-display); font-size: 0.85rem; padding: 6px 10px; box-sizing: border-box;">
                   </div>
-                  <div style="display: flex; gap: 8px;">
-                    <button class="btn btn-primary" id="btn-deposit-base" style="height: 42px; box-shadow: var(--shadow-glow-cyan);">Depositar</button>
+                  <div style="display: flex; gap: 6px; flex-shrink: 0;">
+                    <button class="btn btn-primary" id="btn-deposit-base" style="height: 40px; padding: 0 16px; font-size: 0.85rem; box-shadow: var(--shadow-glow-cyan);">Depositar</button>
                   </div>
                 </div>
 
-                <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.05);">
-                  <h4 style="font-family: var(--font-display); font-size: 1rem; margin-bottom: 12px; color: var(--text-primary);">📤 Retirar Fondos</h4>
-                  <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 200px;">
-                      <input type="number" id="withdraw-amount" class="form-input" placeholder="Monto a retirar" min="10" step="10" style="width: 100%; height: 42px; font-family: var(--font-display);" ${currentUser?.withdraw_request_time ? `value="${currentUser.withdraw_request_amount}" disabled` : ''}>
+                <div style="margin-top: 20px; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.05);">
+                  <h4 style="font-family: var(--font-display); font-size: 0.95rem; margin-bottom: 10px; color: var(--text-primary);">📤 Retirar Fondos</h4>
+                  <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 140px;">
+                      <input type="number" id="withdraw-amount" class="form-input" placeholder="Monto a retirar" min="10" step="10" style="width: 100%; height: 40px; font-family: var(--font-display); font-size: 0.85rem; padding: 6px 10px; box-sizing: border-box;" ${currentUser?.withdraw_request_time ? `value="${currentUser.withdraw_request_amount}" disabled` : ''}>
                     </div>
-                    <div style="display: flex; gap: 8px;">
-                      <button class="btn btn-secondary" id="btn-withdraw-base" style="height: 42px;">
+                    <div style="display: flex; gap: 6px; flex-shrink: 0;">
+                      <button class="btn btn-secondary" id="btn-withdraw-base" style="height: 40px; padding: 0 14px; font-size: 0.85rem;">
                         ${currentUser?.withdraw_request_time ? 'Retiro en proceso (24hs)' : 'Solicitar Retiro'}
                       </button>
                     </div>
