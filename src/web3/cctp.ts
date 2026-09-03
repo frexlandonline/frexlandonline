@@ -3,7 +3,7 @@ import { sendWorldTransaction } from './world.ts';
 import api from '../services/api.js';
 
 const TOKEN_MESSENGER_V2 = '0x28b5a0e9C621a5BadaA536219b3a228C8168cf5d';
-const USDC_WORLD_CHAIN = '0x79A02482A880bCE3B13f5c8ee16E10C694b5e3f9';
+const USDC_WORLD_CHAIN = '0x79A02482A880bCE3F13e09Da970dC34db4CD24d1';
 const DOMAIN_BASE = 6;
 
 // ABIs básicos para CCTP

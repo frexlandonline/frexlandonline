@@ -1,4 +1,4 @@
-import { createPublicClient, createWalletClient, custom, http, decodeAbiParameters, parseAbiParameters, maxUint256 } from 'viem';
+import { createPublicClient, createWalletClient, custom, http, fallback, decodeAbiParameters, parseAbiParameters, maxUint256 } from 'viem';
 import { base } from 'viem/chains';
 import { getConnectedAddress, ensureBaseMainnet } from './wallet.js';
 
@@ -540,7 +540,7 @@ const USDC_ADDRESSES: Record<number, `0x${string}`> = {
   1: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',     // Ethereum Mainnet
   10: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',    // Optimism
   137: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',   // Polygon
-  480: '0x79A02482A880bCE3B13f5c8ee16E10C694b5e3f9',   // World Chain
+  480: '0x79A02482A880bCE3F13e09Da970dC34db4CD24d1',   // World Chain Official USDC
   8453: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',  // Base
   42161: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831', // Arbitrum
 };
@@ -558,28 +558,36 @@ const RPC_URLS: Record<number, string> = {
  * Fetches the USDC balance for an address on a given chain.
  * Returns formatted balance string (USDC has 6 decimals).
  */
-export async function getUSDCBalance(address: `0x${string}`, chainId: number): Promise<string> {
+export async function getUSDCBalance(address: string, chainId: number): Promise<string> {
   const usdcAddress = USDC_ADDRESSES[chainId];
-  const rpcUrl = RPC_URLS[chainId];
-  if (!usdcAddress || !rpcUrl) return '0.00';
+  if (!usdcAddress) return '0.00';
+
+  const normalizedAddress = (address.startsWith('0x') ? address : `0x${address}`) as `0x${string}`;
 
   try {
-    // Build a public client for the specific chain
+    const transport = chainId === 480 
+      ? fallback([
+          http('https://worldchain-mainnet.g.alchemy.com/public'),
+          http('https://worldchain.drpc.org')
+        ])
+      : http(RPC_URLS[chainId] || 'https://mainnet.base.org');
+
     const client = createPublicClient({
-      transport: http(rpcUrl)
+      transport
     });
     
     const balance = await client.readContract({
       address: usdcAddress,
       abi: ERC20_ABI,
       functionName: 'balanceOf',
-      args: [address]
-    });
+      args: [normalizedAddress]
+    }) as bigint;
+
     // USDC has 6 decimals
     const formatted = Number(balance) / 1e6;
     return formatted.toFixed(2);
   } catch (err) {
-    console.error('Error fetching USDC balance:', err);
+    console.error(`Error fetching USDC balance on chain ${chainId}:`, err);
     return '0.00';
   }
 }

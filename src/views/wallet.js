@@ -42,7 +42,7 @@ function getNetworkDetails(chainId) {
     case 10: return { name: 'Optimism L2', symbol: 'ETH' };
     case 42161: return { name: 'Arbitrum L2', symbol: 'ETH' };
     case 137: return { name: 'Polygon PoS', symbol: 'POL' };
-    case 8453: return { name: 'Base L2', symbol: 'ETH' };
+    case 480: return { name: 'World Chain', symbol: 'WLD' };
     default: return { name: `Red Desconocida (Chain ID: ${chainId || 'Desconocido'})`, symbol: 'ETH' };
   }
 }
@@ -99,23 +99,22 @@ export function renderWalletPage(container) {
   if (!isSubscribed) {
     subscribeToAccountChanges(async (account) => {
       console.log("Web3 Account change detected:", account);
+      const user = getUser();
+      const isWorld = account.chainId === 480 || isWorldAppWebView() || user?.platform === 'worldchain' || (user?.wallets && user.wallets.worldchain);
+
       if (account.isConnected && account.address) {
         // If we connected an EVM wallet, update active state
         walletState.address = account.address;
-        walletState.chain = 'ethereum';
-        walletState.chainId = account.chainId || null;
-        if (account.chainId) {
-          const net = getNetworkDetails(account.chainId);
-          walletState.networkName = net.name;
-          walletState.nativeSymbol = net.symbol;
-        }
-        
-
+        walletState.chain = isWorld ? 'worldchain' : 'ethereum';
+        walletState.chainId = isWorld ? 480 : (account.chainId || 8453);
+        const net = getNetworkDetails(walletState.chainId);
+        walletState.networkName = net.name;
+        walletState.nativeSymbol = net.symbol;
         
         await loadWeb3Data(account.address);
       } else {
-        // Only clear active if it was an ethereum wallet
-        if (walletState.chain === 'ethereum') {
+        // Only clear active if it was an ethereum wallet and not world app
+        if (walletState.chain === 'ethereum' && !isWorld) {
           walletState.address = null;
         }
       }
@@ -129,6 +128,25 @@ export function renderWalletPage(container) {
   
   if (walletState.address) {
     loadWeb3Data(walletState.address);
+  } else {
+    fetchCurrentUser().then(u => {
+      if (u) {
+        const isWorld = isWorldAppWebView() || u.platform === 'worldchain' || (u.wallets && u.wallets.worldchain);
+        if (isWorld) {
+          walletState.address = u.wallets?.worldchain || (u.wallets ? Object.values(u.wallets)[0] : null);
+          walletState.chain = 'worldchain';
+          walletState.networkName = 'World Chain';
+          walletState.nativeSymbol = 'WLD';
+          walletState.chainId = 480;
+        } else if (u.wallets && u.wallets.ethereum) {
+          walletState.address = u.wallets.ethereum;
+          walletState.chain = 'ethereum';
+        }
+        if (walletState.address) {
+          loadWeb3Data(walletState.address);
+        }
+      }
+    }).catch(console.warn);
   }
 }
 
@@ -504,11 +522,19 @@ async function loadWeb3Data(address) {
   renderWalletContent();
 
   try {
+    let freshUser = null;
     try {
-      await fetchCurrentUser();
+      freshUser = await fetchCurrentUser();
     } catch (e) {
       console.warn("Failed to fetch fresh user data", e);
     }
+    const currentUser = freshUser || getUser();
+
+    const isWorld = walletState.chain === 'worldchain' || 
+                    walletState.chainId === 480 || 
+                    isWorldAppWebView() || 
+                    currentUser?.platform === 'worldchain' ||
+                    Boolean(currentUser?.wallets?.worldchain && currentUser.wallets.worldchain.toLowerCase() === address.toLowerCase());
 
     if (walletState.chain === 'solana') {
       // Fetch SOL balance directly via public RPC
@@ -527,7 +553,8 @@ async function loadWeb3Data(address) {
       walletState.solBalance = (lamports / 1e9).toFixed(4);
       walletState.ethBalance = '0.0000';
       walletState.tokenBalance = '0.0000';
-    } else if (walletState.chain === 'worldchain') {
+    } else if (isWorld) {
+      walletState.chain = 'worldchain';
       walletState.chainId = 480;
       walletState.networkName = 'World Chain';
       walletState.nativeSymbol = 'WLD';
@@ -536,6 +563,7 @@ async function loadWeb3Data(address) {
         const usdcBal = await getUSDCBalance(address, 480);
         walletState.tokenBalance = usdcBal;
       } catch (e) {
+        console.error("Error fetching World Chain USDC balance:", e);
         walletState.tokenBalance = '0.00';
       }
     } else {
@@ -672,6 +700,7 @@ async function handleDepositBase() {
     return;
   }
   
+  const currentUser = getUser();
   const btn = document.getElementById('btn-deposit-base');
   const originalText = btn.textContent;
   
@@ -700,11 +729,11 @@ async function handleDepositBase() {
     return;
   }
 
-  if (isWorldAppWebView()) {
+  if (isWorldAppWebView() || walletState.chain === 'worldchain' || currentUser?.platform === 'worldchain') {
     btn.textContent = 'Preparando bridge...';
     btn.disabled = true;
     try {
-      const address = getConnectedAddress() || currentUser?.wallets?.worldchain;
+      const address = walletState.address || getConnectedAddress() || currentUser?.wallets?.worldchain;
       if (!address) throw new Error("Wallet de World App no encontrada");
 
       const amountWei = BigInt(amount * 1e6); // 6 decimals

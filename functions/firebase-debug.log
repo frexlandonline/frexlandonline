@@ -1,0 +1,32 @@
+[debug] [2026-08-07T01:10:21.455Z] ----------------------------------------------------------------------
+[debug] [2026-08-07T01:10:21.460Z] Command:       C:\Users\pablo\AppData\Roaming\npm\node_modules\node\bin\node.exe C:\Users\pablo\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only functions
+[debug] [2026-08-07T01:10:21.461Z] CLI Version:   15.24.0
+[debug] [2026-08-07T01:10:21.461Z] Platform:      win32
+[debug] [2026-08-07T01:10:21.462Z] Node Version:  v22.16.0
+[debug] [2026-08-07T01:10:21.462Z] Detected Agent: unknown
+[debug] [2026-08-07T01:10:21.462Z] Time:          Thu Aug 06 2026 22:10:21 GMT-0300 (hora estándar de Argentina)
+[debug] [2026-08-07T01:10:21.462Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-08-07T01:10:26.540Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-08-07T01:10:26.540Z] > authorizing via signed-in user (frexland.online@gmail.com)
+[debug] [2026-08-07T01:10:26.541Z] [iam] checking project blockdrop-7739b for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[debug] [2026-08-07T01:10:26.557Z] Checked if tokens are valid: true, expires at: 1786067475201
+[debug] [2026-08-07T01:10:26.557Z] Checked if tokens are valid: true, expires at: 1786067475201
+[debug] [2026-08-07T01:10:26.559Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/blockdrop-7739b:testIamPermissions [none]
+[debug] [2026-08-07T01:10:26.559Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/blockdrop-7739b:testIamPermissions  x-goog-user-project=blockdrop-7739b
+[debug] [2026-08-07T01:10:26.560Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/blockdrop-7739b:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2026-08-07T01:10:31.126Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/blockdrop-7739b:testIamPermissions 200
+[debug] [2026-08-07T01:10:31.126Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/blockdrop-7739b:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2026-08-07T01:10:31.127Z] Checked if tokens are valid: true, expires at: 1786067475201
+[debug] [2026-08-07T01:10:31.127Z] Checked if tokens are valid: true, expires at: 1786067475201
+[debug] [2026-08-07T01:10:31.128Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/blockdrop-7739b/serviceAccounts/blockdrop-7739b@appspot.gserviceaccount.com:testIamPermissions [none]
+[debug] [2026-08-07T01:10:31.128Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/blockdrop-7739b/serviceAccounts/blockdrop-7739b@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[debug] [2026-08-07T01:10:34.887Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/blockdrop-7739b/serviceAccounts/blockdrop-7739b@appspot.gserviceaccount.com:testIamPermissions 200
+[debug] [2026-08-07T01:10:34.888Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/blockdrop-7739b/serviceAccounts/blockdrop-7739b@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[info] 
+[info] === Deploying to 'blockdrop-7739b'...
+[info] 
+[info] i  deploying functions 
+[debug] [2026-08-07T01:18:07.821Z] Checked if tokens are valid: true, expires at: 1786067475201
+[debug] [2026-08-07T01:18:07.822Z] Checked if tokens are valid: true, expires at: 1786067475201
+[debug] [2026-08-07T01:18:07.822Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/blockdrop-7739b [none]

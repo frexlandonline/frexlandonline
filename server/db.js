@@ -413,6 +413,8 @@ export const dbAPI = {
     if (updates.withdraw_request_time !== undefined) cleanedUpdates.withdraw_request_time = updates.withdraw_request_time;
     if (updates.withdraw_request_amount !== undefined) cleanedUpdates.withdraw_request_amount = updates.withdraw_request_amount;
     if (updates.googleId !== undefined) cleanedUpdates.googleId = updates.googleId;
+    if (updates.platform !== undefined) cleanedUpdates.platform = updates.platform;
+    if (updates.isWorldIdVerified !== undefined) cleanedUpdates.isWorldIdVerified = updates.isWorldIdVerified;
     if (updates.wallets !== undefined) {
       cleanedUpdates.wallets = updates.wallets;
       cleanedUpdates.walletAddresses = Object.values(updates.wallets).map(addr => addr.toLowerCase());
