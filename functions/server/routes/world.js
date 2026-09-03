@@ -79,7 +79,7 @@ router.post('/verify', async (req, res) => {
     console.log("Verifying World ID with payload:", { nullifier_hash, action, signal });
 
     // Verificamos la prueba contra la API de Worldcoin
-    const verifyRes = await fetch(`https://developer.worldcoin.org/api/v1/verify/${app_id}`, {
+    let verifyRes = await fetch(`https://developer.worldcoin.org/api/v1/verify/${app_id}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -89,11 +89,36 @@ router.post('/verify', async (req, res) => {
         merkle_root,
         proof,
         action,
-        signal,
+        signal: signal || "",
       }),
     });
 
-    const verifyData = await verifyRes.json();
+    let verifyData = await verifyRes.json();
+
+    if (!verifyRes.ok && signal) {
+      console.warn("World ID verification failed with signal, retrying with empty signal fallback:", verifyData);
+      try {
+        const fallbackRes = await fetch(`https://developer.worldcoin.org/api/v1/verify/${app_id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            nullifier_hash,
+            merkle_root,
+            proof,
+            action,
+            signal: "",
+          }),
+        });
+        if (fallbackRes.ok) {
+          verifyRes = fallbackRes;
+          verifyData = await fallbackRes.json();
+        }
+      } catch (e) {
+        console.warn("Fallback verification error:", e);
+      }
+    }
 
     if (verifyRes.ok) {
       // Prueba válida

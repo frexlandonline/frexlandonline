@@ -34,21 +34,58 @@ export function verifyHumanity(walletAddress: string): Promise<WorldIdProof> {
           payload: {
             app_id: WORLDCOIN_APP_ID,
             action: encodeAction(WORLDCOIN_ACTION),
-            signal: generateSignal(walletAddress).digest,
+            signal: walletAddress || "",
             verification_level: VerificationLevel.Orb,
             timestamp
           }
         };
         
         // Listen for the response event
-        const handleResponse = (response: any) => {
+        const handleResponse = (rawResponse: any) => {
+          console.log("[WorldID] Raw response received:", rawResponse);
           MiniKit.unsubscribe('miniapp-verify-action');
-          if (response.status === 'success') {
-            console.log("Prueba de World ID exitosa:", response.payload);
-            resolve(response.payload);
+
+          let response = rawResponse;
+          if (typeof rawResponse === 'string') {
+            try {
+              response = JSON.parse(rawResponse);
+            } catch (e) {
+              console.warn("[WorldID] Failed to parse JSON response:", e);
+            }
+          }
+
+          const isSuccess = response?.status === 'success' || 
+                            Boolean(response?.proof) || 
+                            Boolean(response?.payload?.proof) || 
+                            Boolean(response?.data?.proof);
+
+          if (isSuccess) {
+            const target = response?.payload || response?.data || response?.result || response;
+            const proofStr = target?.proof || response?.proof;
+            const merkleRoot = target?.merkle_root || response?.merkle_root;
+            const nullifierHash = target?.nullifier_hash || response?.nullifier_hash;
+            const level = target?.verification_level || response?.verification_level || 'orb';
+
+            if (!proofStr || !nullifierHash) {
+              console.error("[WorldID] Missing proof fields in response:", response);
+              reject(new Error("La respuesta de World ID no contiene los datos de la prueba"));
+              return;
+            }
+
+            const proofResult: WorldIdProof = {
+              proof: proofStr,
+              merkle_root: merkleRoot,
+              nullifier_hash: nullifierHash,
+              verification_level: level,
+              credential_type: target?.credential_type || response?.credential_type
+            };
+
+            console.log("[WorldID] Parsed proof successfully:", proofResult);
+            resolve(proofResult);
           } else {
             console.error("Error en World ID nativo:", response);
-            reject(new Error(response.error_code || "Verificación fallida o cancelada"));
+            const errCode = response?.error_code || response?.errorCode || "Verificación fallida o cancelada";
+            reject(new Error(errCode === 'user_rejected' ? "Verificación cancelada por el usuario" : errCode));
           }
         };
         

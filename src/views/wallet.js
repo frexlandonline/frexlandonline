@@ -419,6 +419,10 @@ function renderWalletContent() {
         const address = walletState.address || currentUser?.wallets?.worldchain || '0x0000000000000000000000000000000000000000';
         const proof = await verifyHumanity(address);
         
+        if (!proof || !proof.proof) {
+          throw new Error("No se recibieron los datos de la prueba de World ID");
+        }
+
         const res = await api.post('/auth/world/verify', {
           proof: proof.proof,
           merkle_root: proof.merkle_root,
@@ -429,14 +433,14 @@ function renderWalletContent() {
         });
 
         if (res.success) {
-          showToast('¡Verificación exitosa! Se te ha asignado +1 crédito extra.', 'success');
+          showToast('🎉 ¡Verificación exitosa! Se te ha asignado +1 crédito extra.', 'success');
           updateLocalUser(res.user);
           renderWalletContent();
         } else {
-          showToast('La verificación no pudo completarse.', 'error');
+          showToast(res.error || 'La verificación no pudo completarse.', 'error');
         }
       } catch (err) {
-        console.error(err);
+        console.error("Error en verificación World ID:", err);
         showToast(err.message || 'Error al verificar con World ID', 'error');
       } finally {
         const freshBtn = document.getElementById('btn-verify-worldid');
