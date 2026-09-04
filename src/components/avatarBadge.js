@@ -6,11 +6,11 @@ export function getAvatarBadge(platform) {
   }
   
   if (platform === 'html5') {
-    return `<div class="avatar-badge html5" title="Web / HTML5">🌐</div>`;
+    return `<div class="avatar-badge html5" title="Web / HTML5"><img src="/assets/icons/html5.png" alt="HTML5"></div>`;
   }
   
   if (platform === 'worldchain') {
-    return `<div class="avatar-badge worldchain" title="World App">🌍</div>`;
+    return `<div class="avatar-badge worldchain" title="World App"><img src="/assets/icons/wld.png" alt="World App"></div>`;
   }
 
   return '';

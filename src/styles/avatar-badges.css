@@ -18,15 +18,31 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 14px;
   line-height: 1;
   box-shadow: 0 0 5px rgba(0,0,0,0.5);
   z-index: 2;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.avatar-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .navbar .avatar-badge {
-  transform: scale(0.75);
+  transform: scale(0.85);
   transform-origin: bottom right;
+}
+
+.profile-avatar-wrapper .avatar-badge {
+  width: 26px;
+  height: 26px;
+  bottom: 0px;
+  right: 0px;
 }
 
 .avatar-badge.lemon {
@@ -36,7 +52,33 @@
 }
 
 .avatar-badge.html5 {
-  background: #E34F26; /* Color naranja HTML5 */
-  color: white;
-  border-color: #000;
+  background: #FFFFFF;
+  border-color: #E34F26;
+  padding: 2px;
+}
+
+.avatar-badge.worldchain {
+  background: #FFFFFF;
+  border-color: #000000;
+  padding: 1px;
+}
+
+.profile-platform-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.profile-platform-pill img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  border-radius: 50%;
 }

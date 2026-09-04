@@ -182,7 +182,9 @@ async function loadDashboardData(container) {
       api.get('/stats/global?t=' + Date.now()).catch(() => ({ totalDeposited: undefined }))
     ]);
 
-    let totalSimulatedDeposit = onChainStats.totalDeposited || 0;
+    let totalSimulatedDeposit = (globalStats && typeof globalStats.totalDeposited === 'number')
+      ? globalStats.totalDeposited
+      : (onChainStats.totalDeposited || 0);
       
     const currentBalance = onChainStats.currentBalance || 0;
     const trueInterest = Math.max(0, currentBalance - totalSimulatedDeposit);

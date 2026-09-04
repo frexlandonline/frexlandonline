@@ -39,8 +39,23 @@ export function renderProfilePage(container) {
           
           <!-- Avatar Preview and Chooser -->
           <div style="display: flex; flex-direction: column; align-items: center; gap: 15px; padding-bottom: var(--space-md); border-bottom: 1px solid var(--border-color);">
-            <div style="display: flex; justify-content: center;">
-              ${wrapWithBadge(`<img id="avatar-preview-img" src="${selectedAvatar}" style="width: 96px; height: 96px; border-radius: 50%; border: 2px solid #000; background: var(--bg-secondary); object-fit: cover; box-sizing: border-box;">`, isWorldAppWebView() ? 'worldchain' : (isLemonWebView() ? 'lemon' : (user.platform || 'html5')))}
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+              <div class="profile-avatar-wrapper">
+                ${wrapWithBadge(`<img id="avatar-preview-img" src="${selectedAvatar}" style="width: 96px; height: 96px; border-radius: 50%; border: 2px solid #000; background: var(--bg-secondary); object-fit: cover; box-sizing: border-box;">`, isWorldAppWebView() ? 'worldchain' : (isLemonWebView() ? 'lemon' : (user.platform || 'html5')))}
+              </div>
+              
+              <div class="profile-platform-pill">
+                ${(isWorldAppWebView() || user.platform === 'worldchain') ? `
+                  <img src="/assets/icons/wld.png" alt="World App">
+                  <span style="font-weight: 600; color: var(--neon-cyan);">World App (World Chain)</span>
+                ` : (isLemonWebView() || user.platform === 'lemon') ? `
+                  <span>🍋</span>
+                  <span style="font-weight: 600; color: #00C853;">Lemon Cash</span>
+                ` : `
+                  <img src="/assets/icons/html5.png" alt="HTML5">
+                  <span style="font-weight: 600; color: #E34F26;">Web / HTML5</span>
+                `}
+              </div>
             </div>
             
             <div style="text-align: center; width: 100%;">
