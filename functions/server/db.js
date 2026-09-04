@@ -149,6 +149,11 @@ if (!useFirestore) {
     try { sqliteDb.exec("ALTER TABLE users ADD COLUMN pending_prize_rank INTEGER DEFAULT 0;"); } catch(e) {}
     try { sqliteDb.exec("ALTER TABLE users ADD COLUMN withdraw_request_time TEXT;"); } catch(e) {}
     try { sqliteDb.exec("ALTER TABLE users ADD COLUMN withdraw_request_amount INTEGER DEFAULT 0;"); } catch(e) {}
+    try { sqliteDb.exec("ALTER TABLE users ADD COLUMN is_world_id_verified INTEGER DEFAULT 0;"); } catch(e) {}
+    try { sqliteDb.exec("ALTER TABLE users ADD COLUMN world_id_nullifier_hash TEXT;"); } catch(e) {}
+    try { sqliteDb.exec("ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0;"); } catch(e) {}
+    try { sqliteDb.exec("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user';"); } catch(e) {}
+    try { sqliteDb.exec("ALTER TABLE users ADD COLUMN platform TEXT;"); } catch(e) {}
   } catch (err) {
     console.warn('⚠️ SQLite initialization skipped or failed:', err.message);
   }
@@ -214,6 +219,11 @@ function formatSqliteUser(user) {
     pending_prize_rank: user.pending_prize_rank || 0,
     withdraw_request_time: user.withdraw_request_time || null,
     withdraw_request_amount: user.withdraw_request_amount || 0,
+    isWorldIdVerified: Boolean(user.is_world_id_verified || user.isWorldIdVerified),
+    worldId_nullifier_hash: user.world_id_nullifier_hash || null,
+    isAdmin: Boolean(user.is_admin || user.isAdmin),
+    role: user.role || 'user',
+    platform: user.platform || null,
     createdAt: user.created_at,
     updatedAt: user.updated_at
   };
@@ -261,9 +271,11 @@ export const dbAPI = {
     
     // Si last_credit_reset no existe o es de un día anterior, reseteamos
     if (!user.last_credit_reset || user.last_credit_reset < currentUTCDateStr) {
-      const calculatedCredits = Math.floor((user.total_depositado || 0) / 10);
+      const depositCredits = Math.floor((user.total_depositado || 0) / 10);
+      const humanBonus = (user.isWorldIdVerified === true) ? 1 : 0;
+      const totalDailyCredits = depositCredits + humanBonus;
       return await this.updateUser(userId, {
-        creditos_escritura: calculatedCredits,
+        creditos_escritura: totalDailyCredits,
         last_credit_reset: currentUTCDateStr
       });
     }
@@ -483,6 +495,21 @@ export const dbAPI = {
       }
       if (cleanedUpdates.withdraw_request_amount !== undefined) {
         sqliteDb.prepare('UPDATE users SET withdraw_request_amount = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(cleanedUpdates.withdraw_request_amount, userId);
+      }
+      if (cleanedUpdates.isWorldIdVerified !== undefined) {
+        sqliteDb.prepare('UPDATE users SET is_world_id_verified = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(cleanedUpdates.isWorldIdVerified ? 1 : 0, userId);
+      }
+      if (cleanedUpdates.worldId_nullifier_hash !== undefined) {
+        sqliteDb.prepare('UPDATE users SET world_id_nullifier_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(cleanedUpdates.worldId_nullifier_hash, userId);
+      }
+      if (cleanedUpdates.isAdmin !== undefined) {
+        sqliteDb.prepare('UPDATE users SET is_admin = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(cleanedUpdates.isAdmin ? 1 : 0, userId);
+      }
+      if (cleanedUpdates.role !== undefined) {
+        sqliteDb.prepare('UPDATE users SET role = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(cleanedUpdates.role, userId);
+      }
+      if (cleanedUpdates.platform !== undefined) {
+        sqliteDb.prepare('UPDATE users SET platform = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(cleanedUpdates.platform, userId);
       }
       if (cleanedUpdates.wallets !== undefined) {
         // Drop old wallets for user and reinsert

@@ -138,27 +138,21 @@ router.post('/verify', async (req, res) => {
       return res.status(400).json({ error: apiErrorMessage || 'La prueba de World ID no tiene un formato válido.' });
     }
 
-    // Acreditamos el estado de Humano Verificado
-    const updates = { 
-      isWorldIdVerified: true,
-      worldId_nullifier_hash: nullifier_hash
-    };
-
-    // Si tiene al menos 1 crédito disponible, suma +1 crédito extra de regalo
+    // Acreditamos el estado de Humano Verificado y su crédito diario
     const currentCredits = user.creditos_escritura || 0;
-    if (currentCredits >= 1) {
-      updates.creditos_escritura = currentCredits + 1;
-      console.log(`[WorldID Verify] User ${userId} receives +1 extra credit. New total: ${updates.creditos_escritura}`);
-    }
+    const updates = { 
+       isWorldIdVerified: true,
+       worldId_nullifier_hash: nullifier_hash,
+       creditos_escritura: currentCredits + 1
+    };
+    console.log(`[WorldID Verify] User ${userId} receives +1 human credit. New total: ${updates.creditos_escritura}`);
 
     const updatedUser = await dbAPI.updateUser(userId, updates);
     const { passwordHash, ...safeUser } = updatedUser;
 
     res.json({ 
       success: true, 
-      message: currentCredits >= 1 
-        ? '¡Humano verificado exitosamente! Se te ha acreditado +1 crédito extra.' 
-        : '¡Humano verificado exitosamente!',
+      message: '¡Humano verificado exitosamente! Se te ha acreditado 1 crédito diario para jugar.', 
       user: safeUser 
     });
 

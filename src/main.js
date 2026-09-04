@@ -17,6 +17,7 @@ import { renderFaqPage } from './views/faq.js';
 import { renderRegistroPage } from './views/registro.js';
 import { renderLandingPage } from './views/landing.js';
 import { renderWorldAuthPage } from './views/worldAuth.js';
+import { renderMaintenancePage } from './views/maintenance.js';
 import { isWorldAppWebView } from './web3/world.ts';
 import { isLoggedIn, fetchCurrentUser, getUser, logout } from './services/auth.js';
 import { checkAndShowTermsModal } from './components/termsModal.js';
@@ -113,6 +114,24 @@ function navigate() {
     document.body.style.paddingBottom = '60px';
   }
 
+  const ADMIN_WALLETS = [
+    '0x7ca7022c3Ed27534192A2379a5eDd0252b3f6E65'.toLowerCase(),
+    '0xf22d1687d3e6990b499ce9c7a417f0d8fae3e1c2'.toLowerCase()
+  ];
+  const TECNICO_EMAILS = [
+    'tecnico@frexland.com',
+    'tester@frexland.com'
+  ];
+  const userWallets = (user?.walletAddresses || []).concat(
+    user?.wallets ? Object.values(user.wallets) : []
+  ).map(w => (w || '').toLowerCase());
+  const isAdmin = user && (user.isAdmin === true || user.role === 'admin' || userWallets.some(w => ADMIN_WALLETS.includes(w)));
+  const isTecnico = user && (user.role === 'tecnico' || user.role === 'tester' || TECNICO_EMAILS.includes((user.email || '').toLowerCase()));
+  const canAccessGame = isAdmin || isTecnico;
+
+  // Modo Mantenimiento para juegos (solo Admin y Técnico pueden ingresar)
+  const IS_MAINTENANCE_MODE = true;
+
   switch (route) {
     case '/':
     case '/landing':
@@ -132,12 +151,20 @@ function navigate() {
       currentCleanup = cleanupFrexlandPage;
       break;
     case '/blockdrop':
-      renderBlockdropPage(app);
-      currentCleanup = cleanupBlockdropPage;
+      if (IS_MAINTENANCE_MODE && !canAccessGame) {
+        renderMaintenancePage(app);
+      } else {
+        renderBlockdropPage(app);
+        currentCleanup = cleanupBlockdropPage;
+      }
       break;
     case '/play':
-      renderPlayPage(app);
-      currentCleanup = cleanupPlayPage;
+      if (IS_MAINTENANCE_MODE && !canAccessGame) {
+        renderMaintenancePage(app);
+      } else {
+        renderPlayPage(app);
+        currentCleanup = cleanupPlayPage;
+      }
       break;
     case '/wallet':
       renderWalletPage(app);

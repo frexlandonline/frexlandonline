@@ -10,6 +10,24 @@ router.post('/', authenticateToken, async (req, res) => {
     const { score, level, linesCleared, duracionPartidaSegundos, walletAddress, platform } = req.body;
     const userId = req.user.id;
 
+    // Modo mantenimiento para guardado de puntajes (solo Admin y Técnico)
+    const ADMIN_WALLETS = [
+      '0x7ca7022c3Ed27534192A2379a5eDd0252b3f6E65'.toLowerCase(),
+      '0xf22d1687d3e6990b499ce9c7a417f0d8fae3e1c2'.toLowerCase()
+    ];
+    const TECNICO_EMAILS = ['tecnico@frexland.com', 'tester@frexland.com'];
+    const user = await dbAPI.getUserById(userId);
+    const userWallets = (user?.walletAddresses || []).concat(
+      user?.wallets ? Object.values(user.wallets) : []
+    ).map(w => (w || '').toLowerCase());
+    const isAdmin = user && (user.isAdmin === true || user.role === 'admin' || userWallets.some(w => ADMIN_WALLETS.includes(w)));
+    const isTecnico = user && (user.role === 'tecnico' || user.role === 'tester' || TECNICO_EMAILS.includes((user.email || '').toLowerCase()));
+
+    const IS_MAINTENANCE_MODE = true;
+    if (IS_MAINTENANCE_MODE && !isAdmin && !isTecnico) {
+      return res.status(503).json({ error: 'Los servidores de juego se encuentran en modo mantenimiento temporal.' });
+    }
+
     if (typeof score !== 'number' || score < 0) {
       return res.status(400).json({ error: 'Puntaje inválido' });
     }

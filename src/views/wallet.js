@@ -346,8 +346,7 @@ function renderWalletContent() {
                 </div>
 
                 <div id="deposit-breakdown-preview" style="margin-top: 8px; font-size: 0.76rem; color: var(--text-secondary); background: rgba(255,255,255,0.02); padding: 8px 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
-                  <span>Llega neto a Aave: <strong style="color: var(--neon-cyan);" id="preview-net-aave">10.000000 USDC</strong> <span style="color: var(--text-muted);">(Comisión: -0.01 USDC)</span></span>
-                  <span>Créditos: <strong style="color: var(--neon-green);" id="preview-credits">1 Crédito</strong></span>
+                  <span>Créditos a recibir: <strong style="color: var(--neon-green);" id="preview-credits">1 Crédito</strong></span>
                 </div>
 
                 <div style="margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.05);">
@@ -528,17 +527,13 @@ function renderWalletContent() {
         const depositInput = document.getElementById('deposit-amount');
         const updateDepositPreview = () => {
           const val = parseFloat(depositInput?.value || '0');
-          const netEl = document.getElementById('preview-net-aave');
           const creditsEl = document.getElementById('preview-credits');
-          if (!netEl || !creditsEl) return;
-          if (isNaN(val) || val <= 0.01) {
-            netEl.textContent = '0.000000 USDC';
+          if (!creditsEl) return;
+          if (isNaN(val) || val <= 0) {
             creditsEl.textContent = '0 Créditos';
             return;
           }
-          const net = Math.max(0, Math.round((val - 0.01) * 1e6) / 1e6);
-          const credits = Math.floor((net + 0.015) / 10);
-          netEl.textContent = `${net.toFixed(6)} USDC`;
+          const credits = Math.floor((val + 0.005) / 10);
           creditsEl.textContent = `${credits} ${credits === 1 ? 'Crédito' : 'Créditos'}${credits === 0 ? ' (Monto < 10 USDC)' : ''}`;
         };
         depositInput?.addEventListener('input', updateDepositPreview);

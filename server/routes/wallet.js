@@ -68,12 +68,12 @@ router.post('/connect', authenticateToken, async (req, res) => {
 // ─── Deposit USDC for Credits ──────────────────────────────────
 router.post('/deposit', authenticateToken, async (req, res) => {
   try {
-    const { amount } = req.body;
+    const { amount, fee, platform, txHash } = req.body;
     const userId = req.user.id;
     const depositAmount = parseFloat(amount);
 
-    if (isNaN(depositAmount) || depositAmount <= 0.01) {
-      return res.status(400).json({ error: 'El monto a depositar debe ser mayor a 0.01 USDC para cubrir la comisión de red.' });
+    if (isNaN(depositAmount) || depositAmount <= 0) {
+      return res.status(400).json({ error: 'Monto a depositar inválido.' });
     }
 
     const user = await dbAPI.checkAndResetDailyCredits(userId);
@@ -81,16 +81,29 @@ router.post('/deposit', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    // Comisión fija de red / puente CCTP (0.01 USDC)
-    const BRIDGE_FEE = 0.01;
-    const netAmount = Math.max(0, Math.round((depositAmount - BRIDGE_FEE) * 1e6) / 1e6);
+    // Descuento exacto de comisiones de red y bridge:
+    // Si la llamada provee una comisión real específica, se usa esa.
+    // En World Chain, la comisión real de gas L2 (quemar en WLD ~0.001 + depositar en Base ~0.001) es de 0.002 USDC.
+    // En depósitos directos sobre Base, la comisión de puente es 0.
+    let realFee = 0;
+    if (fee !== undefined && !isNaN(parseFloat(fee))) {
+      realFee = Math.max(0, parseFloat(fee));
+    } else if (platform === 'worldchain' || req.body.platform === 'worldchain' || user.platform === 'worldchain') {
+      realFee = 0.002;
+    }
+
+    if (depositAmount <= realFee) {
+      return res.status(400).json({ error: `El monto a depositar debe ser mayor a la comisión de red (${realFee.toFixed(6)} USDC).` });
+    }
+
+    const netAmount = Math.max(0, Math.round((depositAmount - realFee) * 1e6) / 1e6);
 
     const currentTotal = user.total_depositado || 0;
     const newTotal = Math.round((currentTotal + netAmount) * 1e6) / 1e6;
 
     // Calcular créditos ganados: 1 crédito por cada 10 USDC netos acumulados
-    const oldCreditsFromDeposit = Math.floor((currentTotal + 0.015) / 10);
-    const newCreditsFromDeposit = Math.floor((newTotal + 0.015) / 10);
+    const oldCreditsFromDeposit = Math.floor((currentTotal + 0.000001) / 10);
+    const newCreditsFromDeposit = Math.floor((newTotal + 0.000001) / 10);
     const creditsToAdd = Math.max(0, newCreditsFromDeposit - oldCreditsFromDeposit);
 
     const currentCredits = user.creditos_escritura || 0;
@@ -102,10 +115,10 @@ router.post('/deposit', authenticateToken, async (req, res) => {
 
     const { passwordHash, ...safeUser } = updatedUser;
     res.json({ 
-      message: `Depósito de ${depositAmount} USDC procesado. Comisión de red descontada: ${BRIDGE_FEE} USDC. Monto neto en Aave: ${netAmount.toFixed(6)} USDC (+${creditsToAdd} créditos).`, 
+      message: `Depósito de ${depositAmount.toFixed(6)} USDC procesado. Comisión de red real descontada: ${realFee.toFixed(6)} USDC. Monto neto en Aave: ${netAmount.toFixed(6)} USDC (+${creditsToAdd} créditos).`, 
       user: safeUser,
       netAmount,
-      fee: BRIDGE_FEE
+      fee: realFee
     });
   } catch (error) {
     console.error('Deposit error:', error);
