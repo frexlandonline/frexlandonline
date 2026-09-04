@@ -43,30 +43,31 @@ export function renderNavbar(container, activePage = 'game') {
 
           <button class="navbar-link ${activePage === 'wallet' ? 'active' : ''}" id="nav-wallet">💎 ${t('navWallet')}</button>
           
-          <div class="navbar-user" style="position: relative; display: flex; align-items: center;">
-            <div id="nav-profile-avatar" style="display: flex; align-items: center; gap: 8px; cursor: pointer;" title="Mi Perfil">
+          <div class="navbar-user-group" style="display: flex; align-items: center; gap: 12px; margin-left: 6px;">
+            <div id="nav-profile-avatar" class="nav-profile-btn" style="display: flex; align-items: center; gap: 8px; cursor: pointer; -webkit-tap-highlight-color: transparent; outline: none;" title="Mi Perfil">
               ${wrapWithBadge(avatarHtml, platform)}
               <span class="navbar-username">${user.username}</span>
             </div>
-            <button class="navbar-logout" id="nav-dropdown-btn" title="Menú de opciones" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); color: var(--text-secondary); cursor: pointer; font-size: 1.35rem; min-width: 38px; min-height: 38px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; margin-left: 12px; padding: 0; transition: all 0.2s; touch-action: manipulation;">⋮</button>
-            
-            <div id="profile-dropdown" class="profile-dropdown card-glass" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 10px; width: 200px; flex-direction: column; z-index: 100; box-shadow: var(--shadow-glow-purple); background: #131320;">
-              <a href="https://frexland-online.gitbook.io/frexland-online-docs/" target="_blank" rel="noopener noreferrer" class="dropdown-item">📄 ${t('linkWhitepaper')}</a>
-              <a href="#/notifications" class="dropdown-item">🔔 ${t('notifTitle')}</a>
-              <a href="#/contact" class="dropdown-item">✉️ ${t('linkContact')}</a>
-              <a href="#/faq" class="dropdown-item">❓ ${t('linkFAQ')}</a>
-              <div style="height: 1px; background: rgba(255,255,255,0.1); margin: 4px 0;"></div>
-              <div style="padding: 10px; display: flex; justify-content: space-between; align-items: center;">
-                <span style="color: #a098c4; font-size: 0.9rem;">Idioma / Lang</span>
-                <div style="display: flex; gap: 5px;">
-                  <button class="lang-btn ${lang === 'es' ? 'active' : ''}" data-lang="es" style="background: ${lang === 'es' ? 'var(--neon-cyan)' : 'transparent'}; color: ${lang === 'es' ? '#000' : '#fff'}; border: 1px solid var(--neon-cyan); border-radius: 4px; padding: 2px 6px; cursor: pointer;">ES</button>
-                  <button class="lang-btn ${lang === 'en' ? 'active' : ''}" data-lang="en" style="background: ${lang === 'en' ? 'var(--neon-cyan)' : 'transparent'}; color: ${lang === 'en' ? '#000' : '#fff'}; border: 1px solid var(--neon-cyan); border-radius: 4px; padding: 2px 6px; cursor: pointer;">EN</button>
-                </div>
-              </div>
-              <div style="height: 1px; background: rgba(255,255,255,0.1); margin: 4px 0;"></div>
-              <button id="nav-logout" class="dropdown-item" style="color: var(--neon-pink); text-align: left; width: 100%; background: none; border: none; cursor: pointer;">✕ Cerrar Sesión</button>
+            <button type="button" id="nav-dropdown-btn" class="nav-dots-btn" title="Menú de opciones" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; cursor: pointer; font-size: 1.45rem; min-width: 40px; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; padding: 0; transition: all 0.2s; touch-action: manipulation; -webkit-tap-highlight-color: transparent; outline: none; flex-shrink: 0; user-select: none;">⋮</button>
+          </div>
+        </div>
+
+        <!-- Profile Dropdown placed in navbar-inner outside scrolling navbar-nav -->
+        <div id="profile-dropdown" class="profile-dropdown card-glass" style="display: none; position: fixed; width: 210px; flex-direction: column; z-index: 999999; box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 15px rgba(139, 92, 246, 0.4); background: #131320; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px; overflow: hidden;">
+          <a href="https://frexland-online.gitbook.io/frexland-online-docs/" target="_blank" rel="noopener noreferrer" class="dropdown-item">📄 ${t('linkWhitepaper')}</a>
+          <a href="#/notifications" class="dropdown-item">🔔 ${t('notifTitle')}</a>
+          <a href="#/contact" class="dropdown-item">✉️ ${t('linkContact')}</a>
+          <a href="#/faq" class="dropdown-item">❓ ${t('linkFAQ')}</a>
+          <div style="height: 1px; background: rgba(255,255,255,0.1); margin: 4px 0;"></div>
+          <div style="padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: #a098c4; font-size: 0.9rem;">Idioma / Lang</span>
+            <div style="display: flex; gap: 5px;">
+              <button class="lang-btn ${lang === 'es' ? 'active' : ''}" data-lang="es" style="background: ${lang === 'es' ? 'var(--neon-cyan)' : 'transparent'}; color: ${lang === 'es' ? '#000' : '#fff'}; border: 1px solid var(--neon-cyan); border-radius: 4px; padding: 2px 6px; cursor: pointer;">ES</button>
+              <button class="lang-btn ${lang === 'en' ? 'active' : ''}" data-lang="en" style="background: ${lang === 'en' ? 'var(--neon-cyan)' : 'transparent'}; color: ${lang === 'en' ? '#000' : '#fff'}; border: 1px solid var(--neon-cyan); border-radius: 4px; padding: 2px 6px; cursor: pointer;">EN</button>
             </div>
           </div>
+          <div style="height: 1px; background: rgba(255,255,255,0.1); margin: 4px 0;"></div>
+          <button id="nav-logout" class="dropdown-item" style="color: var(--neon-pink); text-align: left; width: 100%; background: none; border: none; cursor: pointer; padding: 10px 14px;">✕ Cerrar Sesión</button>
         </div>
       </div>
     </nav>
@@ -91,15 +92,43 @@ export function renderNavbar(container, activePage = 'game') {
     window.location.hash = '#/profile';
   });
 
-  dropdownBtn?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    dropdownMenu.style.display = dropdownMenu.style.display === 'none' ? 'flex' : 'none';
-  });
-
-  document.addEventListener('click', (e) => {
-    if (dropdownMenu && !dropdownBtn?.contains(e.target) && !dropdownMenu.contains(e.target)) {
-      dropdownMenu.style.display = 'none';
+  const toggleDropdown = (e) => {
+    if (e) {
+      e.stopPropagation();
+      if (e.cancelable) e.preventDefault();
     }
+    if (!dropdownMenu || !dropdownBtn) return;
+    const isVisible = dropdownMenu.style.display === 'flex';
+    if (isVisible) {
+      dropdownMenu.style.display = 'none';
+    } else {
+      const rect = dropdownBtn.getBoundingClientRect();
+      dropdownMenu.style.position = 'fixed';
+      dropdownMenu.style.top = `${Math.round(rect.bottom + 8)}px`;
+      dropdownMenu.style.right = `${Math.round(Math.max(10, window.innerWidth - rect.right))}px`;
+      dropdownMenu.style.left = 'auto';
+      dropdownMenu.style.zIndex = '999999';
+      dropdownMenu.style.display = 'flex';
+    }
+  };
+
+  dropdownBtn?.addEventListener('click', toggleDropdown);
+  dropdownBtn?.addEventListener('touchend', toggleDropdown);
+
+  const handleOutsideClick = (e) => {
+    if (dropdownMenu && dropdownMenu.style.display === 'flex') {
+      if (!dropdownBtn?.contains(e.target) && !dropdownMenu.contains(e.target)) {
+        dropdownMenu.style.display = 'none';
+      }
+    }
+  };
+  document.addEventListener('click', handleOutsideClick);
+  document.addEventListener('touchend', handleOutsideClick);
+
+  dropdownMenu?.querySelectorAll('a, button:not(.lang-btn)').forEach(el => {
+    el.addEventListener('click', () => {
+      if (dropdownMenu) dropdownMenu.style.display = 'none';
+    });
   });
 
   // Language selectors
@@ -121,24 +150,35 @@ export function renderNavbar(container, activePage = 'game') {
     window.location.hash = '#/auth'; 
   });
 
-  // --- Auto Sync Deposit for logged in users (even if wallet not actively connected) ---
-  if (user && user.walletAddresses && user.walletAddresses.length > 0) {
+  const ADMIN_WALLETS = [
+    '0x7ca7022c3Ed27534192A2379a5eDd0252b3f6E65'.toLowerCase(),
+    '0xf22d1687d3e6990b499ce9c7a417f0d8fae3e1c2'.toLowerCase()
+  ];
+  const userWallets = (user?.walletAddresses || []).concat(
+    user?.wallets ? Object.values(user.wallets) : []
+  ).map(w => (w || '').toLowerCase());
+  const isAdminUser = user && (user.isAdmin === true || user.role === 'admin' || userWallets.some(w => ADMIN_WALLETS.includes(w)));
+
+  // --- Auto Sync Deposit for logged in regular users (never overwrite admin relayer wallet) ---
+  if (!isAdminUser && user && user.walletAddresses && user.walletAddresses.length > 0) {
     const primaryWallet = user.walletAddresses[0];
-    getUserDepositedBalance(primaryWallet).then(async (onChainDeposit) => {
-      if (onChainDeposit > (user.total_depositado || 0)) {
-        try {
-          const res = await api.post('/wallet/sync-deposit', { amount: onChainDeposit });
-          if (res.synced && res.user) {
-            updateLocalUser(res.user);
-            const creditsEl = document.getElementById('registro-credits-display');
-            if (creditsEl) creditsEl.textContent = `💳 ${res.user.creditos_escritura || 0} Créditos Disponibles`;
-            updateButtonState(); // in case we just got credits for pending score
+    if (!ADMIN_WALLETS.includes((primaryWallet || '').toLowerCase())) {
+      getUserDepositedBalance(primaryWallet).then(async (onChainDeposit) => {
+        if (onChainDeposit > (user.total_depositado || 0)) {
+          try {
+            const res = await api.post('/wallet/sync-deposit', { amount: onChainDeposit });
+            if (res.synced && res.user) {
+              updateLocalUser(res.user);
+              const creditsEl = document.getElementById('registro-credits-display');
+              if (creditsEl) creditsEl.textContent = `💳 ${res.user.creditos_escritura || 0} Créditos Disponibles`;
+              updateButtonState();
+            }
+          } catch(e) {
+            console.error("Auto-sync error", e);
           }
-        } catch(e) {
-          console.error("Auto-sync error", e);
         }
-      }
-    }).catch(e => console.error("Error fetching on-chain deposit for auto-sync", e));
+      }).catch(e => console.error("Error fetching on-chain deposit for auto-sync", e));
+    }
   }
 
   updateNavbarWalletInfo();
@@ -154,18 +194,19 @@ export function renderNavbar(container, activePage = 'game') {
           // Verify if wallet belongs to someone else
           await api.get('/wallet/check/' + account.address);
           
-          // Sync deposit automatically
-          const onChainDeposit = await getUserDepositedBalance(account.address);
-          const user = getUser();
-          if (user && onChainDeposit > (user.total_depositado || 0)) {
-            const res = await api.post('/wallet/sync-deposit', { amount: onChainDeposit });
-            if (res.synced && res.user) {
-              updateLocalUser(res.user);
-              
-              // Refresh credits display if we are on registro
-              const creditsEl = document.getElementById('registro-credits-display');
-              if (creditsEl) {
-                creditsEl.textContent = `💳 ${res.user.creditos_escritura || 0} Créditos Disponibles`;
+          // Sync deposit automatically for regular users only
+          if (!ADMIN_WALLETS.includes(account.address.toLowerCase())) {
+            const onChainDeposit = await getUserDepositedBalance(account.address);
+            const currentUser = getUser();
+            const isCurrAdmin = currentUser && (currentUser.isAdmin === true || currentUser.role === 'admin');
+            if (!isCurrAdmin && currentUser && onChainDeposit > (currentUser.total_depositado || 0)) {
+              const res = await api.post('/wallet/sync-deposit', { amount: onChainDeposit });
+              if (res.synced && res.user) {
+                updateLocalUser(res.user);
+                const creditsEl = document.getElementById('registro-credits-display');
+                if (creditsEl) {
+                  creditsEl.textContent = `💳 ${res.user.creditos_escritura || 0} Créditos Disponibles`;
+                }
               }
             }
           }

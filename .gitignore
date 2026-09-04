@@ -7,3 +7,5 @@ build/
 *.log
 *_logs.txt
 fix_*.ps1
+functions/data/
+

@@ -128,6 +128,17 @@ router.post('/sync-deposit', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
+    const ADMIN_WALLETS = [
+      '0x7ca7022c3Ed27534192A2379a5eDd0252b3f6E65'.toLowerCase(),
+      '0xf22d1687d3e6990b499ce9c7a417f0d8fae3e1c2'.toLowerCase()
+    ];
+    const userWallets = (user.walletAddresses || []).concat(
+      user.wallets ? Object.values(user.wallets) : []
+    ).map(w => (w || '').toLowerCase());
+    if (userWallets.some(w => ADMIN_WALLETS.includes(w)) || user.isAdmin || user.role === 'admin') {
+      return res.json({ synced: false, message: 'Admin deposit managed manually.' });
+    }
+
     const currentTotal = user.total_depositado || 0;
     
     // Solo actualizamos si el balance on-chain es mayor al guardado

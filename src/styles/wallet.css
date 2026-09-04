@@ -36,9 +36,36 @@
 .navbar-logo-icon { -webkit-text-fill-color: initial; font-size: 1.4rem; filter: drop-shadow(0 0 8px rgba(0, 245, 255, 0.5)); }
 .navbar-nav { display: flex; align-items: center; gap: var(--space-md); }
 .navbar-link { color: var(--text-secondary); font-size: 0.9rem; font-weight: 500; padding: 8px 12px; border-radius: var(--radius-sm); transition: all var(--transition-fast); cursor: pointer; border: none; background: none; font-family: var(--font-ui); }
-.navbar-link:hover, .navbar-link.active { color: var(--neon-cyan); background: rgba(0, 245, 255, 0.08); }
-.navbar-user { display: flex; align-items: center; gap: var(--space-sm); cursor: pointer; transition: opacity var(--transition-fast); }
-.navbar-user:hover { opacity: 0.8; }
+.navbar-user, .navbar-user-group { 
+  display: flex; 
+  align-items: center; 
+  gap: 12px; 
+  cursor: default; 
+  -webkit-tap-highlight-color: transparent; 
+  outline: none; 
+}
+.nav-profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  transition: opacity var(--transition-fast);
+}
+.nav-profile-btn:active {
+  opacity: 0.7;
+}
+.nav-dots-btn {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  transition: all var(--transition-fast);
+}
+.nav-dots-btn:active {
+  background: rgba(255, 255, 255, 0.2) !important;
+  transform: scale(0.95);
+}
 .navbar-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--gradient-primary); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; border: 2px solid var(--neon-purple); }
 .navbar-username { font-size: 0.85rem; font-weight: 500; color: var(--text-primary); }
 .navbar-logout { color: var(--text-muted); font-size: 0.85rem; cursor: pointer; border: none; background: none; font-family: var(--font-ui); padding: 6px 10px; border-radius: var(--radius-sm); transition: all var(--transition-fast); }
@@ -130,9 +157,8 @@
   }
   .navbar-username { display: none; }
   #nav-dropdown-btn {
-    margin-left: 10px !important;
-    min-width: 36px !important;
-    min-height: 36px !important;
+    min-width: 38px !important;
+    min-height: 38px !important;
     padding: 0 !important;
     display: inline-flex !important;
     align-items: center !important;
