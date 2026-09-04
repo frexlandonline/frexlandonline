@@ -225,9 +225,13 @@ export function renderProfilePage(container) {
   renderFooter(container.querySelector('.home-page'));
   setupProfile(selectedAvatar);
   
-  const ownerAddress = '0x7ca7022c3Ed27534192A2379a5eDd0252b3f6E65'.toLowerCase();
+  const ADMIN_WALLETS = [
+    '0x7ca7022c3Ed27534192A2379a5eDd0252b3f6E65'.toLowerCase(),
+    '0xf22d1687d3e6990b499ce9c7a417f0d8fae3e1c2'.toLowerCase()
+  ];
   const ownerEmail = 'frexland.online@gmail.com';
-  const isOwner = (Object.values(user.wallets || {}).some(addr => addr && addr.toLowerCase() === ownerAddress)) || (user.email === ownerEmail);
+  const userWallets = Object.values(user.wallets || {}).concat(user.walletAddresses || []).map(addr => (addr || '').toLowerCase());
+  const isOwner = userWallets.some(addr => ADMIN_WALLETS.includes(addr)) || (user.email === ownerEmail) || user.isAdmin === true;
   
   if (isOwner) {
     loadOwnerStats();

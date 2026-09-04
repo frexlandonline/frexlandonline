@@ -10,100 +10,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const dataDir = path.join(__dirname, '..', 'data');
 
-// ─── Setup SQLite (Always initialized as fallback) ─────────────────
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
-const sqliteDb = new Database(path.join(dataDir, 'blockdrop.db'));
-sqliteDb.pragma('journal_mode = WAL');
-
-// Create tables for SQLite fallback
-sqliteDb.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT UNIQUE,
-    password_hash TEXT,
-    username TEXT NOT NULL,
-    google_id TEXT UNIQUE,
-    email_verified INTEGER DEFAULT 0,
-    avatar_url TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-
-  CREATE TABLE IF NOT EXISTS users_wallets (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    address TEXT UNIQUE NOT NULL,
-    chain TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(user_id) REFERENCES users(id)
-  );
-
-  CREATE TABLE IF NOT EXISTS verification_codes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT NOT NULL,
-    code TEXT NOT NULL,
-    expires_at DATETIME NOT NULL,
-    used INTEGER DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-
-  CREATE TABLE IF NOT EXISTS high_scores (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    score INTEGER NOT NULL,
-    level INTEGER DEFAULT 1,
-    lines_cleared INTEGER DEFAULT 0,
-    platform TEXT DEFAULT 'html5',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(user_id) REFERENCES users(id)
-  );
-
-  CREATE TABLE IF NOT EXISTS system_config (
-    key TEXT PRIMARY KEY,
-    value TEXT
-  );
-
-  CREATE TABLE IF NOT EXISTS contact_messages (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT NOT NULL,
-    message TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    status TEXT DEFAULT 'unread'
-  );
-
-  CREATE TABLE IF NOT EXISTS admin_withdrawals (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    amount REAL NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-
-  CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-  CREATE INDEX IF NOT EXISTS idx_users_google ON users(google_id);
-  CREATE INDEX IF NOT EXISTS idx_wallets_address ON users_wallets(address);
-  CREATE INDEX IF NOT EXISTS idx_scores_score ON high_scores(score DESC);
-  CREATE INDEX IF NOT EXISTS idx_verification_email ON verification_codes(email);
-
-  INSERT OR IGNORE INTO system_config (key, value) VALUES ('admin_withdrawn_profit', '0');
-`);
-
-// Dynamic column addition to SQLite for user profile details
-try { sqliteDb.exec("ALTER TABLE users ADD COLUMN google_avatar_url TEXT;"); } catch(e) {}
-try { sqliteDb.exec("ALTER TABLE users ADD COLUMN twitter TEXT;"); } catch(e) {}
-try { sqliteDb.exec("ALTER TABLE users ADD COLUMN discord TEXT;"); } catch(e) {}
-try { sqliteDb.prepare('ALTER TABLE users ADD COLUMN telegram TEXT').run(); } catch (e) { /* ignore */ }
-try { sqliteDb.prepare('ALTER TABLE high_scores ADD COLUMN platform TEXT DEFAULT \'html5\'').run(); } catch (e) { /* ignore */ }
-try { sqliteDb.exec("ALTER TABLE users ADD COLUMN creditos_escritura INTEGER DEFAULT 0;"); } catch(e) {}
-try { sqliteDb.exec("ALTER TABLE users ADD COLUMN total_depositado INTEGER DEFAULT 0;"); } catch(e) {}
-try { sqliteDb.exec("ALTER TABLE users ADD COLUMN high_score INTEGER DEFAULT 0;"); } catch(e) {}
-try { sqliteDb.exec("ALTER TABLE users ADD COLUMN last_credit_reset TEXT;"); } catch(e) {}
-try { sqliteDb.exec("ALTER TABLE users ADD COLUMN pending_prize_amount INTEGER DEFAULT 0;"); } catch(e) {}
-try { sqliteDb.exec("ALTER TABLE users ADD COLUMN pending_prize_rank INTEGER DEFAULT 0;"); } catch(e) {}
-try { sqliteDb.exec("ALTER TABLE users ADD COLUMN withdraw_request_time TEXT;"); } catch(e) {}
-try { sqliteDb.exec("ALTER TABLE users ADD COLUMN withdraw_request_amount INTEGER DEFAULT 0;"); } catch(e) {}
-
-
 // ─── Setup Firestore (If environment variables exist) ──────────────
 let firestoreDb = null;
 let useFirestore = false;
@@ -113,7 +19,7 @@ const firebaseClientEmail = process.env.FIREBASE_CLIENT_EMAIL || process.env.FB_
 const firebasePrivateKey = process.env.FIREBASE_PRIVATE_KEY || process.env.FB_PRIVATE_KEY;
 
 if (getApps().length === 0) {
-  if (process.env.FUNCTIONS_EMULATOR || process.env.K_SERVICE) {
+  if (process.env.FUNCTIONS_EMULATOR || process.env.K_SERVICE || process.env.FIREBASE_CONFIG) {
     try {
       initializeApp();
       firestoreDb = getFirestore();
@@ -146,6 +52,106 @@ if (getApps().length === 0) {
 } else {
   firestoreDb = getFirestore();
   useFirestore = true;
+}
+
+// ─── Setup SQLite (Only initialized as fallback if Firestore is not used) ─────────
+let sqliteDb = null;
+if (!useFirestore) {
+  try {
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    sqliteDb = new Database(path.join(dataDir, 'blockdrop.db'));
+    sqliteDb.pragma('journal_mode = WAL');
+
+    // Create tables for SQLite fallback
+    sqliteDb.exec(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT UNIQUE,
+        password_hash TEXT,
+        username TEXT NOT NULL,
+        google_id TEXT UNIQUE,
+        email_verified INTEGER DEFAULT 0,
+        avatar_url TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS users_wallets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        address TEXT UNIQUE NOT NULL,
+        chain TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES users(id)
+      );
+
+      CREATE TABLE IF NOT EXISTS verification_codes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT NOT NULL,
+        code TEXT NOT NULL,
+        expires_at DATETIME NOT NULL,
+        used INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS high_scores (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        score INTEGER NOT NULL,
+        level INTEGER DEFAULT 1,
+        lines_cleared INTEGER DEFAULT 0,
+        platform TEXT DEFAULT 'html5',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES users(id)
+      );
+
+      CREATE TABLE IF NOT EXISTS system_config (
+        key TEXT PRIMARY KEY,
+        value TEXT
+      );
+
+      CREATE TABLE IF NOT EXISTS contact_messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT NOT NULL,
+        message TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        status TEXT DEFAULT 'unread'
+      );
+
+      CREATE TABLE IF NOT EXISTS admin_withdrawals (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        amount REAL NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+      CREATE INDEX IF NOT EXISTS idx_users_google ON users(google_id);
+      CREATE INDEX IF NOT EXISTS idx_wallets_address ON users_wallets(address);
+      CREATE INDEX IF NOT EXISTS idx_scores_score ON high_scores(score DESC);
+      CREATE INDEX IF NOT EXISTS idx_verification_email ON verification_codes(email);
+
+      INSERT OR IGNORE INTO system_config (key, value) VALUES ('admin_withdrawn_profit', '0');
+    `);
+
+    // Dynamic column addition to SQLite for user profile details
+    try { sqliteDb.exec("ALTER TABLE users ADD COLUMN google_avatar_url TEXT;"); } catch(e) {}
+    try { sqliteDb.exec("ALTER TABLE users ADD COLUMN twitter TEXT;"); } catch(e) {}
+    try { sqliteDb.exec("ALTER TABLE users ADD COLUMN discord TEXT;"); } catch(e) {}
+    try { sqliteDb.prepare('ALTER TABLE users ADD COLUMN telegram TEXT').run(); } catch (e) { /* ignore */ }
+    try { sqliteDb.prepare('ALTER TABLE high_scores ADD COLUMN platform TEXT DEFAULT \'html5\'').run(); } catch (e) { /* ignore */ }
+    try { sqliteDb.exec("ALTER TABLE users ADD COLUMN creditos_escritura INTEGER DEFAULT 0;"); } catch(e) {}
+    try { sqliteDb.exec("ALTER TABLE users ADD COLUMN total_depositado INTEGER DEFAULT 0;"); } catch(e) {}
+    try { sqliteDb.exec("ALTER TABLE users ADD COLUMN high_score INTEGER DEFAULT 0;"); } catch(e) {}
+    try { sqliteDb.exec("ALTER TABLE users ADD COLUMN last_credit_reset TEXT;"); } catch(e) {}
+    try { sqliteDb.exec("ALTER TABLE users ADD COLUMN pending_prize_amount INTEGER DEFAULT 0;"); } catch(e) {}
+    try { sqliteDb.exec("ALTER TABLE users ADD COLUMN pending_prize_rank INTEGER DEFAULT 0;"); } catch(e) {}
+    try { sqliteDb.exec("ALTER TABLE users ADD COLUMN withdraw_request_time TEXT;"); } catch(e) {}
+    try { sqliteDb.exec("ALTER TABLE users ADD COLUMN withdraw_request_amount INTEGER DEFAULT 0;"); } catch(e) {}
+  } catch (err) {
+    console.warn('⚠️ SQLite initialization skipped or failed:', err.message);
+  }
 }
 
 // Helper to format timestamps to ISO string safely
@@ -416,6 +422,8 @@ export const dbAPI = {
     if (updates.platform !== undefined) cleanedUpdates.platform = updates.platform;
     if (updates.isWorldIdVerified !== undefined) cleanedUpdates.isWorldIdVerified = updates.isWorldIdVerified;
     if (updates.worldId_nullifier_hash !== undefined) cleanedUpdates.worldId_nullifier_hash = updates.worldId_nullifier_hash;
+    if (updates.isAdmin !== undefined) cleanedUpdates.isAdmin = updates.isAdmin;
+    if (updates.role !== undefined) cleanedUpdates.role = updates.role;
     if (updates.wallets !== undefined) {
       cleanedUpdates.wallets = updates.wallets;
       cleanedUpdates.walletAddresses = Object.values(updates.wallets).map(addr => addr.toLowerCase());

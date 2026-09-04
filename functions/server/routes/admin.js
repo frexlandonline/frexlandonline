@@ -4,17 +4,25 @@ import { authenticateToken } from '../middleware/auth.js';
 import { distributePrizes } from '../cron.js';
 
 const router = Router();
-const ADMIN_WALLET = '0x7ca7022c3Ed27534192A2379a5eDd0252b3f6E65'.toLowerCase();
+const ADMIN_WALLETS = [
+  '0x7ca7022c3Ed27534192A2379a5eDd0252b3f6E65'.toLowerCase(),
+  '0xf22d1687d3e6990b499ce9c7a417f0d8fae3e1c2'.toLowerCase()
+];
 const ADMIN_EMAIL = 'frexland.online@gmail.com';
 
 // Middleware para verificar si es admin
 const isAdmin = async (req, res, next) => {
   try {
     const user = await dbAPI.getUserById(req.user.id);
-    const hasAdminWallet = user && user.walletAddresses && user.walletAddresses.includes(ADMIN_WALLET);
-    const hasAdminEmail = user && user.email === ADMIN_EMAIL;
+    const userWallets = (user && user.walletAddresses ? user.walletAddresses : []).concat(
+      user && user.wallets ? Object.values(user.wallets) : []
+    ).map(w => (w || '').toLowerCase());
     
-    if (!hasAdminWallet && !hasAdminEmail) {
+    const hasAdminWallet = userWallets.some(addr => ADMIN_WALLETS.includes(addr));
+    const hasAdminEmail = user && user.email === ADMIN_EMAIL;
+    const isExplicitAdmin = user && (user.isAdmin === true || user.role === 'admin');
+    
+    if (!hasAdminWallet && !hasAdminEmail && !isExplicitAdmin) {
       return res.status(403).json({ error: 'Acceso denegado. No eres el administrador.' });
     }
     req.adminUser = user;
