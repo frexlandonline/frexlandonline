@@ -1,10 +1,11 @@
-import "@nomicfoundation/hardhat-ethers";
-import "@nomicfoundation/hardhat-verify";
-import "@openzeppelin/hardhat-upgrades";
+import ethersPlugin from "@nomicfoundation/hardhat-ethers";
+import verifyPlugin from "@nomicfoundation/hardhat-verify";
+import upgradesPlugin from "@openzeppelin/hardhat-upgrades";
 import "dotenv/config";
 
 /** @type import('hardhat/config').HardhatUserConfig */
 export default {
+  plugins: [ethersPlugin, verifyPlugin, upgradesPlugin],
   solidity: {
     version: "0.8.22",
     settings: {

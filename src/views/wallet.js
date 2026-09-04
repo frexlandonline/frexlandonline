@@ -47,9 +47,9 @@ function getNetworkDetails(chainId) {
   }
 }
 
-function formatBalance(val) {
+function formatBalance(val, decimals = 6) {
   const num = parseFloat(val || 0);
-  return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }).format(num);
+  return new Intl.NumberFormat('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(num);
 }
 
 let isSubscribed = false;
@@ -259,9 +259,9 @@ function renderWalletContent() {
                 <div id="lemon-deposit-section">
                   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
                     <div style="background: rgba(255,255,255,0.02); padding: 10px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
-                      <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">Saldo Depositado</span>
+                      <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">Saldo en Aave (Neto)</span>
                       <div style="font-size: clamp(0.95rem, 3.5vw, 1.2rem); font-weight: bold; margin-top: 2px; color: var(--neon-cyan); word-break: break-all;">
-                        💰 ${formatBalance(currentUser?.total_depositado || 0)} <span style="font-size: 0.72rem; color: var(--text-muted);">USDC</span>
+                        💰 ${formatBalance(currentUser?.total_depositado || 0, 6)} <span style="font-size: 0.72rem; color: var(--text-muted);">USDC</span>
                       </div>
                     </div>
                     
@@ -316,26 +316,60 @@ function renderWalletContent() {
                     </div>
                   ` : ''}
 
+                <!-- BANNER COMISIÓN DE RED / PUENTE -->
+                <div class="deposit-commission-banner" style="background: rgba(0, 245, 255, 0.05); border: 1px solid rgba(0, 245, 255, 0.25); padding: 12px 14px; border-radius: var(--radius-sm); margin-bottom: 14px; font-size: 0.8rem; line-height: 1.45;">
+                  <div style="font-weight: 700; color: var(--neon-cyan); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                    <span>ℹ️</span> Depósitos en Aave y Comisión de Redes
+                  </div>
+                  <div style="color: var(--text-secondary); margin-bottom: 6px;">
+                    Se aceptan todo tipo de montos para que se depositen en <strong>Aave (red Base)</strong> y generen intereses. Se descontarán <strong>únicamente las comisiones reales cobradas por las redes</strong> (aprox. 0.01 USDC).
+                  </div>
+                  <div style="color: #FFA500; font-weight: 600; background: rgba(255, 165, 0, 0.08); padding: 8px 10px; border-radius: 4px; border: 1px solid rgba(255, 165, 0, 0.25); line-height: 1.4;">
+                    💡 <strong>Recomendación:</strong> Recomendamos agregar <strong>0.01 USDC</strong> al monto a depositar (ej. <strong>10.01 USDC</strong>) para cubrir las comisiones de red. Así aseguras tener <strong>10.00 USDC o más</strong> netos en Aave para obtener tu crédito. Si tu saldo neto queda por debajo de 10 USDC, <strong>no tendrás crédito disponible para grabar tus resultados</strong>.
+                  </div>
+                </div>
+
+                <!-- BOTONES DE SELECCIÓN RÁPIDA -->
+                <div style="display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;">
+                  <button type="button" class="btn-quick-deposit" data-amount="10.01" style="font-size: 0.75rem; padding: 5px 10px; background: rgba(0, 245, 255, 0.08); border: 1px solid rgba(0, 245, 255, 0.25); color: var(--neon-cyan); border-radius: 4px; cursor: pointer; font-weight: 600;">10.01 USDC (1 Crédito)</button>
+                  <button type="button" class="btn-quick-deposit" data-amount="20.01" style="font-size: 0.75rem; padding: 5px 10px; background: rgba(0, 245, 255, 0.08); border: 1px solid rgba(0, 245, 255, 0.25); color: var(--neon-cyan); border-radius: 4px; cursor: pointer; font-weight: 600;">20.01 USDC (2 Créditos)</button>
+                  <button type="button" class="btn-quick-deposit" data-amount="50.01" style="font-size: 0.75rem; padding: 5px 10px; background: rgba(0, 245, 255, 0.08); border: 1px solid rgba(0, 245, 255, 0.25); color: var(--neon-cyan); border-radius: 4px; cursor: pointer; font-weight: 600;">50.01 USDC (5 Créditos)</button>
+                </div>
+
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                   <div style="flex: 1; min-width: 140px;">
-                    <input type="number" id="deposit-amount" class="form-input" placeholder="Monto (mín. 10 USDC)" min="10" step="10" style="width: 100%; height: 40px; font-family: var(--font-display); font-size: 0.85rem; padding: 6px 10px; box-sizing: border-box;">
+                    <input type="number" id="deposit-amount" class="form-input" placeholder="Monto en USDC (ej. 10.01)" min="0.02" step="0.01" value="10.01" style="width: 100%; height: 40px; font-family: var(--font-display); font-size: 0.85rem; padding: 6px 10px; box-sizing: border-box;">
                   </div>
                   <div style="display: flex; gap: 6px; flex-shrink: 0;">
                     <button class="btn btn-primary" id="btn-deposit-base" style="height: 40px; padding: 0 16px; font-size: 0.85rem; box-shadow: var(--shadow-glow-cyan);">Depositar</button>
                   </div>
                 </div>
 
-                <div style="margin-top: 20px; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.05);">
-                  <h4 style="font-family: var(--font-display); font-size: 0.95rem; margin-bottom: 10px; color: var(--text-primary);">📤 Retirar Fondos</h4>
+                <div id="deposit-breakdown-preview" style="margin-top: 8px; font-size: 0.76rem; color: var(--text-secondary); background: rgba(255,255,255,0.02); padding: 8px 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+                  <span>Llega neto a Aave: <strong style="color: var(--neon-cyan);" id="preview-net-aave">10.000000 USDC</strong> <span style="color: var(--text-muted);">(Comisión: -0.01 USDC)</span></span>
+                  <span>Créditos: <strong style="color: var(--neon-green);" id="preview-credits">1 Crédito</strong></span>
+                </div>
+
+                <div style="margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.05);">
+                  <h4 style="font-family: var(--font-display); font-size: 0.95rem; margin-bottom: 8px; color: var(--text-primary);">📤 Retirar Fondos</h4>
+                  
+                  <div class="withdraw-commission-banner" style="background: rgba(255, 165, 0, 0.06); border: 1px solid rgba(255, 165, 0, 0.25); padding: 10px 12px; border-radius: var(--radius-sm); margin-bottom: 12px; font-size: 0.78rem; line-height: 1.4; color: var(--text-secondary);">
+                    ⚠️ <strong>Recordatorio de Retiro:</strong> Al retirar hacia tu billetera (World App o red externa), el monto recibido será ligeramente menor por el cobro de comisiones. Se restará <strong>solamente lo que cobren las comisiones de las redes</strong> (aprox. 0.01 USDC), las cuales deberían quedar cubiertas con el 0.01 USDC depositado de más.
+                  </div>
+
                   <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                     <div style="flex: 1; min-width: 140px;">
-                      <input type="number" id="withdraw-amount" class="form-input" placeholder="Monto a retirar" min="10" step="10" style="width: 100%; height: 40px; font-family: var(--font-display); font-size: 0.85rem; padding: 6px 10px; box-sizing: border-box;" ${currentUser?.withdraw_request_time ? `value="${currentUser.withdraw_request_amount}" disabled` : ''}>
+                      <input type="number" id="withdraw-amount" class="form-input" placeholder="Monto a retirar (ej. 10.00)" min="0.02" step="0.01" style="width: 100%; height: 40px; font-family: var(--font-display); font-size: 0.85rem; padding: 6px 10px; box-sizing: border-box;" ${currentUser?.withdraw_request_time ? `value="${currentUser.withdraw_request_amount}" disabled` : ''}>
                     </div>
                     <div style="display: flex; gap: 6px; flex-shrink: 0;">
                       <button class="btn btn-secondary" id="btn-withdraw-base" style="height: 40px; padding: 0 14px; font-size: 0.85rem;">
                         ${currentUser?.withdraw_request_time ? 'Retiro en proceso (24hs)' : 'Solicitar Retiro'}
                       </button>
                     </div>
+                  </div>
+
+                  <div id="withdraw-preview-container" style="margin-top: 8px; font-size: 0.76rem; color: var(--text-secondary); display: none; background: rgba(255,255,255,0.02); padding: 6px 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
+                    Recibirás neto en tu billetera: <strong style="color: var(--neon-green);" id="withdraw-net-amount">0.00 USDC</strong> <span style="color: var(--text-muted);">(Comisión descontada: 0.01 USDC)</span>
                   </div>
                 </div>
 
@@ -477,6 +511,56 @@ function renderWalletContent() {
       if (walletState.chainId === 8453 || walletState.chain === 'worldchain' || isLemonWebView() || isWorldAppWebView()) {
         document.getElementById('btn-deposit-base')?.addEventListener('click', handleDepositBase);
         document.getElementById('btn-withdraw-base')?.addEventListener('click', handleWithdrawBaseClick);
+
+        // Quick Deposit Buttons
+        document.querySelectorAll('.btn-quick-deposit').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const amount = btn.getAttribute('data-amount');
+            const input = document.getElementById('deposit-amount');
+            if (input) {
+              input.value = amount;
+              updateDepositPreview();
+            }
+          });
+        });
+
+        // Live Deposit Preview
+        const depositInput = document.getElementById('deposit-amount');
+        const updateDepositPreview = () => {
+          const val = parseFloat(depositInput?.value || '0');
+          const netEl = document.getElementById('preview-net-aave');
+          const creditsEl = document.getElementById('preview-credits');
+          if (!netEl || !creditsEl) return;
+          if (isNaN(val) || val <= 0.01) {
+            netEl.textContent = '0.000000 USDC';
+            creditsEl.textContent = '0 Créditos';
+            return;
+          }
+          const net = Math.max(0, Math.round((val - 0.01) * 1e6) / 1e6);
+          const credits = Math.floor((net + 0.015) / 10);
+          netEl.textContent = `${net.toFixed(6)} USDC`;
+          creditsEl.textContent = `${credits} ${credits === 1 ? 'Crédito' : 'Créditos'}${credits === 0 ? ' (Monto < 10 USDC)' : ''}`;
+        };
+        depositInput?.addEventListener('input', updateDepositPreview);
+        updateDepositPreview();
+
+        // Live Withdraw Preview
+        const withdrawInput = document.getElementById('withdraw-amount');
+        const withdrawContainer = document.getElementById('withdraw-preview-container');
+        const withdrawNetEl = document.getElementById('withdraw-net-amount');
+        const updateWithdrawPreview = () => {
+          const val = parseFloat(withdrawInput?.value || '0');
+          if (!withdrawContainer || !withdrawNetEl) return;
+          if (isNaN(val) || val <= 0.01) {
+            withdrawContainer.style.display = 'none';
+            return;
+          }
+          withdrawContainer.style.display = 'block';
+          const net = Math.max(0, Math.round((val - 0.01) * 1e6) / 1e6);
+          withdrawNetEl.textContent = `${net.toFixed(6)} USDC`;
+        };
+        withdrawInput?.addEventListener('input', updateWithdrawPreview);
+        updateWithdrawPreview();
       } else {
         document.getElementById('btn-switch-base')?.addEventListener('click', handleSwitchToBase);
         document.getElementById('btn-connect-evm')?.addEventListener('click', () => connectWallet().catch(err => {
@@ -696,11 +780,9 @@ async function handleSwitchToBase() {
 
 async function handleDepositBase() {
   const input = document.getElementById('deposit-amount');
-  const amountStr = input ? input.value : '0';
-  const amount = parseFloat(amountStr);
-
-  if (!amount || amount < 10 || amount % 10 !== 0) {
-    showToast('El monto mínimo es 10 USDC y debe ser múltiplo de 10.', 'error');
+  const amount = parseFloat(input ? input.value : '0');
+  if (!amount || amount <= 0.01) {
+    showToast('El monto a depositar debe ser mayor a 0.01 USDC para cubrir la comisión de red.', 'error');
     return;
   }
   
@@ -720,7 +802,7 @@ async function handleDepositBase() {
       const result = await api.post('/wallet/deposit', { amount });
       updateLocalUser(result.user);
       
-      showToast('Depósito con Lemon exitoso. Créditos actualizados.', 'success');
+      showToast(result.message || 'Depósito con Lemon exitoso. Créditos actualizados.', 'success');
       input.value = '';
       renderWalletContent();
     } catch (error) {
@@ -745,7 +827,7 @@ async function handleDepositBase() {
       const result = await api.post('/wallet/deposit', { amount, platform: 'worldchain', txHash });
       updateLocalUser(result.user);
       
-      showToast('¡Depósito exitoso! Créditos acreditados a tu cuenta.', 'success');
+      showToast(result.message || '¡Depósito exitoso! Créditos acreditados a tu cuenta.', 'success');
       input.value = '';
       renderWalletContent();
     } catch (error) {
@@ -762,7 +844,7 @@ async function handleDepositBase() {
   btn.disabled = true;
 
   try {
-    const amountWei = BigInt(amount * 1e6); // USDC has 6 decimals
+    const amountWei = BigInt(Math.round(amount * 1e6)); // USDC has 6 decimals
     
     // Check existing allowance first
     const address = getConnectedAddress();
@@ -897,14 +979,14 @@ async function executeWithdraw(amount, isAdmin) {
       const result = await api.post('/wallet/confirm-withdraw-world', { amount });
       updateLocalUser(result.user);
       
-      showToast('Retiro a World Chain exitoso.', 'success');
+      showToast(result.message || 'Retiro a World Chain exitoso.', 'success');
       if (input) input.value = '';
       
       btn.style = '';
       renderWalletContent();
       return; // Salimos temprano ya que el backend hizo todo
     } else {
-      const amountWei = BigInt(amount * 1e6); // 6 decimals
+      const amountWei = BigInt(Math.round(amount * 1e6)); // 6 decimals
       txHash = await withdrawUSDC(amountWei);
     }
 
@@ -920,7 +1002,7 @@ async function executeWithdraw(amount, isAdmin) {
     const result = await api.post('/wallet/confirm-withdraw', { amount, isAdmin });
     updateLocalUser(result.user);
     
-    showToast('Retiro exitoso desde el contrato.', 'success');
+    showToast(result.message || 'Retiro exitoso desde el contrato.', 'success');
     if (input) input.value = '';
     
     btn.style = '';

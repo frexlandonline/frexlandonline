@@ -70,9 +70,10 @@ router.post('/deposit', authenticateToken, async (req, res) => {
   try {
     const { amount } = req.body;
     const userId = req.user.id;
+    const depositAmount = parseFloat(amount);
 
-    if (!amount || amount < 10 || amount % 10 !== 0) {
-      return res.status(400).json({ error: 'El monto mínimo de depósito es 10 USDC y debe ser múltiplo de 10.' });
+    if (isNaN(depositAmount) || depositAmount <= 0.01) {
+      return res.status(400).json({ error: 'El monto a depositar debe ser mayor a 0.01 USDC para cubrir la comisión de red.' });
     }
 
     const user = await dbAPI.checkAndResetDailyCredits(userId);
@@ -80,17 +81,32 @@ router.post('/deposit', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    const creditsToAdd = amount / 10;
-    const currentCredits = user.creditos_escritura || 0;
+    // Comisión fija de red / puente CCTP (0.01 USDC)
+    const BRIDGE_FEE = 0.01;
+    const netAmount = Math.max(0, Math.round((depositAmount - BRIDGE_FEE) * 1e6) / 1e6);
+
     const currentTotal = user.total_depositado || 0;
+    const newTotal = Math.round((currentTotal + netAmount) * 1e6) / 1e6;
+
+    // Calcular créditos ganados: 1 crédito por cada 10 USDC netos acumulados
+    const oldCreditsFromDeposit = Math.floor((currentTotal + 0.015) / 10);
+    const newCreditsFromDeposit = Math.floor((newTotal + 0.015) / 10);
+    const creditsToAdd = Math.max(0, newCreditsFromDeposit - oldCreditsFromDeposit);
+
+    const currentCredits = user.creditos_escritura || 0;
 
     const updatedUser = await dbAPI.updateUser(userId, {
       creditos_escritura: currentCredits + creditsToAdd,
-      total_depositado: currentTotal + amount
+      total_depositado: newTotal
     });
 
     const { passwordHash, ...safeUser } = updatedUser;
-    res.json({ message: `Depósito de ${amount} USDC exitoso. Has recibido ${creditsToAdd} créditos.`, user: safeUser });
+    res.json({ 
+      message: `Depósito de ${depositAmount} USDC procesado. Comisión de red descontada: ${BRIDGE_FEE} USDC. Monto neto en Aave: ${netAmount.toFixed(6)} USDC (+${creditsToAdd} créditos).`, 
+      user: safeUser,
+      netAmount,
+      fee: BRIDGE_FEE
+    });
   } catch (error) {
     console.error('Deposit error:', error);
     res.status(500).json({ error: 'Error interno del servidor al procesar el depósito.' });
@@ -240,8 +256,8 @@ router.post('/confirm-withdraw', authenticateToken, async (req, res) => {
       }
     }
 
-    const newTotal = currentTotal - amount;
-    const maxCreditsNow = Math.floor(newTotal / 10);
+    const newTotal = Math.max(0, Math.round((currentTotal - amount) * 1e6) / 1e6);
+    const maxCreditsNow = Math.floor((newTotal + 0.015) / 10);
     const newCredits = Math.min(user.creditos_escritura || 0, maxCreditsNow);
 
     const updatedUser = await dbAPI.updateUser(userId, {
@@ -287,8 +303,11 @@ router.post('/confirm-withdraw-world', authenticateToken, async (req, res) => {
 
     console.log(`[CCTP Reverse Bridge] Retirando ${amount} USDC hacia World Chain para usuario ${userId}`);
 
-    const newTotal = currentTotal - amount;
-    const maxCreditsNow = Math.floor(newTotal / 10);
+    const BRIDGE_FEE = 0.01;
+    const netWithdraw = Math.max(0, Math.round((amount - BRIDGE_FEE) * 1e6) / 1e6);
+
+    const newTotal = Math.max(0, Math.round((currentTotal - amount) * 1e6) / 1e6);
+    const maxCreditsNow = Math.floor((newTotal + 0.015) / 10);
     const newCredits = Math.min(user.creditos_escritura || 0, maxCreditsNow);
 
     const updatedUser = await dbAPI.updateUser(userId, {
@@ -299,7 +318,12 @@ router.post('/confirm-withdraw-world', authenticateToken, async (req, res) => {
     });
 
     const { passwordHash, ...safeUser } = updatedUser;
-    res.json({ message: `Retiro de ${amount} USDC hacia World Chain confirmado exitosamente.`, user: safeUser });
+    res.json({ 
+      message: `Retiro de ${amount} USDC procesado. Comisión de red descontada: ${BRIDGE_FEE} USDC. Monto neto enviado a tu billetera de World App: ${netWithdraw.toFixed(6)} USDC.`, 
+      user: safeUser,
+      netWithdraw,
+      fee: BRIDGE_FEE
+    });
   } catch (error) {
     console.error('Confirm withdraw world error:', error);
     res.status(500).json({ error: 'Error interno del servidor al confirmar retiro hacia World Chain.' });

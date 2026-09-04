@@ -108,9 +108,9 @@ try { sqliteDb.exec("ALTER TABLE users ADD COLUMN withdraw_request_amount INTEGE
 let firestoreDb = null;
 let useFirestore = false;
 
-const firebaseProjectId = process.env.FIREBASE_PROJECT_ID;
-const firebaseClientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-const firebasePrivateKey = process.env.FIREBASE_PRIVATE_KEY;
+const firebaseProjectId = process.env.FIREBASE_PROJECT_ID || process.env.FB_PROJECT_ID;
+const firebaseClientEmail = process.env.FIREBASE_CLIENT_EMAIL || process.env.FB_CLIENT_EMAIL;
+const firebasePrivateKey = process.env.FIREBASE_PRIVATE_KEY || process.env.FB_PRIVATE_KEY;
 
 if (getApps().length === 0) {
   if (process.env.FUNCTIONS_EMULATOR || process.env.K_SERVICE) {
