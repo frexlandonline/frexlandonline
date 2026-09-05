@@ -7,3 +7,4 @@
 * [Objetivos del Proyecto](objetivos.md)
 * [El Equipo](equipo.md)
 * [Seguridad y Contratos](seguridad.md)
+* [Integración World App & World ID](worldapp.md)

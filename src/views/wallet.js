@@ -275,7 +275,7 @@ function renderWalletContent() {
 
                   ${((isWorldAppWebView() || currentUser?.platform === 'worldchain' || window.location.search?.includes('worldapp=true')) && currentUser) ? `
                     <div class="card" style="background: radial-gradient(circle at top left, rgba(139, 92, 246, 0.15) 0%, rgba(10, 10, 26, 0.8) 100%); border: 1px solid var(--neon-purple); padding: 14px 12px; border-radius: var(--radius-md); margin-bottom: 20px; box-shadow: 0 0 20px rgba(139, 92, 246, 0.15); box-sizing: border-box;">
-                      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
+                      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
                         <div style="display: flex; align-items: center; gap: 8px;">
                           <span style="font-size: 1.5rem;">🌍</span>
                           <div>
@@ -291,26 +291,16 @@ function renderWalletContent() {
                       </div>
 
                       ${currentUser.isWorldIdVerified ? `
-                        <div style="background: rgba(57, 255, 20, 0.05); border: 1px dashed rgba(57, 255, 20, 0.3); padding: 10px; border-radius: 8px; color: var(--text-primary); font-size: 0.8rem; line-height: 1.4;">
-                          🎉 <strong>¡Tu cuenta está verificada!</strong> Ya has recibido tu crédito extra por verificar tu humanidad con World ID.
+                        <div style="background: rgba(57, 255, 20, 0.05); border: 1px dashed rgba(57, 255, 20, 0.3); padding: 10px; border-radius: 8px; color: var(--text-primary); font-size: 0.8rem; line-height: 1.45;">
+                          🎉 <strong>¡Tu cuenta está verificada como humano con World ID!</strong> Tienes activo tu <strong>crédito extra de juego diario</strong>, el cual se otorga y renueva automáticamente todos los días a las <strong>00:00 UTC</strong> junto con tus créditos normales de depósito.
                         </div>
                       ` : `
-                        <div style="color: var(--text-secondary); font-size: 0.8rem; line-height: 1.4; margin-bottom: 12px;">
-                          🛡️ <strong>Beneficio Exclusivo:</strong> Si ya tienes <strong>al menos 1 crédito disponible</strong>, verificar que eres humano con World ID te otorgará <strong>+1 crédito extra de regalo</strong> para registrar tus mejores puntajes.
+                        <div style="color: var(--text-secondary); font-size: 0.8rem; line-height: 1.45; margin-bottom: 12px;">
+                          🛡️ <strong>Beneficio de Humanidad:</strong> Al verificar que eres un humano real con World ID Orb, obtienes <strong>+1 crédito extra de juego todos los días</strong>, el cual se otorga y renueva diariamente a las <strong>00:00 UTC</strong> junto con tus créditos normales obtenidos por depósitos.
                         </div>
 
-                        ${(currentUser?.creditos_escritura || 0) >= 1 ? `
-                          <div style="margin-bottom: 12px; font-size: 0.78rem; color: var(--neon-green); display: flex; align-items: center; gap: 6px;">
-                            <span>✨</span> Cumples el requisito (${currentUser.creditos_escritura} créditos disponibles). ¡Verifica tu humanidad ahora y suma +1 crédito extra!
-                          </div>
-                        ` : `
-                          <div style="margin-bottom: 12px; font-size: 0.78rem; color: #FFA500; background: rgba(255, 165, 0, 0.08); padding: 8px 10px; border-radius: 6px; border: 1px solid rgba(255, 165, 0, 0.2); line-height: 1.35;">
-                            ⚠️ Actualmente tienes 0 créditos. Realiza un depósito (mín. 10 USDC) para obtener tu primer crédito y desbloquear el crédito extra por verificación de humano.
-                          </div>
-                        `}
-
                         <button class="btn btn-primary" id="btn-verify-worldid" style="width: 100%; box-shadow: 0 0 15px rgba(139, 92, 246, 0.4); background: linear-gradient(135deg, #8b5cf6 0%, #00f5ff 100%); border: none; font-weight: bold; font-family: var(--font-display); font-size: clamp(0.75rem, 2.8vw, 0.9rem); padding: 12px 8px; white-space: normal; line-height: 1.3;">
-                          🛡️ Verificar que soy humano (+1 Crédito Extra)
+                          🛡️ Verificar que soy humano (+1 Crédito Diario a las 00:00 UTC)
                         </button>
                       `}
                     </div>
@@ -319,13 +309,13 @@ function renderWalletContent() {
                 <!-- BANNER COMISIÓN DE RED / PUENTE -->
                 <div class="deposit-commission-banner" style="background: rgba(0, 245, 255, 0.05); border: 1px solid rgba(0, 245, 255, 0.25); padding: 12px 14px; border-radius: var(--radius-sm); margin-bottom: 14px; font-size: 0.8rem; line-height: 1.45;">
                   <div style="font-weight: 700; color: var(--neon-cyan); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                    <span>ℹ️</span> Depósitos en Aave y Comisión de Redes
+                    <span>ℹ️</span> Regla de Depósitos y Comisiones de Red
                   </div>
                   <div style="color: var(--text-secondary); margin-bottom: 6px;">
-                    Se aceptan todo tipo de montos para que se depositen en <strong>Aave (red Base)</strong> y generen intereses. Se descontarán <strong>únicamente las comisiones reales cobradas por las redes</strong> (aprox. 0.01 USDC).
+                    Los depósitos deben ser obligatoriamente en <strong>múltiplos de 10 USDC sumando 0.01 USDC</strong> para cubrir comisiones de red y bridge (ej: <strong>10.01, 20.01, 30.01, 50.01, 100.01 USDC</strong>).
                   </div>
                   <div style="color: #FFA500; font-weight: 600; background: rgba(255, 165, 0, 0.08); padding: 8px 10px; border-radius: 4px; border: 1px solid rgba(255, 165, 0, 0.25); line-height: 1.4;">
-                    💡 <strong>Recomendación:</strong> Recomendamos agregar <strong>0.01 USDC</strong> al monto a depositar (ej. <strong>10.01 USDC</strong>) para cubrir las comisiones de red. Así aseguras tener <strong>10.00 USDC o más</strong> netos en Aave para obtener tu crédito. Si tu saldo neto queda por debajo de 10 USDC, <strong>no tendrás crédito disponible para grabar tus resultados</strong>.
+                    💡 <strong>Aviso Importante:</strong> De los 0.01 USDC se descontarán únicamente las comisiones cobradas por las redes, de modo que ingresa al pozo de Aave exactamente un múltiplo de 10 USDC (10, 20, 30...), garantizando <strong>1 crédito diario por cada 10 USDC aportados</strong>. Si el monto no cumple este formato, la transacción no será procesada.
                   </div>
                 </div>
 
@@ -333,12 +323,14 @@ function renderWalletContent() {
                 <div style="display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;">
                   <button type="button" class="btn-quick-deposit" data-amount="10.01" style="font-size: 0.75rem; padding: 5px 10px; background: rgba(0, 245, 255, 0.08); border: 1px solid rgba(0, 245, 255, 0.25); color: var(--neon-cyan); border-radius: 4px; cursor: pointer; font-weight: 600;">10.01 USDC (1 Crédito)</button>
                   <button type="button" class="btn-quick-deposit" data-amount="20.01" style="font-size: 0.75rem; padding: 5px 10px; background: rgba(0, 245, 255, 0.08); border: 1px solid rgba(0, 245, 255, 0.25); color: var(--neon-cyan); border-radius: 4px; cursor: pointer; font-weight: 600;">20.01 USDC (2 Créditos)</button>
+                  <button type="button" class="btn-quick-deposit" data-amount="30.01" style="font-size: 0.75rem; padding: 5px 10px; background: rgba(0, 245, 255, 0.08); border: 1px solid rgba(0, 245, 255, 0.25); color: var(--neon-cyan); border-radius: 4px; cursor: pointer; font-weight: 600;">30.01 USDC (3 Créditos)</button>
                   <button type="button" class="btn-quick-deposit" data-amount="50.01" style="font-size: 0.75rem; padding: 5px 10px; background: rgba(0, 245, 255, 0.08); border: 1px solid rgba(0, 245, 255, 0.25); color: var(--neon-cyan); border-radius: 4px; cursor: pointer; font-weight: 600;">50.01 USDC (5 Créditos)</button>
+                  <button type="button" class="btn-quick-deposit" data-amount="100.01" style="font-size: 0.75rem; padding: 5px 10px; background: rgba(0, 245, 255, 0.08); border: 1px solid rgba(0, 245, 255, 0.25); color: var(--neon-cyan); border-radius: 4px; cursor: pointer; font-weight: 600;">100.01 USDC (10 Créditos)</button>
                 </div>
 
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                   <div style="flex: 1; min-width: 140px;">
-                    <input type="number" id="deposit-amount" class="form-input" placeholder="Monto en USDC (ej. 10.01)" min="0.02" step="0.01" value="10.01" style="width: 100%; height: 40px; font-family: var(--font-display); font-size: 0.85rem; padding: 6px 10px; box-sizing: border-box;">
+                    <input type="number" id="deposit-amount" class="form-input" placeholder="Monto (ej. 10.01, 20.01)" min="10.01" step="10" value="10.01" style="width: 100%; height: 40px; font-family: var(--font-display); font-size: 0.85rem; padding: 6px 10px; box-sizing: border-box;">
                   </div>
                   <div style="display: flex; gap: 6px; flex-shrink: 0;">
                     <button class="btn btn-primary" id="btn-deposit-base" style="height: 40px; padding: 0 16px; font-size: 0.85rem; box-shadow: var(--shadow-glow-cyan);">Depositar</button>
@@ -347,6 +339,7 @@ function renderWalletContent() {
 
                 <div id="deposit-breakdown-preview" style="margin-top: 8px; font-size: 0.76rem; color: var(--text-secondary); background: rgba(255,255,255,0.02); padding: 8px 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
                   <span>Créditos a recibir: <strong style="color: var(--neon-green);" id="preview-credits">1 Crédito</strong></span>
+                  <span id="preview-breakdown" style="color: var(--text-muted);">10.00 USDC neto en Aave (0.01 USDC comisión)</span>
                 </div>
 
                 <div style="margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.05);">
@@ -432,12 +425,6 @@ function renderWalletContent() {
 
     document.getElementById('btn-verify-worldid')?.addEventListener('click', async () => {
       const currentUser = getUser();
-      const credits = currentUser?.creditos_escritura || 0;
-      if (credits < 1) {
-        showToast('Necesitas tener al menos 1 crédito disponible para recibir el crédito extra al verificar.', 'warning');
-        return;
-      }
-
       const btn = document.getElementById('btn-verify-worldid');
       if (!btn) return;
       const originalText = btn.innerHTML;
@@ -462,7 +449,7 @@ function renderWalletContent() {
         });
 
         if (res.success) {
-          showToast('🎉 ¡Verificación exitosa! Se te ha asignado +1 crédito extra.', 'success');
+          showToast('🎉 ¡Verificación exitosa! Se te ha asignado +1 crédito diario que se renovará a las 00:00 UTC.', 'success');
           updateLocalUser(res.user);
           renderWalletContent();
         } else {
@@ -470,12 +457,11 @@ function renderWalletContent() {
         }
       } catch (err) {
         console.error("Error en verificación World ID:", err);
-        showToast(err.message || 'Error al verificar con World ID', 'error');
+        showToast(err.message || 'Error en la verificación de World ID', 'error');
       } finally {
-        const freshBtn = document.getElementById('btn-verify-worldid');
-        if (freshBtn) {
-          freshBtn.innerHTML = originalText;
-          freshBtn.disabled = false;
+        if (btn) {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
         }
       }
     });
@@ -524,13 +510,26 @@ function renderWalletContent() {
         const updateDepositPreview = () => {
           const val = parseFloat(depositInput?.value || '0');
           const creditsEl = document.getElementById('preview-credits');
+          const breakdownEl = document.getElementById('preview-breakdown');
           if (!creditsEl) return;
-          if (isNaN(val) || val <= 0) {
+          if (isNaN(val) || val < 10.01) {
             creditsEl.textContent = '0 Créditos';
+            creditsEl.style.color = '#FFA500';
+            if (breakdownEl) breakdownEl.textContent = '⚠️ Mínimo 10.01 USDC (10 USDC + 0.01 de comisión)';
             return;
           }
-          const credits = Math.floor((val + 0.005) / 10);
-          creditsEl.textContent = `${credits} ${credits === 1 ? 'Crédito' : 'Créditos'}${credits === 0 ? ' (Monto < 10 USDC)' : ''}`;
+          const netCents = Math.round((val - 0.01) * 100);
+          if (netCents < 1000 || (netCents % 1000 !== 0)) {
+            creditsEl.textContent = 'Monto Inválido';
+            creditsEl.style.color = 'var(--neon-red)';
+            if (breakdownEl) breakdownEl.textContent = '⚠️ Debe ser múltiplo de 10 USDC + 0.01 USDC (ej. 10.01, 20.01)';
+            return;
+          }
+          const netUSDC = Math.floor(val);
+          const credits = Math.floor(netUSDC / 10);
+          creditsEl.textContent = `${credits} ${credits === 1 ? 'Crédito' : 'Créditos'}`;
+          creditsEl.style.color = 'var(--neon-green)';
+          if (breakdownEl) breakdownEl.textContent = `${netUSDC}.00 USDC neto en Aave (0.01 USDC comisión de red)`;
         };
         depositInput?.addEventListener('input', updateDepositPreview);
         updateDepositPreview();
@@ -754,8 +753,14 @@ async function handleSwitchToBase() {
 async function handleDepositBase() {
   const input = document.getElementById('deposit-amount');
   const amount = parseFloat(input ? input.value : '0');
-  if (!amount || amount <= 0.01) {
-    showToast('El monto a depositar debe ser mayor a 0.01 USDC para cubrir la comisión de red.', 'error');
+  if (isNaN(amount) || amount < 10.01) {
+    showToast('El monto mínimo es de 10.01 USDC (10 USDC + 0.01 USDC de comisión).', 'error');
+    return;
+  }
+  
+  const netCents = Math.round((amount - 0.01) * 100);
+  if (netCents < 1000 || (netCents % 1000 !== 0)) {
+    showToast('El monto debe ser múltiplo de 10 USDC sumando 0.01 USDC para comisiones (ej. 10.01, 20.01, 50.01 USDC).', 'error');
     return;
   }
   
@@ -817,7 +822,9 @@ async function handleDepositBase() {
   btn.disabled = true;
 
   try {
-    const amountWei = BigInt(Math.round(amount * 1e6)); // USDC has 6 decimals
+    // El contrato en Base exige múltiplos exactos de 10 USDC (10 * 10^6)
+    const netAmountUSDC = Math.floor(amount);
+    const amountWei = BigInt(netAmountUSDC) * 1000000n;
     
     // Check existing allowance first
     const address = getConnectedAddress();

@@ -54,6 +54,7 @@ router.post('/', authenticateToken, async (req, res) => {
       }
     }
 
+    await dbAPI.checkAndResetDailyCredits(userId);
     const saved = await dbAPI.saveHighScore(userId, score, level || 1, linesCleared || 0, platform || 'html5', walletAddress);
 
     res.status(201).json({

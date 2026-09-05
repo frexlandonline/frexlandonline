@@ -20,6 +20,7 @@ export function renderWhitepaperPage(container) {
             <li><a href="#objetivos" style="color: var(--text-secondary); text-decoration: none; font-weight: bold; transition: color 0.2s;">5. Objetivos del Proyecto</a></li>
             <li><a href="#equipo" style="color: var(--text-secondary); text-decoration: none; font-weight: bold; transition: color 0.2s;">6. El Equipo</a></li>
             <li><a href="#seguridad" style="color: var(--text-secondary); text-decoration: none; font-weight: bold; transition: color 0.2s;">7. Seguridad y Contratos</a></li>
+            <li><a href="#worldapp" style="color: var(--text-secondary); text-decoration: none; font-weight: bold; transition: color 0.2s;">8. World App & World ID</a></li>
           </ul>
         </div>
 
@@ -118,6 +119,40 @@ export function renderWhitepaperPage(container) {
               <li style="margin-bottom: 10px;"><strong>Time-Lock de 24 Horas:</strong> Implementamos un mecanismo de seguridad estricto que obliga a esperar 24 horas tras solicitar un retiro. Esto neutraliza manipulaciones de precios flash-loan y da tiempo a reaccionar en caso de un evento inesperado.</li>
               <li style="margin-bottom: 10px;"><strong>Interacción Segura con Aave V3:</strong> El contrato no reinventa la rueda financiera; deposita los USDC directamente en Aave V3 utilizando integraciones estándar y comprobadas, limitando el riesgo sistémico únicamente a la seguridad ampliamente validada de Aave.</li>
               <li style="margin-bottom: 10px;"><strong>Sin "Owner Trap":</strong> El propietario del contrato no tiene capacidad de pausar los retiros legítimos de los usuarios ni de acceder a sus depósitos, garantizando la confianza y descentralización de los fondos.</li>
+            </ul>
+          </section>
+
+          <section id="worldapp" style="margin-bottom: 50px;">
+            <h2 style="color: #fff; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 20px;">8. Integración World App & World ID (Anti-Bots y Mecanismo Cross-Chain)</h2>
+            <p>FrexLand ha sido concebido desde sus cimientos para ofrecer una experiencia de juego limpia, justa y libre de bots automatizados. Gracias a la integración con el ecosistema de <strong>World (World App, World Chain y World ID)</strong>, resolvemos uno de los desafíos más críticos de los videojuegos Web3: la suplantación de identidad (ataques Sybil) y el abuso de scripts.</p>
+
+            <h3 style="color: var(--neon-cyan); margin-top: 30px;">8.1. Mini-App en World App (MiniKit)</h3>
+            <p>FrexLand funciona como una Mini-App verificada dentro de <strong>World App</strong> mediante el framework oficial <strong>MiniKit</strong>. Esto permite que millones de usuarios globales accedan directamente desde sus teléfonos móviles sin necesidad de lidiar con frases semilla complejas, configuraciones manuales de RPC ni extensiones externas de navegador. Los pagos, depósitos y verificaciones ocurren en un entorno protegido y nativo.</p>
+
+            <h3 style="color: var(--neon-cyan); margin-top: 30px;">8.2. Verificación de Humanidad (Proof of Personhood con World ID Orb)</h3>
+            <p>El pilar fundamental de nuestra protección contra bots es <strong>World ID</strong> verificado por <strong>Orb</strong>:</p>
+            <ul>
+              <li style="margin-bottom: 10px;"><strong>Privacidad Cero-Conocimiento (ZKP):</strong> World ID utiliza pruebas criptográficas de conocimiento cero (Zero-Knowledge Proofs). En ningún momento se revelan ni almacenan datos biométricos o personales. La plataforma únicamente recibe una prueba matemática irrefutable de que quien juega es un ser humano real y único en el mundo.</li>
+              <li style="margin-bottom: 10px;"><strong>Protección de Leaderboards y Torneos:</strong> Cada usuario verificado genera un <code>nullifier_hash</code> único que impide la creación de múltiples cuentas por una misma persona para monopolizar los premios del pozo semanal.</li>
+              <li style="margin-bottom: 10px;"><strong>Crédito Diario de Humanidad (00:00 UTC):</strong> Una vez que un jugador verifica su condición de humano mediante World ID Orb, el protocolo le otorga <strong>1 crédito extra de juego diario</strong>. Este crédito se renueva y acredita automáticamente todos los días a las <strong>00:00 UTC</strong> de forma persistente, permitiéndole grabar sus récords día a día junto con los créditos correspondientes a su capital depositado.</li>
+            </ul>
+
+            <h3 style="color: var(--neon-cyan); margin-top: 30px;">8.3. Mecanismo Cross-Chain y Regla de Depósitos (World Chain a Base / Aave V3)</h3>
+            <p>Para maximizar la eficiencia y el rendimiento financiero de los fondos, el protocolo opera con una arquitectura multi-cadena perfectamente coordinada:</p>
+            <div style="background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 8px; padding: 18px; margin: 20px 0; line-height: 1.6;">
+              <h4 style="color: var(--neon-purple); margin-top: 0; margin-bottom: 8px;">Arquitectura de Depósito y Rendimiento:</h4>
+              <p style="margin-bottom: 10px;">1. <strong>Depósito en World Chain:</strong> El usuario transfiere USDC desde su billetera de World App en la red World Chain.</p>
+              <p style="margin-bottom: 10px;">2. <strong>Regla de Múltiplos de 10 USDC + 0.01 USDC:</strong> Los depósitos deben ser obligatoriamente en montos de <strong>(10 × N) + 0.01 USDC</strong> (ej: <strong>10.01, 20.01, 30.01, 50.01, 100.01 USDC</strong>). Los 0.01 USDC se destinan estrictamente a solventar las comisiones reales de red y el puente cross-chain.</p>
+              <p style="margin-bottom: 10px;">3. <strong>Puente a Base y Suministro a Aave V3:</strong> Los fondos se transfieren hacia la red Base y el contrato inteligente invoca automáticamente <code>registrarEntrada</code> con el múltiplo exacto de 10 USDC (10, 20, 50 USDC...). Dichos fondos se suministran a Aave V3 para generar intereses en aUSDC.</p>
+              <p style="margin-bottom: 0;">4. <strong>Generación de Créditos:</strong> Por cada 10 USDC netos en Aave, el usuario obtiene 1 crédito diario permanente (ej. 10 USDC = 1 crédito diario; 50 USDC = 5 créditos diarios). Sumado al crédito por verificación de humanidad con World ID, un usuario verificado con 10 USDC en Aave dispone de <strong>2 créditos todos los días a las 00:00 UTC</strong>.</p>
+            </div>
+
+            <h3 style="color: var(--neon-cyan); margin-top: 30px;">8.4. Mecanismo de Retiro On-Chain</h3>
+            <p>Cuando un usuario de World App solicita retirar su capital depositado:</p>
+            <ul>
+              <li style="margin-bottom: 10px;">Tras cumplirse el período de seguridad de 24 horas (Time-Lock contra manipulaciones flash-loan), el contrato inteligente retira los USDC correspondientes desde el pool de Aave V3 en la red Base.</li>
+              <li style="margin-bottom: 10px;">La infraestructura ejecuta el puente inverso hacia World Chain directamente a la dirección del usuario.</li>
+              <li style="margin-bottom: 10px;">Las comisiones de red y bridge requeridas por la transacción se descuentan directamente del capital retirado, garantizando un balance contable matemáticamente exacto y sostenible sin generar deudas para el protocolo.</li>
             </ul>
           </section>
         </div>

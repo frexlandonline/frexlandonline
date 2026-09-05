@@ -98,8 +98,10 @@ async function bridgeAndDepositToAave(amountUSDC) {
     'function approve(address, uint256) returns (bool)'
   ]);
 
-  const amountWei = BigInt(Math.floor(amountUSDC * 1e6));
-  if (amountWei < 10000000n) return; // Mínimo para Aave es 10 USDC
+  // Monto neto en múltiplos de 10 USDC (ej. si deposita 10.01 -> 10 USDC, 20.01 -> 20 USDC)
+  const netUSDC = Math.floor(amountUSDC);
+  const amountToSupply = BigInt(netUSDC) * 1000000n;
+  if (amountToSupply < 10000000n) return; // Mínimo para Aave es 10 USDC
 
   // 1. Cotizar puente en Relay
   const quoteRes = await fetch('https://api.relay.link/quote', {
@@ -112,7 +114,7 @@ async function bridgeAndDepositToAave(amountUSDC) {
       originCurrency: usdcWorld,
       destinationCurrency: usdcBase,
       recipient: admin,
-      amount: '10000000', // Puentear 10 USDC hacia Base
+      amount: amountToSupply.toString(),
       tradeType: 'EXACT_INPUT'
     })
   });
@@ -139,12 +141,12 @@ async function bridgeAndDepositToAave(amountUSDC) {
   for (let i = 0; i < 20; i++) {
     await new Promise(r => setTimeout(r, 2000));
     const bUsdc = await baseClient.readContract({ address: usdcBase, abi: erc20Abi, functionName: 'balanceOf', args: [admin] });
-    if (bUsdc >= 10000000n) break;
+    if (bUsdc >= amountToSupply) break;
   }
 
   // 4. Asegurar allowance en Base
   const allowance = await baseClient.readContract({ address: usdcBase, abi: erc20Abi, functionName: 'allowance', args: [admin, CONTRACT_ADDRESS] });
-  if (allowance < 10000000n) {
+  if (allowance < amountToSupply) {
     const approveTx = await baseWallet.writeContract({
       address: usdcBase,
       abi: erc20Abi,
@@ -159,21 +161,29 @@ async function bridgeAndDepositToAave(amountUSDC) {
     address: CONTRACT_ADDRESS,
     abi: contractAbi,
     functionName: 'registrarEntrada',
-    args: [10000000n]
+    args: [amountToSupply]
   });
   await baseClient.waitForTransactionReceipt({ hash: depTx });
-  console.log(`[Auto-Deposit Aave] Exitoso: ${depTx}`);
+  console.log(`[Auto-Deposit Aave] Exitoso: ${depTx} por ${netUSDC} USDC`);
 }
 
 // ─── Deposit USDC for Credits ──────────────────────────────────
 router.post('/deposit', authenticateToken, async (req, res) => {
   try {
-    const { amount, fee, platform, txHash } = req.body;
+    const { amount, platform, txHash } = req.body;
     const userId = req.user.id;
     const depositAmount = parseFloat(amount);
 
-    if (isNaN(depositAmount) || depositAmount <= 0) {
-      return res.status(400).json({ error: 'Monto a depositar inválido.' });
+    if (isNaN(depositAmount) || depositAmount < 10.01) {
+      return res.status(400).json({ error: 'El monto mínimo de depósito es 10.01 USDC (10 USDC + 0.01 USDC para comisiones).' });
+    }
+
+    // Validar que sea estrictamente múltiplo de 10 USDC + 0.01 USDC
+    const netCents = Math.round((depositAmount - 0.01) * 100);
+    if (netCents < 1000 || (netCents % 1000 !== 0)) {
+      return res.status(400).json({ 
+        error: 'El monto a depositar debe ser múltiplo de 10 USDC sumando 0.01 USDC para comisiones (ej. 10.01, 20.01, 50.01 USDC).' 
+      });
     }
 
     const user = await dbAPI.checkAndResetDailyCredits(userId);
@@ -181,22 +191,9 @@ router.post('/deposit', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    // Descuento exacto de comisiones de red y bridge:
-    // Si la llamada provee una comisión real específica, se usa esa.
-    // En World Chain, la comisión real de gas L2 (quemar en WLD ~0.001 + depositar en Base ~0.001) es de 0.002 USDC.
-    // En depósitos directos sobre Base, la comisión de puente es 0.
-    let realFee = 0;
-    if (fee !== undefined && !isNaN(parseFloat(fee))) {
-      realFee = Math.max(0, parseFloat(fee));
-    } else if (platform === 'worldchain' || req.body.platform === 'worldchain' || user.platform === 'worldchain') {
-      realFee = 0.002;
-    }
-
-    if (depositAmount <= realFee) {
-      return res.status(400).json({ error: `El monto a depositar debe ser mayor a la comisión de red (${realFee.toFixed(6)} USDC).` });
-    }
-
-    const netAmount = Math.max(0, Math.round((depositAmount - realFee) * 1e6) / 1e6);
+    // Descuento exacto: 0.01 USDC para comisiones de red y bridge
+    const netAmount = Math.floor(depositAmount); // Múltiplo exacto de 10 USDC (10, 20, 30...)
+    const realFee = Math.round((depositAmount - netAmount) * 100) / 100; // 0.01 USDC
 
     const currentTotal = user.total_depositado || 0;
     const newTotal = Math.round((currentTotal + netAmount) * 1e6) / 1e6;
@@ -225,7 +222,7 @@ router.post('/deposit', authenticateToken, async (req, res) => {
 
     const { passwordHash, ...safeUser } = updatedUser;
     res.json({ 
-      message: `Depósito de ${depositAmount.toFixed(6)} USDC procesado. Comisión de red real descontada: ${realFee.toFixed(6)} USDC. Monto neto en Aave: ${netAmount.toFixed(6)} USDC (+${creditsToAdd} créditos).`, 
+      message: `Depósito de ${depositAmount.toFixed(6)} USDC procesado. Comisión de red descontada: ${realFee.toFixed(6)} USDC. Monto neto en Aave: ${netAmount.toFixed(6)} USDC (+${creditsToAdd} créditos).`, 
       user: safeUser,
       netAmount,
       fee: realFee

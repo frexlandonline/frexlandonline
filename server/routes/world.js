@@ -139,11 +139,13 @@ router.post('/verify', async (req, res) => {
     }
 
     // Acreditamos el estado de Humano Verificado y su crédito diario
+    const currentUTCDateStr = new Date().toISOString().split('T')[0];
     const currentCredits = user.creditos_escritura || 0;
     const updates = { 
       isWorldIdVerified: true,
       worldId_nullifier_hash: nullifier_hash,
-      creditos_escritura: currentCredits + 1
+      creditos_escritura: currentCredits + 1,
+      last_credit_reset: currentUTCDateStr
     };
     console.log(`[WorldID Verify] User ${userId} receives +1 human credit. New total: ${updates.creditos_escritura}`);
 
@@ -152,7 +154,7 @@ router.post('/verify', async (req, res) => {
 
     res.json({ 
       success: true, 
-      message: '¡Humano verificado exitosamente! Se te ha acreditado 1 crédito diario para jugar.', 
+      message: '¡Humano verificado exitosamente! Se te ha acreditado 1 crédito diario para jugar (se renovará diariamente a las 00:00 UTC).', 
       user: safeUser 
     });
 

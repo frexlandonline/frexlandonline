@@ -606,6 +606,7 @@ export const dbAPI = {
 
   // Save High Score
   async saveHighScore(userId, score, level, linesCleared, platform = 'html5', walletAddress = null) {
+    await this.checkAndResetDailyCredits(userId);
     if (useFirestore) {
       const userRef = firestoreDb.collection('users').doc(String(userId));
       const rankingRef = firestoreDb.doc('leaderboard_torneo/estado_actual');

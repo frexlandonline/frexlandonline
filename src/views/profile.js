@@ -128,6 +128,31 @@ export function renderProfilePage(container) {
             <input type="text" id="profile-telegram" class="input-field" value="${user.telegram || ''}" placeholder="Ej: @TuUsuario">
           </div>
 
+          <!-- World ID Status -->
+          <div class="input-group" style="background: rgba(139, 92, 246, 0.05); border: 1px solid rgba(139, 92, 246, 0.25); padding: var(--space-md); border-radius: var(--radius-md);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.75rem; color: var(--neon-cyan); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em;">
+                🌍 Verificación de Humanidad (World ID)
+              </span>
+              ${user.isWorldIdVerified ? `
+                <span style="font-size: 0.75rem; background: rgba(57, 255, 20, 0.1); border: 1px solid var(--neon-green); color: var(--neon-green); padding: 2px 8px; border-radius: 20px; font-weight: bold;">
+                  ✅ Verificado
+                </span>
+              ` : `
+                <span style="font-size: 0.75rem; background: rgba(255, 165, 0, 0.1); border: 1px solid rgba(255, 165, 0, 0.4); color: #FFA500; padding: 2px 8px; border-radius: 20px; font-weight: bold;">
+                  Pendiente
+                </span>
+              `}
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 6px; line-height: 1.4;">
+              ${user.isWorldIdVerified ? `
+                🎉 Tu cuenta está verificada como humano real. Recibes <strong>+1 crédito de juego extra</strong> que se renueva automáticamente todos los días a las <strong>00:00 UTC</strong>.
+              ` : `
+                🛡️ Al verificar tu humanidad con World ID Orb en la sección <a href="#/wallet" style="color: var(--neon-cyan); font-weight: 600;">Billetera</a>, obtienes <strong>+1 crédito extra diario</strong> renovable a las 00:00 UTC.
+              `}
+            </div>
+          </div>
+
           <!-- Wallets count / details -->
           <div class="input-group" style="background: rgba(0,0,0,0.15); border: 1px dashed var(--border-color); padding: var(--space-md); border-radius: var(--radius-md);">
             <span style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em;">
