@@ -68,6 +68,103 @@ router.post('/connect', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
+// Helper: Puente automático de World Chain a Base y depósito en Aave
+async function bridgeAndDepositToAave(amountUSDC) {
+  const rawPk = process.env.PRIVATE_KEY;
+  if (!rawPk) return console.error('No relayer private key');
+  const pk = rawPk.startsWith('0x') ? rawPk : '0x' + rawPk;
+  const account = privateKeyToAccount(pk);
+  const admin = account.address;
+
+  const worldChain = {
+    id: 480,
+    name: 'World Chain',
+    nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+    rpcUrls: { default: { http: ['https://worldchain-mainnet.g.alchemy.com/public'] } }
+  };
+  const usdcWorld = '0x79A02482A880bCE3F13e09Da970dC34db4CD24d1';
+  const usdcBase = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+  const CONTRACT_ADDRESS = '0xa129A50c3303057eC25780da0f645a977Bbf66bb';
+
+  const baseClient = createPublicClient({ chain: base, transport: http('https://mainnet.base.org') });
+  const baseWallet = createWalletClient({ account, chain: base, transport: http('https://mainnet.base.org') });
+  const worldClient = createPublicClient({ chain: worldChain, transport: http('https://worldchain-mainnet.g.alchemy.com/public') });
+  const worldWallet = createWalletClient({ account, chain: worldChain, transport: http('https://worldchain-mainnet.g.alchemy.com/public') });
+
+  const contractAbi = parseAbi(['function registrarEntrada(uint256 _monto) external']);
+  const erc20Abi = parseAbi([
+    'function balanceOf(address) view returns (uint256)',
+    'function allowance(address, address) view returns (uint256)',
+    'function approve(address, uint256) returns (bool)'
+  ]);
+
+  const amountWei = BigInt(Math.floor(amountUSDC * 1e6));
+  if (amountWei < 10000000n) return; // Mínimo para Aave es 10 USDC
+
+  // 1. Cotizar puente en Relay
+  const quoteRes = await fetch('https://api.relay.link/quote', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      user: admin,
+      originChainId: 480,
+      destinationChainId: 8453,
+      originCurrency: usdcWorld,
+      destinationCurrency: usdcBase,
+      recipient: admin,
+      amount: '10000000', // Puentear 10 USDC hacia Base
+      tradeType: 'EXACT_INPUT'
+    })
+  });
+  const quote = await quoteRes.json();
+  if (!quote.steps) {
+    console.error('Relay quote failed:', quote);
+    return;
+  }
+
+  // 2. Ejecutar pasos en World Chain
+  for (const step of quote.steps) {
+    for (const item of step.items) {
+      if (item.status === 'complete') continue;
+      const txHash = await worldWallet.sendTransaction({
+        to: item.data.to,
+        data: item.data.data,
+        value: BigInt(item.data.value || '0')
+      });
+      await worldClient.waitForTransactionReceipt({ hash: txHash });
+    }
+  }
+
+  // 3. Esperar que los USDC lleguen a Base
+  for (let i = 0; i < 20; i++) {
+    await new Promise(r => setTimeout(r, 2000));
+    const bUsdc = await baseClient.readContract({ address: usdcBase, abi: erc20Abi, functionName: 'balanceOf', args: [admin] });
+    if (bUsdc >= 10000000n) break;
+  }
+
+  // 4. Asegurar allowance en Base
+  const allowance = await baseClient.readContract({ address: usdcBase, abi: erc20Abi, functionName: 'allowance', args: [admin, CONTRACT_ADDRESS] });
+  if (allowance < 10000000n) {
+    const approveTx = await baseWallet.writeContract({
+      address: usdcBase,
+      abi: erc20Abi,
+      functionName: 'approve',
+      args: [CONTRACT_ADDRESS, 115792089237316195423570985008687907853269984665640564039457584007913129639935n]
+    });
+    await baseClient.waitForTransactionReceipt({ hash: approveTx });
+  }
+
+  // 5. Depositar en el contrato (que suministra a Aave)
+  const depTx = await baseWallet.writeContract({
+    address: CONTRACT_ADDRESS,
+    abi: contractAbi,
+    functionName: 'registrarEntrada',
+    args: [10000000n]
+  });
+  await baseClient.waitForTransactionReceipt({ hash: depTx });
+  console.log(`[Auto-Deposit Aave] Exitoso: ${depTx}`);
+}
+
 // ─── Deposit USDC for Credits ──────────────────────────────────
 router.post('/deposit', authenticateToken, async (req, res) => {
   try {
@@ -115,6 +212,16 @@ router.post('/deposit', authenticateToken, async (req, res) => {
       creditos_escritura: currentCredits + creditsToAdd,
       total_depositado: newTotal
     });
+
+    // Si el depósito proviene de World Chain, ejecutamos el puente y depósito en Aave en Base
+    if (platform === 'worldchain' || req.body.platform === 'worldchain' || user.platform === 'worldchain') {
+      try {
+        console.log(`[WorldChain Deposit] Iniciando puente automático hacia Base y depósito en Aave de ${depositAmount} USDC...`);
+        await bridgeAndDepositToAave(depositAmount);
+      } catch (bridgeErr) {
+        console.warn(`[WorldChain Deposit Warning] El puente a Aave se retrasó o falló: ${bridgeErr.message}. Los créditos del usuario ya están protegidos.`);
+      }
+    }
 
     const { passwordHash, ...safeUser } = updatedUser;
     res.json({ 
