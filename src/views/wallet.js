@@ -350,14 +350,18 @@ function renderWalletContent() {
                   </div>
 
                   <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 140px;">
-                      <input type="number" id="withdraw-amount" class="form-input" placeholder="Monto a retirar (ej. 10.00)" min="0.02" step="0.01" style="width: 100%; height: 40px; font-family: var(--font-display); font-size: 0.85rem; padding: 6px 10px; box-sizing: border-box;" ${currentUser?.withdraw_request_time ? `value="${currentUser.withdraw_request_amount}" disabled` : ''}>
+                    <div style="flex: 1; min-width: 140px; position: relative; display: flex; align-items: center;">
+                      <input type="number" id="withdraw-amount" class="form-input" placeholder="Monto a retirar (ej. 10.00)" min="0.02" step="0.01" style="width: 100%; height: 40px; font-family: var(--font-display); font-size: 0.85rem; padding: 6px 10px; padding-right: 56px; box-sizing: border-box;" ${currentUser?.withdraw_request_time ? `value="${currentUser.withdraw_request_amount}" disabled` : ''}>
+                      <button type="button" id="btn-withdraw-max" title="Retirar el máximo disponible" style="position: absolute; right: 6px; background: rgba(0, 245, 255, 0.12); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); font-size: 0.72rem; font-weight: bold; border-radius: 4px; padding: 3px 7px; cursor: pointer; transition: all 0.2s ease;" ${currentUser?.withdraw_request_time ? 'disabled' : ''}>MAX</button>
                     </div>
                     <div style="display: flex; gap: 6px; flex-shrink: 0;">
                       <button class="btn btn-secondary" id="btn-withdraw-base" style="height: 40px; padding: 0 14px; font-size: 0.85rem;">
                         ${currentUser?.withdraw_request_time ? 'Retiro en proceso (24hs)' : 'Solicitar Retiro'}
                       </button>
                     </div>
+                  </div>
+                  <div style="margin-top: 6px; font-size: 0.75rem; color: var(--text-muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px;">
+                    <span>Disponible para retirar: <strong style="color: var(--neon-cyan); cursor: pointer;" id="label-max-withdraw" title="Haz clic para seleccionar el máximo">${formatBalance(currentUser?.total_depositado || 0, 6)} USDC</strong></span>
                   </div>
                 </div>
 
@@ -492,6 +496,20 @@ function renderWalletContent() {
       if (walletState.chainId === 8453 || walletState.chain === 'worldchain' || isLemonWebView() || isWorldAppWebView()) {
         document.getElementById('btn-deposit-base')?.addEventListener('click', handleDepositBase);
         document.getElementById('btn-withdraw-base')?.addEventListener('click', handleWithdrawBaseClick);
+
+        const handleSetMaxWithdraw = () => {
+          const curUser = getUser();
+          const maxDeposit = curUser?.total_depositado || 0;
+          const withdrawInput = document.getElementById('withdraw-amount');
+          if (!withdrawInput || withdrawInput.disabled) return;
+          if (maxDeposit <= 0) {
+            showToast('No tienes saldo depositado disponible para retirar.', 'warning');
+            return;
+          }
+          withdrawInput.value = parseFloat(maxDeposit.toFixed(6));
+        };
+        document.getElementById('btn-withdraw-max')?.addEventListener('click', handleSetMaxWithdraw);
+        document.getElementById('label-max-withdraw')?.addEventListener('click', handleSetMaxWithdraw);
 
         // Quick Deposit Buttons
         document.querySelectorAll('.btn-quick-deposit').forEach(btn => {
@@ -946,6 +964,7 @@ function handleWithdrawBaseClick() {
 }
 
 async function executeWithdraw(amount, isAdmin) {
+  const currentUser = getUser();
   const btn = document.getElementById('btn-withdraw-base');
   const input = document.getElementById('withdraw-amount');
   
@@ -960,8 +979,8 @@ async function executeWithdraw(amount, isAdmin) {
       txHash = await withdrawLemon(amount, tokenName);
     } else if (isWorldAppWebView() || walletState.chain === 'worldchain' || currentUser?.platform === 'worldchain') {
       // Para World App, el backend orquesta el retiro on-chain y bridge
-      const recipientAddress = currentUser?.wallets?.worldchain || walletState.address;
-      const result = await api.post('/wallet/confirm-withdraw-world', { amount, recipientAddress });
+      const recipientAddress = currentUser?.wallets?.worldchain || currentUser?.walletAddresses?.[0] || walletState.address;
+      const result = await api.post('/wallet/confirm-withdraw-world', { amount, recipientAddress, isAdmin });
       updateLocalUser(result.user);
       
       showToast(result.message || 'Retiro a World Chain exitoso.', 'success');

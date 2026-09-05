@@ -389,7 +389,8 @@ router.post('/confirm-withdraw', authenticateToken, async (req, res) => {
 
     const newTotal = Math.max(0, Math.round((currentTotal - amount) * 1e6) / 1e6);
     const maxCreditsNow = Math.floor((newTotal + 0.015) / 10);
-    const newCredits = Math.min(user.creditos_escritura || 0, maxCreditsNow);
+    const humanBonus = (user.isWorldIdVerified === true) ? 1 : 0;
+    const newCredits = Math.min(user.creditos_escritura || 0, maxCreditsNow + humanBonus);
 
     const updatedUser = await dbAPI.updateUser(userId, {
       total_depositado: newTotal,
@@ -504,7 +505,8 @@ router.post('/confirm-withdraw-world', authenticateToken, async (req, res) => {
 
     const newTotal = Math.max(0, Math.round((currentTotal - withdrawAmount) * 1e6) / 1e6);
     const maxCreditsNow = Math.floor((newTotal + 0.000001) / 10);
-    const newCredits = Math.min(user.creditos_escritura || 0, maxCreditsNow);
+    const humanBonus = (user.isWorldIdVerified === true) ? 1 : 0;
+    const newCredits = Math.min(user.creditos_escritura || 0, maxCreditsNow + humanBonus);
 
     const updatedUser = await dbAPI.updateUser(userId, {
       total_depositado: newTotal,
