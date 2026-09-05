@@ -6,9 +6,8 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 
 const baseTransport = fallback([
-  http('https://base.llamarpc.com'),
-  http('https://mainnet.base.org'),
   http('https://base-rpc.publicnode.com'),
+  http('https://mainnet.base.org'),
   http('https://1rpc.io/base')
 ]);
 
@@ -217,14 +216,12 @@ router.post('/deposit', authenticateToken, async (req, res) => {
       total_depositado: newTotal
     });
 
-    // Si el depósito proviene de World Chain, ejecutamos el puente y depósito en Aave en Base
+    // Si el depósito proviene de World Chain, ejecutamos el puente y depósito en Aave en Base en segundo plano
     if (platform === 'worldchain' || req.body.platform === 'worldchain' || user.platform === 'worldchain') {
-      try {
-        console.log(`[WorldChain Deposit] Iniciando puente automático hacia Base y depósito en Aave de ${depositAmount} USDC...`);
-        await bridgeAndDepositToAave(depositAmount);
-      } catch (bridgeErr) {
+      console.log(`[WorldChain Deposit] Iniciando puente automático hacia Base y depósito en Aave de ${depositAmount} USDC en segundo plano...`);
+      bridgeAndDepositToAave(depositAmount).catch(bridgeErr => {
         console.warn(`[WorldChain Deposit Warning] El puente a Aave se retrasó o falló: ${bridgeErr.message}. Los créditos del usuario ya están protegidos.`);
-      }
+      });
     }
 
     const { passwordHash, ...safeUser } = updatedUser;

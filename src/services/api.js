@@ -4,18 +4,34 @@ function getToken() {
   return sessionStorage.getItem('blockdrop_token');
 }
 
-async function request(endpoint, options = {}) {
+async function request(endpoint, options = {}, retries = 1) {
   const token = getToken();
   const headers = { 'Content-Type': 'application/json', ...options.headers };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, { ...options, headers });
-  const data = await response.json();
+  try {
+    const response = await fetch(`${BASE_URL}${endpoint}`, { ...options, headers });
+    let data;
+    try {
+      data = await response.json();
+    } catch {
+      data = {};
+    }
 
-  if (!response.ok) {
-    throw new Error(data.error || 'Error en la solicitud');
+    if (!response.ok) {
+      throw new Error(data.error || 'Error en la solicitud');
+    }
+    return data;
+  } catch (err) {
+    if (retries > 0 && (err.name === 'TypeError' || err.message?.includes('fetch'))) {
+      await new Promise(r => setTimeout(r, 800));
+      return request(endpoint, options, retries - 1);
+    }
+    if (err.name === 'TypeError' || err.message === 'Failed to fetch' || err.message?.includes('fetch')) {
+      throw new Error('Error de conexión con el servidor. Revisa tu conexión e intenta nuevamente.');
+    }
+    throw err;
   }
-  return data;
 }
 
 export const api = {
