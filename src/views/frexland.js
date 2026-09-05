@@ -1,8 +1,24 @@
 import { renderNavbar } from '../components/navbar.js';
 import { renderFooter } from '../components/footer.js';
 import { t } from '../utils/i18n.js';
+import { getUser } from '../services/auth.js';
 
 export function renderFrexlandPage(container) {
+  const user = getUser();
+  const ADMIN_WALLETS = [
+    '0x7ca7022c3Ed27534192A2379a5eDd0252b3f6E65'.toLowerCase(),
+    '0xf22d1687d3e6990b499ce9c7a417f0d8fae3e1c2'.toLowerCase()
+  ];
+  const TECNICO_EMAILS = ['tecnico@frexland.com', 'tester@frexland.com'];
+  const userWallets = (user?.walletAddresses || []).concat(
+    user?.wallets ? Object.values(user.wallets) : []
+  ).map(w => (w || '').toLowerCase());
+  const isAdmin = user && (user.isAdmin === true || user.role === 'admin' || userWallets.some(w => ADMIN_WALLETS.includes(w)));
+  const isTecnico = user && (user.role === 'tecnico' || user.role === 'tester' || TECNICO_EMAILS.includes((user.email || '').toLowerCase()));
+  const canAccessGame = isAdmin || isTecnico;
+  const IS_MAINTENANCE_MODE = true;
+  const showMaintenanceBanner = IS_MAINTENANCE_MODE && !canAccessGame;
+
   container.innerHTML = `
     <div id="navbar-container"></div>
     <div class="home-page frexland-page" style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-bottom: var(--space-2xl); background: radial-gradient(circle at top, #2a0845 0%, #000000 100%); min-height: 100vh;">
@@ -16,6 +32,11 @@ export function renderFrexlandPage(container) {
 
         <!-- Grid de Juegos (Ahora Primero) -->
         <div style="width: 100%;">
+          ${showMaintenanceBanner ? `
+            <div style="background: rgba(255, 140, 0, 0.15); border: 2px dashed #ff8c00; border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; text-align: center; color: #ffeb3b; font-family: 'Press Start 2P', cursive; font-size: clamp(0.6rem, 2.5vw, 0.75rem); line-height: 1.6; box-shadow: 0 0 15px rgba(255, 140, 0, 0.3);">
+              🛠️ MODO MANTENIMIENTO ACTIVO: Los servidores de juego se encuentran en calibración técnica. Tu saldo y créditos están seguros.
+            </div>
+          ` : ''}
           <h3 class="retro-text" style="font-size: clamp(0.75rem, 3.2vw, 1.1rem); text-align: center; margin-bottom: var(--space-md); color: #fff; font-family: 'Press Start 2P', cursive; text-shadow: 2px 2px #9400d3;">${t('gameSelect')}</h3>
           <div class="games-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; width: 100%; box-sizing: border-box;">
             

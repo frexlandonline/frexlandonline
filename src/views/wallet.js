@@ -1013,7 +1013,8 @@ async function executeWithdraw(amount, isAdmin) {
     renderWalletContent();
   } catch (error) {
     console.error("Withdraw error:", error);
-    showToast(error.shortMessage || error.message || 'Falló el retiro', 'error');
+    const userError = error.response?.data?.error || error.shortMessage || (typeof error.message === 'string' ? error.message.split('\n')[0] : 'Falló el retiro');
+    showToast(userError, 'error');
     
     btn.style = '';
     btn.textContent = 'Solicitar Retiro';

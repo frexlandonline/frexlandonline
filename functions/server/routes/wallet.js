@@ -1,9 +1,16 @@
 import { Router } from 'express';
 import dbAPI from '../db.js';
 import { authenticateToken } from '../middleware/auth.js';
-import { createWalletClient, createPublicClient, http, parseAbi } from 'viem';
+import { createWalletClient, createPublicClient, http, fallback, parseAbi } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
+
+const baseTransport = fallback([
+  http('https://base.llamarpc.com'),
+  http('https://mainnet.base.org'),
+  http('https://base-rpc.publicnode.com'),
+  http('https://1rpc.io/base')
+]);
 
 const router = Router();
 
@@ -86,8 +93,8 @@ async function bridgeAndDepositToAave(amountUSDC) {
   const usdcBase = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
   const CONTRACT_ADDRESS = '0xa129A50c3303057eC25780da0f645a977Bbf66bb';
 
-  const baseClient = createPublicClient({ chain: base, transport: http('https://mainnet.base.org') });
-  const baseWallet = createWalletClient({ account, chain: base, transport: http('https://mainnet.base.org') });
+  const baseClient = createPublicClient({ chain: base, transport: baseTransport });
+  const baseWallet = createWalletClient({ account, chain: base, transport: baseTransport });
   const worldClient = createPublicClient({ chain: worldChain, transport: http('https://worldchain-mainnet.g.alchemy.com/public') });
   const worldWallet = createWalletClient({ account, chain: worldChain, transport: http('https://worldchain-mainnet.g.alchemy.com/public') });
 
@@ -441,26 +448,59 @@ router.post('/confirm-withdraw-world', authenticateToken, async (req, res) => {
     const account = privateKeyToAccount(pk);
     const admin = account.address;
 
-    const baseClient = createPublicClient({ chain: base, transport: http('https://mainnet.base.org') });
-    const baseWallet = createWalletClient({ account, chain: base, transport: http('https://mainnet.base.org') });
+    const baseClient = createPublicClient({ chain: base, transport: baseTransport });
+    const baseWallet = createWalletClient({ account, chain: base, transport: baseTransport });
 
     const CONTRACT_ADDRESS = '0xa129A50c3303057eC25780da0f645a977Bbf66bb';
     const usdcBase = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
     const usdcWorld = '0x79A02482A880bCE3F13e09Da970dC34db4CD24d1';
 
-    const contractAbi = parseAbi(['function retirarCapitalParcial(uint256 _monto) external']);
+    const contractAbi = parseAbi([
+      'function retirarCapitalParcial(uint256 _monto) external',
+      'function saldosUsuarios(address) view returns (uint256)'
+    ]);
+    const erc20Abi = parseAbi([
+      'function balanceOf(address) view returns (uint256)',
+      'function allowance(address, address) view returns (uint256)',
+      'function approve(address, uint256) returns (bool)'
+    ]);
     const withdrawAmountBigInt = BigInt(Math.round(withdrawAmount * 1e6));
 
-    // 1. Retirar del contrato en Base (sale de Aave)
-    console.log(`[Withdraw] Extrayendo ${withdrawAmount} USDC de Aave en Base...`);
-    const withdrawTx = await baseWallet.writeContract({
-      address: CONTRACT_ADDRESS,
-      abi: contractAbi,
-      functionName: 'retirarCapitalParcial',
-      args: [withdrawAmountBigInt]
+    // 1. Verificar balance del relayer en Base antes de retirar del contrato
+    const adminBaseBalance = await baseClient.readContract({
+      address: usdcBase,
+      abi: erc20Abi,
+      functionName: 'balanceOf',
+      args: [admin]
     });
-    await baseClient.waitForTransactionReceipt({ hash: withdrawTx });
-    console.log(`[Withdraw] Confirmado retiro on-chain: ${withdrawTx}`);
+
+    let withdrawTx = 'pre-funded';
+    if (adminBaseBalance < withdrawAmountBigInt) {
+      const needed = withdrawAmountBigInt - adminBaseBalance;
+      const contractSaldo = await baseClient.readContract({
+        address: CONTRACT_ADDRESS,
+        abi: contractAbi,
+        functionName: 'saldosUsuarios',
+        args: [admin]
+      });
+
+      if (contractSaldo < needed) {
+        throw new Error(`Fondos insuficientes en el pozo para retirar (${(Number(contractSaldo) / 1e6).toFixed(2)} USDC disponibles). Contacta a soporte.`);
+      }
+
+      const toWithdraw = contractSaldo >= withdrawAmountBigInt ? withdrawAmountBigInt : needed;
+      console.log(`[Withdraw] Extrayendo ${Number(toWithdraw) / 1e6} USDC de Aave en Base...`);
+      withdrawTx = await baseWallet.writeContract({
+        address: CONTRACT_ADDRESS,
+        abi: contractAbi,
+        functionName: 'retirarCapitalParcial',
+        args: [toWithdraw]
+      });
+      await baseClient.waitForTransactionReceipt({ hash: withdrawTx });
+      console.log(`[Withdraw] Confirmado retiro on-chain: ${withdrawTx}`);
+    } else {
+      console.log(`[Withdraw] Relayer ya cuenta con saldo suficiente en Base (${Number(adminBaseBalance) / 1e6} USDC >= ${withdrawAmount} USDC). Procediendo directo al puente.`);
+    }
 
     // 2. Cotizar puente en Relay (usando EXACT_INPUT para que la comisión se descuente del monto retirado)
     console.log(`[Bridge] Cotizando Relay puente hacia World Chain (${recipient})...`);
@@ -526,7 +566,8 @@ router.post('/confirm-withdraw-world', authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Confirm withdraw world error:', error);
-    res.status(500).json({ error: error.message || 'Error al ejecutar el retiro on-chain hacia World Chain.' });
+    const cleanMsg = error.shortMessage || (typeof error.message === 'string' ? error.message.split('\n')[0] : 'Error al ejecutar el retiro on-chain hacia World Chain.');
+    res.status(500).json({ error: cleanMsg });
   }
 });
 
