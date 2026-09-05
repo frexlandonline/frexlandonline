@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import dbAPI from '../db.js';
 import { authenticateToken } from '../middleware/auth.js';
+import { createWalletClient, createPublicClient, http, parseAbi } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+import { base } from 'viem/chains';
 
 const router = Router();
 
@@ -304,10 +307,11 @@ router.post('/confirm-withdraw', authenticateToken, async (req, res) => {
 // ==========================================
 router.post('/confirm-withdraw-world', authenticateToken, async (req, res) => {
   try {
-    const { amount } = req.body;
+    const { amount, recipientAddress } = req.body;
     const userId = req.user.id;
+    const withdrawAmount = parseFloat(amount);
 
-    if (!amount || amount <= 0) {
+    if (isNaN(withdrawAmount) || withdrawAmount <= 0) {
       return res.status(400).json({ error: 'Monto inválido para retirar.' });
     }
 
@@ -315,23 +319,87 @@ router.post('/confirm-withdraw-world', authenticateToken, async (req, res) => {
     if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
 
     const currentTotal = user.total_depositado || 0;
-    if (amount > currentTotal) {
+    if (withdrawAmount > currentTotal) {
       return res.status(400).json({ error: 'No puedes retirar más del saldo que tienes depositado.' });
     }
 
-    // TODO: Ejecutar el reverse bridge on-chain
-    // 1. Retirar USDC de Aave V3 en Base
-    // 2. burnOnBase(amount) usando TokenMessengerV2 en Base
-    // 3. Obtener attestation de Circle Iris API
-    // 4. mintOnWorldChain() enviándolo al wallet del usuario
+    const recipient = recipientAddress || user.wallets?.worldchain || user.walletAddresses?.[0];
+    if (!recipient || !recipient.startsWith('0x')) {
+      return res.status(400).json({ error: 'No se encontró una dirección de World Chain vinculada para recibir los fondos.' });
+    }
 
-    console.log(`[CCTP Reverse Bridge] Retirando ${amount} USDC hacia World Chain para usuario ${userId}`);
+    console.log(`[World Chain Withdraw] Procesando retiro on-chain de ${withdrawAmount} USDC hacia ${recipient}`);
 
-    const BRIDGE_FEE = 0.01;
-    const netWithdraw = Math.max(0, Math.round((amount - BRIDGE_FEE) * 1e6) / 1e6);
+    const rawPk = process.env.PRIVATE_KEY;
+    if (!rawPk) throw new Error('Relayer private key no configurada en el servidor');
+    const pk = rawPk.startsWith('0x') ? rawPk : '0x' + rawPk;
+    const account = privateKeyToAccount(pk);
+    const admin = account.address;
 
-    const newTotal = Math.max(0, Math.round((currentTotal - amount) * 1e6) / 1e6);
-    const maxCreditsNow = Math.floor((newTotal + 0.015) / 10);
+    const baseClient = createPublicClient({ chain: base, transport: http('https://mainnet.base.org') });
+    const baseWallet = createWalletClient({ account, chain: base, transport: http('https://mainnet.base.org') });
+
+    const CONTRACT_ADDRESS = '0xa129A50c3303057eC25780da0f645a977Bbf66bb';
+    const usdcBase = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+    const usdcWorld = '0x79A02482A880bCE3F13e09Da970dC34db4CD24d1';
+
+    const contractAbi = parseAbi(['function retirarCapitalParcial(uint256 _monto) external']);
+    const withdrawAmountBigInt = BigInt(Math.round(withdrawAmount * 1e6));
+
+    // 1. Retirar del contrato en Base (sale de Aave)
+    console.log(`[Withdraw] Extrayendo ${withdrawAmount} USDC de Aave en Base...`);
+    const withdrawTx = await baseWallet.writeContract({
+      address: CONTRACT_ADDRESS,
+      abi: contractAbi,
+      functionName: 'retirarCapitalParcial',
+      args: [withdrawAmountBigInt]
+    });
+    await baseClient.waitForTransactionReceipt({ hash: withdrawTx });
+    console.log(`[Withdraw] Confirmado retiro on-chain: ${withdrawTx}`);
+
+    // 2. Cotizar puente en Relay (usando EXACT_INPUT para que la comisión se descuente del monto retirado)
+    console.log(`[Bridge] Cotizando Relay puente hacia World Chain (${recipient})...`);
+    const quoteRes = await fetch('https://api.relay.link/quote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user: admin,
+        originChainId: 8453,
+        destinationChainId: 480,
+        originCurrency: usdcBase,
+        destinationCurrency: usdcWorld,
+        recipient: recipient,
+        amount: withdrawAmountBigInt.toString(),
+        tradeType: 'EXACT_INPUT'
+      })
+    });
+    const quote = await quoteRes.json();
+    if (!quote.steps) {
+      throw new Error('Relay quote failed: ' + JSON.stringify(quote));
+    }
+
+    const netReceived = parseFloat(quote.details?.currencyOut?.amountFormatted || '0');
+    const feeDeducted = Math.max(0, Math.round((withdrawAmount - netReceived) * 1e6) / 1e6);
+
+    let lastTxHash = withdrawTx;
+    for (const step of quote.steps) {
+      for (const item of step.items) {
+        if (item.status === 'complete') continue;
+        const txData = item.data;
+        const txHash = await baseWallet.sendTransaction({
+          to: txData.to,
+          data: txData.data,
+          value: BigInt(txData.value || '0')
+        });
+        lastTxHash = txHash;
+        await baseClient.waitForTransactionReceipt({ hash: txHash });
+      }
+    }
+
+    console.log(`[Bridge] Puente completado. Tx de depósito en Relay: ${lastTxHash}`);
+
+    const newTotal = Math.max(0, Math.round((currentTotal - withdrawAmount) * 1e6) / 1e6);
+    const maxCreditsNow = Math.floor((newTotal + 0.000001) / 10);
     const newCredits = Math.min(user.creditos_escritura || 0, maxCreditsNow);
 
     const updatedUser = await dbAPI.updateUser(userId, {
@@ -343,14 +411,16 @@ router.post('/confirm-withdraw-world', authenticateToken, async (req, res) => {
 
     const { passwordHash, ...safeUser } = updatedUser;
     res.json({ 
-      message: `Retiro de ${amount} USDC procesado. Comisión de red descontada: ${BRIDGE_FEE} USDC. Monto neto enviado a tu billetera de World App: ${netWithdraw.toFixed(6)} USDC.`, 
+      message: `Retiro de ${withdrawAmount.toFixed(6)} USDC procesado on-chain. Comisión de puente descontada del retiro: ${feeDeducted.toFixed(6)} USDC. Monto neto enviado a tu World App: ${netReceived.toFixed(6)} USDC.`, 
       user: safeUser,
-      netWithdraw,
-      fee: BRIDGE_FEE
+      netWithdraw: netReceived,
+      fee: feeDeducted,
+      withdrawTx,
+      bridgeTx: lastTxHash
     });
   } catch (error) {
     console.error('Confirm withdraw world error:', error);
-    res.status(500).json({ error: 'Error interno del servidor al confirmar retiro hacia World Chain.' });
+    res.status(500).json({ error: error.message || 'Error al ejecutar el retiro on-chain hacia World Chain.' });
   }
 });
 

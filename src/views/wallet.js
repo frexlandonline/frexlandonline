@@ -353,7 +353,7 @@ function renderWalletContent() {
                   <h4 style="font-family: var(--font-display); font-size: 0.95rem; margin-bottom: 8px; color: var(--text-primary);">📤 Retirar Fondos</h4>
                   
                   <div class="withdraw-commission-banner" style="background: rgba(255, 165, 0, 0.06); border: 1px solid rgba(255, 165, 0, 0.25); padding: 10px 12px; border-radius: var(--radius-sm); margin-bottom: 12px; font-size: 0.78rem; line-height: 1.4; color: var(--text-secondary);">
-                    ⚠️ <strong>Recordatorio de Retiro:</strong> Al retirar hacia tu billetera (World App o red externa), el monto recibido será ligeramente menor por el cobro de comisiones. Se restará <strong>solamente lo que cobren las comisiones de las redes</strong> (aprox. 0.01 USDC), las cuales deberían quedar cubiertas con el 0.01 USDC depositado de más.
+                    ⚠️ <strong>Recordatorio de Retiro:</strong> Al retirar hacia tu billetera (World App o red externa), las comisiones de red y bridge se descontarán directamente del monto a retirar.
                   </div>
 
                   <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
@@ -365,10 +365,6 @@ function renderWalletContent() {
                         ${currentUser?.withdraw_request_time ? 'Retiro en proceso (24hs)' : 'Solicitar Retiro'}
                       </button>
                     </div>
-                  </div>
-
-                  <div id="withdraw-preview-container" style="margin-top: 8px; font-size: 0.76rem; color: var(--text-secondary); display: none; background: rgba(255,255,255,0.02); padding: 6px 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
-                    Recibirás neto en tu billetera: <strong style="color: var(--neon-green);" id="withdraw-net-amount">0.00 USDC</strong> <span style="color: var(--text-muted);">(Comisión descontada: 0.01 USDC)</span>
                   </div>
                 </div>
 
@@ -538,24 +534,6 @@ function renderWalletContent() {
         };
         depositInput?.addEventListener('input', updateDepositPreview);
         updateDepositPreview();
-
-        // Live Withdraw Preview
-        const withdrawInput = document.getElementById('withdraw-amount');
-        const withdrawContainer = document.getElementById('withdraw-preview-container');
-        const withdrawNetEl = document.getElementById('withdraw-net-amount');
-        const updateWithdrawPreview = () => {
-          const val = parseFloat(withdrawInput?.value || '0');
-          if (!withdrawContainer || !withdrawNetEl) return;
-          if (isNaN(val) || val <= 0.01) {
-            withdrawContainer.style.display = 'none';
-            return;
-          }
-          withdrawContainer.style.display = 'block';
-          const net = Math.max(0, Math.round((val - 0.01) * 1e6) / 1e6);
-          withdrawNetEl.textContent = `${net.toFixed(6)} USDC`;
-        };
-        withdrawInput?.addEventListener('input', updateWithdrawPreview);
-        updateWithdrawPreview();
       } else {
         document.getElementById('btn-switch-base')?.addEventListener('click', handleSwitchToBase);
         document.getElementById('btn-connect-evm')?.addEventListener('click', () => connectWallet().catch(err => {
@@ -973,9 +951,10 @@ async function executeWithdraw(amount, isAdmin) {
       const isFiat = document.getElementById('lemon-fiat-disclaimer')?.style.display === 'block';
       const tokenName = isFiat ? 'ARS' : 'USDC';
       txHash = await withdrawLemon(amount, tokenName);
-    } else if (isWorldAppWebView()) {
-      // Para World App, el backend orquesta el CCTP reverse bridge
-      const result = await api.post('/wallet/confirm-withdraw-world', { amount });
+    } else if (isWorldAppWebView() || walletState.chain === 'worldchain' || currentUser?.platform === 'worldchain') {
+      // Para World App, el backend orquesta el retiro on-chain y bridge
+      const recipientAddress = currentUser?.wallets?.worldchain || walletState.address;
+      const result = await api.post('/wallet/confirm-withdraw-world', { amount, recipientAddress });
       updateLocalUser(result.user);
       
       showToast(result.message || 'Retiro a World Chain exitoso.', 'success');
