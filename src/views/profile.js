@@ -41,11 +41,11 @@ export function renderProfilePage(container) {
           <div style="display: flex; flex-direction: column; align-items: center; gap: 15px; padding-bottom: var(--space-md); border-bottom: 1px solid var(--border-color);">
             <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
               <div class="profile-avatar-wrapper">
-                ${wrapWithBadge(`<img id="avatar-preview-img" src="${selectedAvatar}" style="width: 96px; height: 96px; border-radius: 50%; border: 2px solid #000; background: var(--bg-secondary); object-fit: cover; box-sizing: border-box;">`, isWorldAppWebView() ? 'worldchain' : (isLemonWebView() ? 'lemon' : (user.platform || 'html5')))}
+                ${wrapWithBadge(`<img id="avatar-preview-img" src="${selectedAvatar}" style="width: 96px; height: 96px; border-radius: 50%; border: 2px solid #000; background: var(--bg-secondary); object-fit: cover; box-sizing: border-box;">`, isWorldAppWebView() ? 'worldchain' : (isLemonWebView() ? 'lemon' : 'html5'))}
               </div>
               
               <div class="profile-platform-pill">
-                ${(isWorldAppWebView() || user.platform === 'worldchain') ? `
+                ${isWorldAppWebView() ? `
                   <img src="/assets/icons/wld.png" alt="World App">
                   <span style="font-weight: 600; color: var(--neon-cyan);">World App (World Chain)</span>
                 ` : (isLemonWebView() || user.platform === 'lemon') ? `
@@ -128,7 +128,8 @@ export function renderProfilePage(container) {
             <input type="text" id="profile-telegram" class="input-field" value="${user.telegram || ''}" placeholder="Ej: @TuUsuario">
           </div>
 
-          <!-- World ID Status -->
+          <!-- World ID Status (Solo visible en World App Mini App) -->
+          ${isWorldAppWebView() ? `
           <div class="input-group" style="background: rgba(139, 92, 246, 0.05); border: 1px solid rgba(139, 92, 246, 0.25); padding: var(--space-md); border-radius: var(--radius-md);">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <span style="font-size: 0.75rem; color: var(--neon-cyan); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em;">
@@ -152,6 +153,7 @@ export function renderProfilePage(container) {
               `}
             </div>
           </div>
+          ` : ''}
 
           <!-- Wallets count / details -->
           <div class="input-group" style="background: rgba(0,0,0,0.15); border: 1px dashed var(--border-color); padding: var(--space-md); border-radius: var(--radius-md);">
@@ -159,9 +161,9 @@ export function renderProfilePage(container) {
               🔌 ${t('walletLinked')}
             </span>
             <div style="display: flex; flex-direction: column; gap: var(--space-xs); margin-top: 6px; font-size: 0.85rem;">
-              ${Object.entries(user.wallets || {}).length === 0 ? `
+              ${Object.entries(user.wallets || {}).filter(([chain]) => isWorldAppWebView() ? true : chain !== 'worldchain').length === 0 ? `
                 <div style="color: var(--text-muted);">${t('profNoWallets')} <a href="#/wallet" style="color: var(--neon-cyan); font-weight: 600;">Wallet</a>.</div>
-              ` : Object.entries(user.wallets).map(([chain, address]) => `
+              ` : Object.entries(user.wallets || {}).filter(([chain]) => isWorldAppWebView() ? true : chain !== 'worldchain').map(([chain, address]) => `
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 4px;">
                   <span style="text-transform: capitalize; color: var(--text-secondary); font-weight: 500;">${chain}:</span>
                   <span style="font-family: monospace; color: var(--neon-cyan); font-size: 0.75rem;">${address.slice(0, 6)}...${address.slice(-6)}</span>

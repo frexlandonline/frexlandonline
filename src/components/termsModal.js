@@ -38,8 +38,8 @@ export function checkAndShowTermsModal(onAccept) {
         <h3 style="color: #fff; font-size: 0.95rem; margin-top: var(--space-md); font-family: var(--font-display);">3. DEFI & CRYPTO RISKS</h3>
         <p>Interacting with smart contracts, Web3 wallets, and cryptocurrencies (such as USDC) carries inherent financial risks of capital loss, transaction errors, or network failures. BlockDrop is not responsible for financial losses caused by third-party technical failures or user negligence.</p>
 
-        <h3 style="color: #fff; font-size: 0.95rem; margin-top: var(--space-md); font-family: var(--font-display);">4. HUMANITY VERIFICATION (WORLD ID)</h3>
-        <p>To ensure fair competition free of bots and duplicate accounts, users in prize-eligible positions may require humanity verification via World ID. Failure to verify will result in ineligibility to collect the weekly DeFi prize.</p>
+        <h3 style="color: #fff; font-size: 0.95rem; margin-top: var(--space-md); font-family: var(--font-display);">4. HUMANITY VERIFICATION</h3>
+        <p>To ensure fair competition free of bots and duplicate accounts, users in prize-eligible positions may require humanity verification. Failure to verify will result in ineligibility to collect the weekly DeFi prize.</p>
 
         <h3 style="color: #fff; font-size: 0.95rem; margin-top: var(--space-md); font-family: var(--font-display);">5. PRIVACY & DATA POLICY</h3>
         <p>To protect your privacy, we do not collect or store any sensitive civil identity data (such as names or phone numbers). We only store your public wallet address, optional social media information (Twitter/X, Discord, Telegram) voluntarily provided for task verification, and your game score for the ranking.</p>
@@ -58,8 +58,8 @@ export function checkAndShowTermsModal(onAccept) {
         <h3 style="color: #fff; font-size: 0.95rem; margin-top: var(--space-md); font-family: var(--font-display);">3. RIESGOS DEFI Y CRIPTOMONEDAS</h3>
         <p>La interacción con contratos inteligentes, billeteras Web3 y criptomonedas (tales como USDC) conlleva riesgos financieros inherentes de pérdida de capital, errores en transacciones o fallos de red. BlockDrop no se responsabiliza por pérdidas monetarias causadas por fallos técnicos de terceras partes o descuidos del usuario.</p>
 
-        <h3 style="color: #fff; font-size: 0.95rem; margin-top: var(--space-md); font-family: var(--font-display);">4. VERIFICACIÓN DE HUMANIDAD (WORLD ID)</h3>
-        <p>Para garantizar una competencia justa libre de bots y cuentas duplicadas, los usuarios en puestos elegibles para premios podrían requerir una verificación de humanidad mediante World ID. La falta de verificación resultará en la ineligibilidad para el cobro del premio DeFi semanal.</p>
+        <h3 style="color: #fff; font-size: 0.95rem; margin-top: var(--space-md); font-family: var(--font-display);">4. VERIFICACIÓN DE HUMANIDAD</h3>
+        <p>Para garantizar una competencia justa libre de bots y cuentas duplicadas, los usuarios en puestos elegibles para premios podrían requerir una verificación de humanidad. La falta de verificación resultará en la ineligibilidad para el cobro del premio DeFi semanal.</p>
 
         <h3 style="color: #fff; font-size: 0.95rem; margin-top: var(--space-md); font-family: var(--font-display);">5. POLÍTICA DE PRIVACIDAD Y DATOS</h3>
         <p>Para proteger su privacidad, no recopilamos ni almacenamos ningún dato sensible de identidad civil (como nombres o teléfonos). Almacenamos únicamente su dirección de billetera pública, información de redes sociales opcionales (Twitter/X, Discord, Telegram) aportadas de forma voluntaria para verificación de tareas, y su puntuación de juego para el ranking.</p>
@@ -171,8 +171,8 @@ export function showTermsOnlyModal() {
         <h3 style="color: #fff; font-size: 0.95rem; margin-top: var(--space-md); font-family: var(--font-display);">3. DEFI & CRYPTO RISKS</h3>
         <p>Interacting with smart contracts, Web3 wallets, and cryptocurrencies (such as USDC) carries inherent financial risks of capital loss, transaction errors, or network failures. FrexLand is not responsible for financial losses caused by third-party technical failures or user negligence.</p>
 
-        <h3 style="color: #fff; font-size: 0.95rem; margin-top: var(--space-md); font-family: var(--font-display);">4. HUMANITY VERIFICATION (WORLD ID)</h3>
-        <p>To ensure fair competition free of bots and duplicate accounts, users in prize-eligible positions may require humanity verification via World ID. Failure to verify will result in ineligibility to collect the weekly DeFi prize.</p>
+        <h3 style="color: #fff; font-size: 0.95rem; margin-top: var(--space-md); font-family: var(--font-display);">4. HUMANITY VERIFICATION</h3>
+        <p>To ensure fair competition free of bots and duplicate accounts, users in prize-eligible positions may require humanity verification. Failure to verify will result in ineligibility to collect the weekly DeFi prize.</p>
 
         <h3 style="color: #fff; font-size: 0.95rem; margin-top: var(--space-md); font-family: var(--font-display);">5. PRIVACY & DATA POLICY</h3>
         <p>To protect your privacy, we do not collect or store any sensitive civil identity data (such as names or phone numbers). We only store your public wallet address, optional social media information (Twitter/X, Discord, Telegram) voluntarily provided for task verification, and your game score for the ranking.</p>
@@ -189,8 +189,8 @@ export function showTermsOnlyModal() {
         <h3 style="color: #fff; font-size: 0.95rem; margin-top: var(--space-md); font-family: var(--font-display);">3. RIESGOS DEFI Y CRIPTOMONEDAS</h3>
         <p>La interacción con contratos inteligentes, billeteras Web3 y criptomonedas (tales como USDC) conlleva riesgos financieros inherentes de pérdida de capital, errores en transacciones o fallos de red. FrexLand no se responsabiliza por pérdidas monetarias causadas por fallos técnicos de terceras partes o descuidos del usuario.</p>
 
-        <h3 style="color: #fff; font-size: 0.95rem; margin-top: var(--space-md); font-family: var(--font-display);">4. VERIFICACIÓN DE HUMANIDAD (WORLD ID)</h3>
-        <p>Para garantizar una competencia justa libre de bots y cuentas duplicadas, los usuarios en puestos elegibles para premios podrían requerir una verificación de humanidad mediante World ID. La falta de verificación resultará en la ineligibilidad para el cobro del premio DeFi semanal.</p>
+        <h3 style="color: #fff; font-size: 0.95rem; margin-top: var(--space-md); font-family: var(--font-display);">4. VERIFICACIÓN DE HUMANIDAD</h3>
+        <p>Para garantizar una competencia justa libre de bots y cuentas duplicadas, los usuarios en puestos elegibles para premios podrían requerir una verificación de humanidad. La falta de verificación resultará en la ineligibilidad para el cobro del premio DeFi semanal.</p>
 
         <h3 style="color: #fff; font-size: 0.95rem; margin-top: var(--space-md); font-family: var(--font-display);">5. POLÍTICA DE PRIVACIDAD Y DATOS</h3>
         <p>Para proteger su privacidad, no recopilamos ni almacenamos ningún dato sensible de identidad civil (como nombres o teléfonos). Almacenamos únicamente su dirección de billetera pública, información de redes sociales opcionales (Twitter/X, Discord, Telegram) aportadas de forma voluntaria para verificación de tareas, y su puntuación de juego para el ranking.</p>

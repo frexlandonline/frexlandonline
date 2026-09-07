@@ -138,7 +138,11 @@ function navigate() {
       renderLandingPage(app);
       break;
     case '/world-auth':
-      renderWorldAuthPage(app);
+      if (!isWorldAppWebView()) {
+        window.location.hash = '#/auth';
+      } else {
+        renderWorldAuthPage(app);
+      }
       break;
     case '/auth':
       renderAuthPage(app);

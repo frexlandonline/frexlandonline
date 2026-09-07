@@ -81,7 +81,7 @@ export function renderWalletPage(container) {
   
   // Set initial active address
   const activeAddress = getConnectedAddress();
-  if (isWorldAppWebView() || (currentUser && currentUser.wallets && currentUser.wallets.worldchain) || currentUser?.platform === 'worldchain') {
+  if (isWorldAppWebView()) {
     walletState.address = currentUser?.wallets?.worldchain || activeAddress || (currentUser?.wallets ? Object.values(currentUser.wallets)[0] : null);
     walletState.chain = 'worldchain';
     walletState.networkName = 'World Chain';
@@ -100,7 +100,7 @@ export function renderWalletPage(container) {
     subscribeToAccountChanges(async (account) => {
       console.log("Web3 Account change detected:", account);
       const user = getUser();
-      const isWorld = account.chainId === 480 || isWorldAppWebView() || user?.platform === 'worldchain' || (user?.wallets && user.wallets.worldchain);
+      const isWorld = isWorldAppWebView();
 
       if (account.isConnected && account.address) {
         // If we connected an EVM wallet, update active state
@@ -131,7 +131,7 @@ export function renderWalletPage(container) {
   } else {
     fetchCurrentUser().then(u => {
       if (u) {
-        const isWorld = isWorldAppWebView() || u.platform === 'worldchain' || (u.wallets && u.wallets.worldchain);
+        const isWorld = isWorldAppWebView();
         if (isWorld) {
           walletState.address = u.wallets?.worldchain || (u.wallets ? Object.values(u.wallets)[0] : null);
           walletState.chain = 'worldchain';
@@ -273,7 +273,7 @@ function renderWalletContent() {
                     </div>
                   </div>
 
-                  ${((isWorldAppWebView() || currentUser?.platform === 'worldchain' || window.location.search?.includes('worldapp=true')) && currentUser) ? `
+                  ${(isWorldAppWebView() && currentUser) ? `
                     <div class="card" style="background: radial-gradient(circle at top left, rgba(139, 92, 246, 0.15) 0%, rgba(10, 10, 26, 0.8) 100%); border: 1px solid var(--neon-purple); padding: 14px 12px; border-radius: var(--radius-md); margin-bottom: 20px; box-shadow: 0 0 20px rgba(139, 92, 246, 0.15); box-sizing: border-box;">
                       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
                         <div style="display: flex; align-items: center; gap: 8px;">
@@ -346,7 +346,7 @@ function renderWalletContent() {
                   <h4 style="font-family: var(--font-display); font-size: 0.95rem; margin-bottom: 8px; color: var(--text-primary);">📤 Retirar Fondos</h4>
                   
                   <div class="withdraw-commission-banner" style="background: rgba(255, 165, 0, 0.06); border: 1px solid rgba(255, 165, 0, 0.25); padding: 10px 12px; border-radius: var(--radius-sm); margin-bottom: 12px; font-size: 0.78rem; line-height: 1.4; color: var(--text-secondary);">
-                    ⚠️ <strong>Recordatorio de Retiro:</strong> Al retirar hacia tu billetera (World App o red externa), las comisiones de red y bridge se descontarán directamente del monto a retirar.
+                    ⚠️ <strong>Recordatorio de Retiro:</strong> Al retirar hacia tu billetera ${isWorldAppWebView() ? '(World App o red externa)' : ''}, las comisiones de red y bridge se descontarán directamente del monto a retirar.
                   </div>
 
                   <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">

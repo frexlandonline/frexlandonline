@@ -84,7 +84,6 @@ export function renderLandingPage(container) {
       <section class="partners-section">
         <h4 class="partners-title">${t('partnersTitle')}</h4>
         <div class="partners-logos">
-          <div class="partner-logo">👁️ Worldcoin</div>
           <div class="partner-logo">🍋 Lemon Cash</div>
           <div class="partner-logo">🔵 Base Network</div>
           <div class="partner-logo">🦊 MetaMask</div>

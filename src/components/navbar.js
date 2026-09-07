@@ -22,7 +22,7 @@ export function renderNavbar(container, activePage = 'game') {
     ? `<img src="${user.avatarUrl}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid #000; background: var(--bg-secondary);">` 
     : `<div style="width: 32px; height: 32px; border-radius: 50%; background: var(--bg-secondary); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; border: 2px solid #000; color: #fff;">${initial}</div>`;
     
-  const platform = isWorldAppWebView() ? 'worldchain' : (isLemonWebView() ? 'lemon' : (user.platform || 'html5'));
+  const platform = isWorldAppWebView() ? 'worldchain' : (isLemonWebView() ? 'lemon' : 'html5');
   const lang = getLang();
 
   container.innerHTML = `
