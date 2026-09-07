@@ -143,6 +143,59 @@ export function renderPlayPage(container) {
   renderFooter(container.querySelector('.home-page'));
 }
 
+export function enterFullscreenMode() {
+  const gameWrapper = document.getElementById('game-area-wrapper');
+  const btn = document.getElementById('btn-fullscreen');
+  const navbar = document.getElementById('main-navbar');
+  const adBanner = document.getElementById('web3-ad-container');
+
+  if (gameWrapper) {
+    gameWrapper.classList.add('fullscreen-mode');
+    document.body.classList.add('in-game-fullscreen');
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+
+    if (navbar) navbar.style.display = 'none';
+    if (adBanner) adBanner.style.display = 'none';
+
+    if (btn) btn.textContent = '🚪 ' + (t('btnFullscreenExit') || 'Salir');
+
+    // Silent attempt for native fullscreen if supported (Chrome on Android / PC)
+    if (gameWrapper.requestFullscreen) {
+      gameWrapper.requestFullscreen().catch(() => {});
+    } else if (gameWrapper.webkitRequestFullscreen) {
+      try { gameWrapper.webkitRequestFullscreen(); } catch (e) {}
+    }
+  }
+}
+
+export function exitFullscreenMode() {
+  const gameWrapper = document.getElementById('game-area-wrapper');
+  const btn = document.getElementById('btn-fullscreen');
+  const navbar = document.getElementById('main-navbar');
+  const adBanner = document.getElementById('web3-ad-container');
+
+  if (gameWrapper) {
+    gameWrapper.classList.remove('fullscreen-mode');
+    document.body.classList.remove('in-game-fullscreen');
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+
+    if (navbar) navbar.style.display = '';
+    if (adBanner) adBanner.style.display = '';
+
+    if (btn) btn.innerHTML = '🖥️ ' + t('btnFullscreen');
+
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      } else if (document.webkitExitFullscreen) {
+        try { document.webkitExitFullscreen(); } catch (e) {}
+      }
+    }
+  }
+}
+
 function setupFullscreen() {
   const gameWrapper = document.getElementById('game-area-wrapper');
   const btn = document.getElementById('btn-fullscreen');
@@ -151,6 +204,7 @@ function setupFullscreen() {
   const backBtn = document.getElementById('btn-back-game');
   if (backBtn) {
     backBtn.addEventListener('click', () => {
+      exitFullscreenMode();
       window.location.hash = '#/home';
     });
   }
@@ -172,29 +226,12 @@ function setupFullscreen() {
   }
 
   const toggleFullscreen = () => {
-    const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
-    if (!isFullscreen) {
-      if (gameWrapper.requestFullscreen) {
-        gameWrapper.requestFullscreen().then(() => {
-          gameWrapper.classList.add('fullscreen-mode');
-          btn.textContent = t('btnFullscreenExit');
-        }).catch(err => {
-          showToast(`${t('errorFullscreenActive')}${err.message}`, 'error');
-        });
-      } else if (gameWrapper.webkitRequestFullscreen) {
-        // Fallback for Safari (iPad)
-        gameWrapper.webkitRequestFullscreen();
-        gameWrapper.classList.add('fullscreen-mode');
-        btn.textContent = t('btnFullscreenExit');
-      } else {
-        showToast(t('errorFullscreen'), 'warning');
-      }
+    const isCurrentlyFullscreen = gameWrapper.classList.contains('fullscreen-mode') || 
+                                  Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+    if (!isCurrentlyFullscreen) {
+      enterFullscreenMode();
     } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      } else if (document.webkitExitFullscreen) {
-        document.webkitExitFullscreen();
-      }
+      exitFullscreenMode();
     }
   };
 
@@ -202,17 +239,18 @@ function setupFullscreen() {
 
   const onFullscreenChange = () => {
     const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
-    if (!isFullscreen) {
-      gameWrapper.classList.remove('fullscreen-mode');
-      btn.innerHTML = '🖥️ ' + t('btnFullscreen');
+    if (!isFullscreen && window.innerWidth > 768) {
+      exitFullscreenMode();
     }
   };
 
   document.addEventListener('fullscreenchange', onFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', onFullscreenChange);
   
   // Guard references to remove listeners later
   btn._fullscreenCleanup = () => {
     document.removeEventListener('fullscreenchange', onFullscreenChange);
+    document.removeEventListener('webkitfullscreenchange', onFullscreenChange);
   };
 }
 
@@ -331,26 +369,10 @@ async function renderGameOverOverlay(score, level, lines) {
 
 function startGame() {
   gameStartTime = Date.now();
-  // Automatically trigger browser fullscreen on mobile devices when starting
+  
+  // Automatically trigger immersive fullscreen on all mobile devices (iOS Safari, World App, Android)
   if (window.innerWidth <= 768) {
-    const gameWrapper = document.getElementById('game-area-wrapper');
-    const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
-    if (gameWrapper && !isFullscreen) {
-      if (gameWrapper.requestFullscreen) {
-        gameWrapper.requestFullscreen().then(() => {
-          gameWrapper.classList.add('fullscreen-mode');
-          const btn = document.getElementById('btn-fullscreen');
-          if (btn) btn.textContent = t('btnFullscreenExit');
-        }).catch(err => {
-          console.error("Auto-fullscreen failed:", err);
-        });
-      } else if (gameWrapper.webkitRequestFullscreen) {
-        gameWrapper.webkitRequestFullscreen();
-        gameWrapper.classList.add('fullscreen-mode');
-        const btn = document.getElementById('btn-fullscreen');
-        if (btn) btn.textContent = '🚪 Salir';
-      }
-    }
+    enterFullscreenMode();
   }
 
   const overlay = document.getElementById('game-overlay');
@@ -368,6 +390,7 @@ function startGame() {
 
 export function cleanupPlayPage() {
   if (engine) engine.stop();
+  exitFullscreenMode();
   const btn = document.getElementById('btn-fullscreen');
   if (btn && btn._fullscreenCleanup) {
     btn._fullscreenCleanup();
