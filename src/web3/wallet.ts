@@ -34,7 +34,35 @@ export async function connectWallet(): Promise<`0x${string}`> {
 }
 
 export async function disconnectWallet(): Promise<void> {
-  await disconnect(config);
+  try {
+    await disconnect(config);
+  } catch (e) {
+    console.warn('Wagmi disconnect error:', e);
+  }
+
+  try {
+    await modal.close();
+  } catch (e) {}
+
+  // Limpiar llaves residuales de Wagmi, AppKit y WalletConnect del almacenamiento local
+  try {
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (
+        key.startsWith('wagmi') ||
+        key.startsWith('@appkit') ||
+        key.startsWith('@w3m') ||
+        key.startsWith('wc@') ||
+        key.startsWith('reown')
+      )) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(k => localStorage.removeItem(k));
+  } catch (e) {
+    console.warn('Error clearing wallet storage:', e);
+  }
 }
 
 export function getConnectedAddress(): `0x${string}` | null {

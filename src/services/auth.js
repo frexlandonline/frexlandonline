@@ -113,7 +113,7 @@ export function logout() {
   // Por seguridad, desconectamos cualquier billetera activa
   import('../web3/wallet.ts')
     .then(module => {
-      module.disconnectWallet();
+      module.disconnectWallet();\n      setTimeout(() => window.location.reload(), 500);
     })
     .catch(err => console.error("Error al desconectar billetera en logout:", err));
 }
