@@ -1141,3 +1141,51 @@ body.in-game-fullscreen {
   border-radius: 6px;
   box-shadow: 0 2px 0 rgba(0, 245, 255, 0.3);
 }
+
+/* Mobile Active Game Header & Horizontal Audio Bar */
+#active-game-header {
+  width: 100%;
+  max-width: 480px;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 4px 8px !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+  z-index: 20 !important;
+  gap: 4px !important;
+}
+
+#mobile-audio-ctrl {
+  position: static !important;
+  transform: none !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 3px 8px !important;
+  border-radius: 8px !important;
+  background: rgba(0, 0, 0, 0.75) !important;
+  border: 1px solid rgba(0, 245, 255, 0.3) !important;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5) !important;
+  flex-shrink: 0 !important;
+}
+
+#mobile-audio-ctrl button {
+  background: none !important;
+  border: none !important;
+  font-size: 0.95rem !important;
+  color: var(--neon-cyan) !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 2px !important;
+  line-height: 1 !important;
+}
+
+#mobile-audio-ctrl button:active {
+  transform: scale(0.9) !important;
+}
+
