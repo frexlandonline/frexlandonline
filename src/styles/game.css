@@ -984,7 +984,160 @@ body.in-game-fullscreen {
   .podium-step-1 .podium-step-body {
     height: 100px !important;
   }
-  .podium-step-2 .podium-step-body {
+  #podium-step-2 .podium-step-body {
     height: 80px !important;
   }
+}
+
+/* ─── Dedicated Arcade Active Game Screen ───────────────────────── */
+#active-game-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 68px; /* Ends exactly at the top line of web3-ad-container */
+  z-index: 9999;
+  background: radial-gradient(circle at center, #0e0e24 0%, #050510 100%);
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  overflow: hidden;
+  touch-action: none;
+  box-sizing: border-box;
+  padding-top: max(env(safe-area-inset-top, 0px), 6px);
+  padding-bottom: 2px;
+  padding-left: max(env(safe-area-inset-left, 0px), 6px);
+  padding-right: max(env(safe-area-inset-right, 0px), 6px);
+}
+
+#active-game-screen #ingame-canvas-section {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+#active-game-screen .ingame-game-wrapper {
+  position: relative;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#active-game-screen #game-canvas {
+  height: 100% !important;
+  max-height: 100% !important;
+  max-width: 100% !important;
+  width: auto !important;
+  aspect-ratio: 10 / 20;
+  object-fit: contain;
+  border: 2px solid rgba(0, 245, 255, 0.45);
+  border-radius: 8px;
+  box-shadow: 0 0 25px rgba(0, 245, 255, 0.25);
+  background: #03030a;
+  box-sizing: border-box;
+}
+
+/* Previews in Active Game */
+#active-game-screen .ingame-preview-box {
+  position: absolute;
+  top: 8px;
+  z-index: 15;
+  background: rgba(10, 10, 26, 0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1.5px solid rgba(0, 245, 255, 0.35);
+  border-radius: 8px;
+  padding: 4px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+#active-game-screen #hold-canvas,
+#active-game-screen #next-canvas {
+  width: 48px;
+  height: 48px;
+  display: block;
+}
+
+#active-game-screen .ingame-preview-hold {
+  left: -58px;
+}
+
+#active-game-screen .ingame-preview-next {
+  right: -58px;
+}
+
+@media (max-width: 480px) {
+  #active-game-screen .ingame-preview-hold {
+    left: 8px;
+    top: 8px;
+  }
+  #active-game-screen .ingame-preview-next {
+    right: 8px;
+    top: 8px;
+  }
+}
+
+/* Fullscreen Overlay inside Active Game */
+#active-game-screen .game-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 99;
+  background: rgba(4, 4, 14, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  padding: 18px;
+  text-align: center;
+}
+
+#active-game-screen .game-overlay.hidden {
+  display: none !important;
+}
+
+/* Pre-Game Hero Card */
+.pregame-hero-card {
+  background: linear-gradient(180deg, rgba(8, 8, 22, 0.84) 0%, rgba(4, 4, 12, 0.95) 100%), url('/assets/preview.jpg') center/cover no-repeat;
+  border: 2px solid rgba(0, 245, 255, 0.4);
+  box-shadow: 0 0 35px rgba(0, 245, 255, 0.2), 0 12px 40px rgba(0, 0, 0, 0.85);
+  border-radius: 18px;
+  padding: 26px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 460px;
+  box-sizing: border-box;
+}
+
+/* Retro keyboard badges */
+.guide-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  padding: 4px 8px;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: var(--neon-cyan);
+  background: rgba(0, 245, 255, 0.12);
+  border: 1px solid rgba(0, 245, 255, 0.5);
+  border-radius: 6px;
+  box-shadow: 0 2px 0 rgba(0, 245, 255, 0.3);
 }
