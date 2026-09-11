@@ -12,6 +12,81 @@ let gameStartTime = 0;
 let resizeHandler = null;
 let currentRenderedMode = null;
 
+const PLAYLIST = [
+  '/assets/audio/musicaTetris.mp3',
+  '/assets/audio/musicaTetris2.mp3',
+  '/assets/audio/musicaTetris3.mp3'
+];
+let currentTrackIndex = 0;
+let currentVolume = 0.5;
+
+function setupAudioPlaylist(audioTrack, audioBtn, volUpBtn, volDownBtn) {
+  if (!audioTrack) return;
+
+  audioTrack.removeAttribute('loop');
+  audioTrack.loop = false;
+  audioTrack.volume = currentVolume;
+
+  const currentSrc = PLAYLIST[currentTrackIndex];
+  if (!audioTrack.src || !audioTrack.src.includes(currentSrc)) {
+    audioTrack.src = currentSrc;
+  }
+
+  // Next track in playlist on ended (does not repeat current audio)
+  audioTrack.onended = () => {
+    currentTrackIndex = (currentTrackIndex + 1) % PLAYLIST.length;
+    audioTrack.src = PLAYLIST[currentTrackIndex];
+    audioTrack.load();
+    audioTrack.play().then(() => {
+      if (audioBtn) audioBtn.textContent = '⏸';
+    }).catch(e => console.warn('Playlist next track error:', e));
+  };
+
+  if (audioBtn) {
+    audioBtn.addEventListener('click', () => {
+      if (audioTrack.paused) {
+        audioTrack.play().then(() => {
+          audioBtn.textContent = '⏸';
+        }).catch(e => console.warn('Audio play error:', e));
+      } else {
+        audioTrack.pause();
+        audioBtn.textContent = '🎵';
+      }
+    });
+  }
+
+  if (volUpBtn) {
+    volUpBtn.addEventListener('click', () => {
+      currentVolume = Math.min(1, Number((audioTrack.volume + 0.1).toFixed(1)));
+      audioTrack.volume = currentVolume;
+    });
+  }
+
+  if (volDownBtn) {
+    volDownBtn.addEventListener('click', () => {
+      currentVolume = Math.max(0, Number((audioTrack.volume - 0.1).toFixed(1)));
+      audioTrack.volume = currentVolume;
+    });
+  }
+}
+
+function startAudioPlayback(audioBtn) {
+  const audio = document.getElementById('game-audio-track');
+  if (audio) {
+    if (audio.paused) {
+      const currentSrc = PLAYLIST[currentTrackIndex];
+      if (!audio.src || !audio.src.includes(currentSrc)) {
+        audio.src = currentSrc;
+      }
+      audio.play().then(() => {
+        if (audioBtn) audioBtn.textContent = '⏸';
+      }).catch(e => console.warn('Autoplay prevented by browser:', e));
+    } else {
+      if (audioBtn) audioBtn.textContent = '⏸';
+    }
+  }
+}
+
 export function renderPlayPage(container) {
   cleanupPlayPage();
 
@@ -98,7 +173,7 @@ function renderDesktopPlay(container) {
                       <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.24 1.021zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.24 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.38 4.26-1.32 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
                     </svg>
                   </a>
-                  <audio id="game-audio-track" loop preload="auto">
+                  <audio id="game-audio-track" preload="auto">
                     <source src="/assets/audio/musicaTetris.mp3" type="audio/mpeg">
                   </audio>
                 </div>
@@ -237,34 +312,7 @@ function setupDesktopGame() {
   const audioTrack = document.getElementById('game-audio-track');
   const volUpBtn = document.getElementById('btn-vol-up');
   const volDownBtn = document.getElementById('btn-vol-down');
-  
-  if (audioTrack) {
-    audioTrack.volume = 0.5;
-
-    if (audioBtn) {
-      audioBtn.addEventListener('click', () => {
-        if (audioTrack.paused) {
-          audioTrack.play();
-          audioBtn.textContent = '⏸';
-        } else {
-          audioTrack.pause();
-          audioBtn.textContent = '🎵';
-        }
-      });
-    }
-
-    if (volUpBtn) {
-      volUpBtn.addEventListener('click', () => {
-        audioTrack.volume = Math.min(1, audioTrack.volume + 0.1);
-      });
-    }
-
-    if (volDownBtn) {
-      volDownBtn.addEventListener('click', () => {
-        audioTrack.volume = Math.max(0, audioTrack.volume - 0.1);
-      });
-    }
-  }
+  setupAudioPlaylist(audioTrack, audioBtn, volUpBtn, volDownBtn);
 }
 
 function startDesktopGame() {
@@ -273,12 +321,8 @@ function startDesktopGame() {
   const overlay = document.getElementById('game-overlay');
   if (overlay) overlay.classList.add('hidden');
   
-  const audio = document.getElementById('game-audio-track');
-  if (audio) {
-    audio.play().catch(e => console.warn('Autoplay prevented by browser:', e));
-    const btn = document.getElementById('btn-audio-toggle');
-    if (btn) btn.textContent = '⏸';
-  }
+  const audioBtn = document.getElementById('btn-audio-toggle');
+  startAudioPlayback(audioBtn);
 
   if (engine) engine.start();
 }
@@ -420,7 +464,7 @@ function renderMobilePlay(container) {
               <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.24 1.021zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.24 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.38 4.26-1.32 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
             </svg>
           </a>
-          <audio id="game-audio-track" loop preload="auto">
+          <audio id="game-audio-track" preload="auto">
             <source src="/assets/audio/musicaTetris.mp3" type="audio/mpeg">
           </audio>
         </div>
@@ -553,34 +597,7 @@ function setupMobileAudio() {
   const audioTrack = document.getElementById('game-audio-track');
   const volUpBtn = document.getElementById('mb-btn-vol-up');
   const volDownBtn = document.getElementById('mb-btn-vol-down');
-  
-  if (audioTrack) {
-    audioTrack.volume = 0.5;
-
-    if (audioBtn) {
-      audioBtn.addEventListener('click', () => {
-        if (audioTrack.paused) {
-          audioTrack.play().catch(() => {});
-          audioBtn.textContent = '⏸';
-        } else {
-          audioTrack.pause();
-          audioBtn.textContent = '🎵';
-        }
-      });
-    }
-
-    if (volUpBtn) {
-      volUpBtn.addEventListener('click', () => {
-        audioTrack.volume = Math.min(1, Number((audioTrack.volume + 0.1).toFixed(1)));
-      });
-    }
-
-    if (volDownBtn) {
-      volDownBtn.addEventListener('click', () => {
-        audioTrack.volume = Math.max(0, Number((audioTrack.volume - 0.1).toFixed(1)));
-      });
-    }
-  }
+  setupAudioPlaylist(audioTrack, audioBtn, volUpBtn, volDownBtn);
 }
 
 function startMobileGame() {
@@ -615,12 +632,8 @@ function startMobileGame() {
     overlay.innerHTML = '';
   }
 
-  const audio = document.getElementById('game-audio-track');
   const audioBtn = document.getElementById('mb-btn-audio-toggle');
-  if (audio) {
-    audio.play().catch(e => console.warn('Autoplay prevented:', e));
-    if (audioBtn) audioBtn.textContent = '⏸';
-  }
+  startAudioPlayback(audioBtn);
 
   const scoreEl = document.getElementById('stat-score');
   const levelEl = document.getElementById('stat-level');
