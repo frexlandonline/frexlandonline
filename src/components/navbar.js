@@ -9,6 +9,7 @@ import api from '../services/api.js';
 import { showToast } from '../main.js';
 import { showInfoModal } from './infoModal.js';
 import { t, getLang, setLang } from '../utils/i18n.js';
+import { getUserLevel, renderLevelBadge } from '../utils/levels.js';
 
 let navbarWalletUnsub = null;
 let navbarScoreUnsub = null;
@@ -24,6 +25,7 @@ export function renderNavbar(container, activePage = 'game') {
     
   const platform = isWorldAppWebView() ? 'worldchain' : (isLemonWebView() ? 'lemon' : 'html5');
   const lang = getLang();
+  const userLevel = getUserLevel(user.total_depositado || 0);
 
   container.innerHTML = `
     <nav class="navbar" id="main-navbar">
@@ -43,10 +45,13 @@ export function renderNavbar(container, activePage = 'game') {
 
           <button class="navbar-link ${activePage === 'wallet' ? 'active' : ''}" id="nav-wallet">💎 ${t('navWallet')}</button>
           
-          <div class="navbar-user-group" style="display: flex; align-items: center; gap: 12px; margin-left: 6px;">
-            <div id="nav-profile-avatar" class="nav-profile-btn" style="display: flex; align-items: center; gap: 8px; cursor: pointer; -webkit-tap-highlight-color: transparent; outline: none;" title="Mi Perfil">
+          <div class="navbar-user-group" style="display: flex; align-items: center; gap: 10px; margin-left: 6px;">
+            <div id="nav-profile-avatar" class="nav-profile-btn" style="display: flex; align-items: center; gap: 8px; cursor: pointer; -webkit-tap-highlight-color: transparent; outline: none;" title="Mi Perfil (${userLevel.name})">
               ${wrapWithBadge(avatarHtml, platform)}
-              <span class="navbar-username">${user.username}</span>
+              <div style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; line-height: 1.1;">
+                <span class="navbar-username" style="font-weight: 600;">${user.username}</span>
+                <div style="margin-top: 2px;">${renderLevelBadge(userLevel, 'sm')}</div>
+              </div>
             </div>
             <button type="button" id="nav-dropdown-btn" class="nav-dots-btn" title="Menú de opciones" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; cursor: pointer; font-size: 1.45rem; min-width: 40px; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; padding: 0; transition: all 0.2s; touch-action: manipulation; -webkit-tap-highlight-color: transparent; outline: none; flex-shrink: 0; user-select: none;">⋮</button>
           </div>

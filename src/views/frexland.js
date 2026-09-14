@@ -16,8 +16,8 @@ export function renderFrexlandPage(container) {
   const isAdmin = user && (user.isAdmin === true || user.role === 'admin' || userWallets.some(w => ADMIN_WALLETS.includes(w)));
   const isTecnico = user && (user.role === 'tecnico' || user.role === 'tester' || TECNICO_EMAILS.includes((user.email || '').toLowerCase()));
   const canAccessGame = isAdmin || isTecnico;
-  const IS_MAINTENANCE_MODE = true;
-  const showMaintenanceBanner = IS_MAINTENANCE_MODE && !canAccessGame;
+  const IS_MAINTENANCE_MODE = false;
+  const showMaintenanceBanner = false;
 
   container.innerHTML = `
     <div id="navbar-container"></div>

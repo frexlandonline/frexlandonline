@@ -129,8 +129,8 @@ function navigate() {
   const isTecnico = user && (user.role === 'tecnico' || user.role === 'tester' || TECNICO_EMAILS.includes((user.email || '').toLowerCase()));
   const canAccessGame = isAdmin || isTecnico;
 
-  // Modo Mantenimiento para juegos (solo Admin y Técnico pueden ingresar)
-  const IS_MAINTENANCE_MODE = true;
+  // Modo Mantenimiento para juegos (Desactivado)
+  const IS_MAINTENANCE_MODE = false;
 
   switch (route) {
     case '/':

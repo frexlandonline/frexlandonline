@@ -7,6 +7,7 @@ import { fetchLeaderboard } from '../components/leaderboard.js';
 import { showToast } from '../main.js';
 import { renderFooter } from '../components/footer.js';
 import { getAaveFinancialData } from '../web3/contract.ts';
+import { getUserLevel, renderLevelBadge } from '../utils/levels.js';
 
 let poolInterval;
 let leaderboardInterval;
@@ -63,6 +64,7 @@ export async function renderBlockdropPage(container) {
                   <div id="podium-badge-2nd" style="position: absolute; bottom: 0; right: 0;"></div>
                 </div>
                 <div class="podium-username" id="podium-user-2nd">-</div>
+                <div id="podium-level-2nd" style="margin-bottom: 2px;"></div>
                 <div class="podium-score" id="podium-score-2nd">- pts</div>
                 <div class="podium-step-body" style="height: 120px;">
                   <span class="podium-step-num">2</span>
@@ -77,6 +79,7 @@ export async function renderBlockdropPage(container) {
                   <div id="podium-badge-1st" style="position: absolute; bottom: 0; right: 0;"></div>
                 </div>
                 <div class="podium-username" id="podium-user-1st">-</div>
+                <div id="podium-level-1st" style="margin-bottom: 2px;"></div>
                 <div class="podium-score" id="podium-score-1st">- pts</div>
                 <div class="podium-step-body" style="height: 160px; border-color: rgba(255, 215, 0, 0.45); box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);">
                   <span class="podium-step-num">1</span>
@@ -91,6 +94,7 @@ export async function renderBlockdropPage(container) {
                   <div id="podium-badge-3rd" style="position: absolute; bottom: 0; right: 0;"></div>
                 </div>
                 <div class="podium-username" id="podium-user-3rd">-</div>
+                <div id="podium-level-3rd" style="margin-bottom: 2px;"></div>
                 <div class="podium-score" id="podium-score-3rd">- pts</div>
                 <div class="podium-step-body" style="height: 90px;">
                   <span class="podium-step-num">3</span>
@@ -245,16 +249,25 @@ async function loadDashboardData(container) {
     document.getElementById('podium-score-1st').textContent = p1.score > 0 ? `${p1.score.toLocaleString()} pts` : '-';
     document.getElementById('podium-img-1st').src = p1.avatarUrl || emptyAvatar(p1.username || '1st');
     document.getElementById('podium-badge-1st').innerHTML = getAvatarBadge(p1.platform || 'html5');
+    if (p1.score > 0) {
+      document.getElementById('podium-level-1st').innerHTML = renderLevelBadge(getUserLevel(p1.total_depositado || 0), 'sm');
+    }
 
     document.getElementById('podium-user-2nd').textContent = p2.username;
     document.getElementById('podium-score-2nd').textContent = p2.score > 0 ? `${p2.score.toLocaleString()} pts` : '-';
     document.getElementById('podium-img-2nd').src = p2.avatarUrl || emptyAvatar(p2.username || '2nd');
     document.getElementById('podium-badge-2nd').innerHTML = getAvatarBadge(p2.platform || 'html5');
+    if (p2.score > 0) {
+      document.getElementById('podium-level-2nd').innerHTML = renderLevelBadge(getUserLevel(p2.total_depositado || 0), 'sm');
+    }
 
     document.getElementById('podium-user-3rd').textContent = p3.username;
     document.getElementById('podium-score-3rd').textContent = p3.score > 0 ? `${p3.score.toLocaleString()} pts` : '-';
     document.getElementById('podium-img-3rd').src = p3.avatarUrl || emptyAvatar(p3.username || '3rd');
     document.getElementById('podium-badge-3rd').innerHTML = getAvatarBadge(p3.platform || 'html5');
+    if (p3.score > 0) {
+      document.getElementById('podium-level-3rd').innerHTML = renderLevelBadge(getUserLevel(p3.total_depositado || 0), 'sm');
+    }
 
     const currentUser = await getUser();
     const tableContainer = document.getElementById('leaderboard-table-container');
@@ -274,6 +287,7 @@ async function loadDashboardData(container) {
           const score = player.score ? player.score.toLocaleString() : '0';
           const avatar = player.avatarUrl || emptyAvatar(username);
           const isCurrentUser = currentUser && currentUser.username === player.username;
+          const playerLevel = getUserLevel(player.total_depositado || 0);
 
           const row = document.createElement('div');
           row.className = 'leaderboard-row';
@@ -289,10 +303,11 @@ async function loadDashboardData(container) {
           `;
           
           row.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
               <span style="font-family: var(--font-display); font-size: 0.85rem; color: var(--text-muted); width: 15px; text-align: right;">${rank}</span>
               ${wrapWithBadge(`<img src="${avatar}" style="width: 24px; height: 24px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: var(--bg-card); object-fit: cover;">`, player.platform || 'html5')}
-              <span style="font-size: 0.85rem; font-weight: 500; color: ${isCurrentUser ? 'var(--neon-cyan)' : 'var(--text-secondary)'};">${username}</span>
+              <span style="font-size: 0.85rem; font-weight: 500; color: ${isCurrentUser ? 'var(--neon-cyan)' : 'var(--text-secondary)'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${username}</span>
+              ${renderLevelBadge(playerLevel, 'sm')}
             </div>
             <span style="font-family: var(--font-display); font-size: 0.85rem; color: var(--neon-cyan);">${score} pts</span>
           `;

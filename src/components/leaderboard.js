@@ -1,5 +1,6 @@
 import api from '../services/api.js';
 import { getUser } from '../services/auth.js';
+import { getUserLevel, renderLevelBadge } from '../utils/levels.js';
 
 let leaderboardData = [];
 
@@ -32,10 +33,14 @@ export function renderLeaderboard(container) {
       const isMe = entry.username === user?.username;
       const rankClass = entry.rank === 1 ? 'top-1' : entry.rank === 2 ? 'top-2' : entry.rank === 3 ? 'top-3' : '';
       const medal = entry.rank === 1 ? '👑' : entry.rank === 2 ? '🥈' : entry.rank === 3 ? '🥉' : '';
+      const entryLevel = getUserLevel(entry.total_depositado || 0);
       html += `
-        <div class="leaderboard-item ${isMe ? 'current-user' : ''}">
-          <span class="leaderboard-rank ${rankClass}">${medal || '#' + entry.rank}</span>
-          <span class="leaderboard-name">${entry.username}</span>
+        <div class="leaderboard-item ${isMe ? 'current-user' : ''}" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
+            <span class="leaderboard-rank ${rankClass}">${medal || '#' + entry.rank}</span>
+            <span class="leaderboard-name" style="font-weight: 600;">${entry.username}</span>
+            ${renderLevelBadge(entryLevel, 'sm')}
+          </div>
           <span class="leaderboard-score">${entry.score.toLocaleString()}</span>
         </div>
       `;

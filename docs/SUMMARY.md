@@ -3,6 +3,7 @@
 * [Introducción](README.md)
 * [Guía de Interfaz](interfaz.md)
 * [Juegos (BlockDrop)](juegos.md)
+* [Sistema de Niveles](niveles.md)
 * [Finanzas y Retiros](finanzas.md)
 * [Objetivos del Proyecto](objetivos.md)
 * [El Equipo](equipo.md)

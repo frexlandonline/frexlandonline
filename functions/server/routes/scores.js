@@ -23,7 +23,7 @@ router.post('/', authenticateToken, async (req, res) => {
     const isAdmin = user && (user.isAdmin === true || user.role === 'admin' || userWallets.some(w => ADMIN_WALLETS.includes(w)));
     const isTecnico = user && (user.role === 'tecnico' || user.role === 'tester' || TECNICO_EMAILS.includes((user.email || '').toLowerCase()));
 
-    const IS_MAINTENANCE_MODE = true;
+    const IS_MAINTENANCE_MODE = false;
     if (IS_MAINTENANCE_MODE && !isAdmin && !isTecnico) {
       return res.status(503).json({ error: 'Los servidores de juego se encuentran en modo mantenimiento temporal.' });
     }

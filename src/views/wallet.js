@@ -10,6 +10,7 @@ import { isLemonWebView, depositLemon, withdrawLemon } from '../web3/lemon.js';
 import { isWorldAppWebView, payWorld } from '../web3/world.ts';
 import { bridgeUSDCToBase } from '../web3/cctp.ts';
 import { verifyHumanity } from '../web3/worldId.ts';
+import { getUserLevel, renderLevelBadge, LEVELS } from '../utils/levels.js';
 
 // Modern Web3 EVM imports from Agent 3 TypeScript module
 import { 
@@ -181,6 +182,7 @@ function renderWalletContent() {
 
     // Check if currently connected active wallet is linked to user account
     const currentUser = getUser();
+    const userLevel = getUserLevel(currentUser?.total_depositado || 0);
     const linkedWallets = currentUser?.wallets || {};
     const isAlreadyLinked = Object.values(linkedWallets).some(
       addr => addr && addr.toLowerCase() === walletState.address.toLowerCase()
@@ -235,7 +237,7 @@ function renderWalletContent() {
             <div class="card" style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 20px; border-radius: var(--radius-md);">
               <h3 style="font-family: var(--font-display); font-size: 1.1rem; margin-bottom: 8px;">📥 Depósitos para Créditos</h3>
               <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 16px; line-height: 1.4;">
-                ${walletState.chain === 'worldchain' ? 'Operando en la red <strong>World Chain</strong>. Deposita USDC para obtener créditos. (10 USDC = 1 Crédito).' : 'La red oficial del juego es <strong>Base</strong>. Deposita USDC para obtener créditos. (10 USDC = 1 Crédito). El registro de tu récord consume 1 crédito.'}
+                ${walletState.chain === 'worldchain' ? 'Operando en la red <strong>World Chain</strong>. Deposita USDC para obtener créditos. (10 USDC = 1 Crédito semanal renovable tras la entrega de premios).' : 'La red oficial del juego es <strong>Base</strong>. Deposita USDC para obtener créditos. (10 USDC = 1 Crédito semanal renovable tras la entrega de premios con la cuenta regresiva). El registro de tu récord consume 1 crédito.'}
               </p>
               
               ${isLemonWebView() ? `
@@ -257,19 +259,38 @@ function renderWalletContent() {
                 </div>
               ` : `
                 <div id="lemon-deposit-section">
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
-                    <div style="background: rgba(255,255,255,0.02); padding: 10px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
-                      <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">Saldo en Aave (Neto)</span>
-                      <div style="font-size: clamp(0.95rem, 3.5vw, 1.2rem); font-weight: bold; margin-top: 2px; color: var(--neon-cyan); word-break: break-all;">
-                        💰 ${formatBalance(currentUser?.total_depositado || 0, 6)} <span style="font-size: 0.72rem; color: var(--text-muted);">USDC</span>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+                    <div style="background: rgba(255,255,255,0.02); padding: 10px 6px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
+                      <span style="font-size: 0.68rem; color: var(--text-muted); display: block;">Saldo en Aave (Neto)</span>
+                      <div style="font-size: clamp(0.85rem, 3vw, 1.15rem); font-weight: bold; margin-top: 2px; color: var(--neon-cyan); word-break: break-all;">
+                        💰 ${formatBalance(currentUser?.total_depositado || 0, 2)} <span style="font-size: 0.68rem; color: var(--text-muted);">USDC</span>
                       </div>
                     </div>
+
+                    <div style="background: rgba(255,255,255,0.02); padding: 10px 6px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                      <span style="font-size: 0.68rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Nivel de Jugador</span>
+                      ${renderLevelBadge(userLevel, 'sm')}
+                    </div>
                     
-                    <div style="background: rgba(255,255,255,0.02); padding: 10px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
-                      <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">Créditos Disponibles</span>
-                      <div style="font-size: clamp(0.95rem, 3.5vw, 1.2rem); font-weight: bold; margin-top: 2px; color: var(--neon-green);">
+                    <div style="background: rgba(255,255,255,0.02); padding: 10px 6px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
+                      <span style="font-size: 0.68rem; color: var(--text-muted); display: block;">Créditos Semanales</span>
+                      <div style="font-size: clamp(0.85rem, 3vw, 1.15rem); font-weight: bold; margin-top: 2px; color: var(--neon-green);">
                         🪙 ${currentUser?.creditos_escritura || 0}
                       </div>
+                    </div>
+                  </div>
+
+                  <!-- Barra de Progreso de Nivel -->
+                  <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.74rem; color: var(--text-secondary); margin-bottom: 4px;">
+                      <span>${userLevel.isMax ? '🏆 Rango Máximo Legendario' : `Progreso hacia Nivel ${userLevel.nextLevel?.name || ''}`}</span>
+                      <span style="font-weight: bold; color: ${userLevel.color};">${userLevel.progress}%</span>
+                    </div>
+                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden;">
+                      <div style="width: ${userLevel.progress}%; height: 100%; background: ${userLevel.bgGradient || 'var(--gradient-primary)'}; border-radius: 4px;"></div>
+                    </div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; text-align: right;">
+                      ${userLevel.isMax ? '¡Estatus Diamante alcanzado!' : `Faltan <strong style="color: var(--neon-cyan);">${userLevel.toNext} USDC</strong> para Nivel ${userLevel.nextLevel?.name}`}
                     </div>
                   </div>
 
@@ -292,15 +313,15 @@ function renderWalletContent() {
 
                       ${currentUser.isWorldIdVerified ? `
                         <div style="background: rgba(57, 255, 20, 0.05); border: 1px dashed rgba(57, 255, 20, 0.3); padding: 10px; border-radius: 8px; color: var(--text-primary); font-size: 0.8rem; line-height: 1.45;">
-                          🎉 <strong>¡Tu cuenta está verificada como humano con World ID!</strong> Tienes activo tu <strong>crédito extra de juego diario</strong>, el cual se otorga y renueva automáticamente todos los días a las <strong>00:00 UTC</strong> junto con tus créditos normales de depósito.
+                          🎉 <strong>¡Tu cuenta está verificada como humano con World ID!</strong> Tienes activo tu <strong>crédito extra de juego semanal</strong>, el cual se renueva automáticamente tras cada entrega de premios con la cuenta regresiva junto con tus créditos de depósito.
                         </div>
                       ` : `
                         <div style="color: var(--text-secondary); font-size: 0.8rem; line-height: 1.45; margin-bottom: 12px;">
-                          🛡️ <strong>Beneficio de Humanidad:</strong> Al verificar que eres un humano real con World ID Orb, obtienes <strong>+1 crédito extra de juego todos los días</strong>, el cual se otorga y renueva diariamente a las <strong>00:00 UTC</strong> junto con tus créditos normales obtenidos por depósitos.
+                          🛡️ <strong>Beneficio de Humanidad:</strong> Al verificar que eres un humano real con World ID Orb, obtienes <strong>+1 crédito extra de juego semanal</strong>, el cual se otorga y renueva tras cada entrega de premios con la cuenta regresiva junto con tus créditos de depósitos.
                         </div>
 
                         <button class="btn btn-primary" id="btn-verify-worldid" style="width: 100%; box-shadow: 0 0 15px rgba(139, 92, 246, 0.4); background: linear-gradient(135deg, #8b5cf6 0%, #00f5ff 100%); border: none; font-weight: bold; font-family: var(--font-display); font-size: clamp(0.75rem, 2.8vw, 0.9rem); padding: 12px 8px; white-space: normal; line-height: 1.3;">
-                          🛡️ Verificar que soy humano (+1 Crédito Diario a las 00:00 UTC)
+                          🛡️ Verificar que soy humano (+1 Crédito Semanal)
                         </button>
                       `}
                     </div>
@@ -312,20 +333,20 @@ function renderWalletContent() {
                     <span>ℹ️</span> Regla de Depósitos y Comisiones de Red
                   </div>
                   <div style="color: var(--text-secondary); margin-bottom: 6px;">
-                    Los depósitos deben ser obligatoriamente en <strong>múltiplos de 10 USDC sumando 0.01 USDC</strong> para cubrir comisiones de red y bridge (ej: <strong>10.01, 20.01, 30.01, 50.01, 100.01 USDC</strong>).
+                    Los depósitos deben ser obligatoriamente en <strong>múltiplos de 10 USDC sumando 0.01 USDC</strong> para cubrir comisiones de red y bridge (ej: <strong>10.01, 50.01, 100.01, 500.01, 1000.01 USDC</strong>).
                   </div>
                   <div style="color: #FFA500; font-weight: 600; background: rgba(255, 165, 0, 0.08); padding: 8px 10px; border-radius: 4px; border: 1px solid rgba(255, 165, 0, 0.25); line-height: 1.4;">
-                    💡 <strong>Aviso Importante:</strong> De los 0.01 USDC se descontarán únicamente las comisiones cobradas por las redes, de modo que ingresa al pozo de Aave exactamente un múltiplo de 10 USDC (10, 20, 30...), garantizando <strong>1 crédito diario por cada 10 USDC aportados</strong>. Si el monto no cumple este formato, la transacción no será procesada.
+                    💡 <strong>Aviso Importante:</strong> De los 0.01 USDC se descontarán únicamente las comisiones cobradas por las redes, de modo que ingresa al pozo de Aave exactamente un múltiplo de 10 USDC (10, 50, 100...), garantizando <strong>1 crédito semanal por cada 10 USDC aportados</strong> (renovables tras cada entrega de premios con la cuenta regresiva). Si el monto no cumple este formato, la transacción no será procesada.
                   </div>
                 </div>
 
-                <!-- BOTONES DE SELECCIÓN RÁPIDA -->
+                <!-- BOTONES DE SELECCIÓN RÁPIDA POR NIVEL -->
                 <div style="display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;">
-                  <button type="button" class="btn-quick-deposit" data-amount="10.01" style="font-size: 0.75rem; padding: 5px 10px; background: rgba(0, 245, 255, 0.08); border: 1px solid rgba(0, 245, 255, 0.25); color: var(--neon-cyan); border-radius: 4px; cursor: pointer; font-weight: 600;">10.01 USDC (1 Crédito)</button>
-                  <button type="button" class="btn-quick-deposit" data-amount="20.01" style="font-size: 0.75rem; padding: 5px 10px; background: rgba(0, 245, 255, 0.08); border: 1px solid rgba(0, 245, 255, 0.25); color: var(--neon-cyan); border-radius: 4px; cursor: pointer; font-weight: 600;">20.01 USDC (2 Créditos)</button>
-                  <button type="button" class="btn-quick-deposit" data-amount="30.01" style="font-size: 0.75rem; padding: 5px 10px; background: rgba(0, 245, 255, 0.08); border: 1px solid rgba(0, 245, 255, 0.25); color: var(--neon-cyan); border-radius: 4px; cursor: pointer; font-weight: 600;">30.01 USDC (3 Créditos)</button>
-                  <button type="button" class="btn-quick-deposit" data-amount="50.01" style="font-size: 0.75rem; padding: 5px 10px; background: rgba(0, 245, 255, 0.08); border: 1px solid rgba(0, 245, 255, 0.25); color: var(--neon-cyan); border-radius: 4px; cursor: pointer; font-weight: 600;">50.01 USDC (5 Créditos)</button>
-                  <button type="button" class="btn-quick-deposit" data-amount="100.01" style="font-size: 0.75rem; padding: 5px 10px; background: rgba(0, 245, 255, 0.08); border: 1px solid rgba(0, 245, 255, 0.25); color: var(--neon-cyan); border-radius: 4px; cursor: pointer; font-weight: 600;">100.01 USDC (10 Créditos)</button>
+                  <button type="button" class="btn-quick-deposit" data-amount="10.01" style="font-size: 0.72rem; padding: 5px 8px; background: rgba(205, 127, 50, 0.15); border: 1px solid rgba(205, 127, 50, 0.4); color: #cd7f32; border-radius: 4px; cursor: pointer; font-weight: 600;">🥉 10.01 (Bronce)</button>
+                  <button type="button" class="btn-quick-deposit" data-amount="50.01" style="font-size: 0.72rem; padding: 5px 8px; background: rgba(203, 213, 225, 0.12); border: 1px solid rgba(203, 213, 225, 0.35); color: #e2e8f0; border-radius: 4px; cursor: pointer; font-weight: 600;">🥈 50.01 (Plata)</button>
+                  <button type="button" class="btn-quick-deposit" data-amount="100.01" style="font-size: 0.72rem; padding: 5px 8px; background: rgba(255, 215, 0, 0.12); border: 1px solid rgba(255, 215, 0, 0.35); color: #ffd700; border-radius: 4px; cursor: pointer; font-weight: 600;">🥇 100.01 (Oro)</button>
+                  <button type="button" class="btn-quick-deposit" data-amount="500.01" style="font-size: 0.72rem; padding: 5px 8px; background: rgba(165, 180, 252, 0.12); border: 1px solid rgba(165, 180, 252, 0.35); color: #e0e7ff; border-radius: 4px; cursor: pointer; font-weight: 600;">💠 500.01 (Platino)</button>
+                  <button type="button" class="btn-quick-deposit" data-amount="1000.01" style="font-size: 0.72rem; padding: 5px 8px; background: rgba(0, 245, 255, 0.12); border: 1px solid rgba(0, 245, 255, 0.35); color: #00f5ff; border-radius: 4px; cursor: pointer; font-weight: 600;">💎 1000.01 (Diamante)</button>
                 </div>
 
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
@@ -453,7 +474,7 @@ function renderWalletContent() {
         });
 
         if (res.success) {
-          showToast('🎉 ¡Verificación exitosa! Se te ha asignado +1 crédito diario que se renovará a las 00:00 UTC.', 'success');
+          showToast('🎉 ¡Verificación exitosa! Se te ha asignado +1 crédito semanal que se renovará tras la entrega de premios con la cuenta regresiva.', 'success');
           updateLocalUser(res.user);
           renderWalletContent();
         } else {

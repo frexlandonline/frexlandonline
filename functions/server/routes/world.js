@@ -138,14 +138,15 @@ router.post('/verify', async (req, res) => {
       return res.status(400).json({ error: apiErrorMessage || 'La prueba de World ID no tiene un formato válido.' });
     }
 
-    // Acreditamos el estado de Humano Verificado y su crédito diario
-    const currentUTCDateStr = new Date().toISOString().split('T')[0];
+    // Acreditamos el estado de Humano Verificado y su crédito semanal
+    const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+    const currentWeekCycle = String(Math.floor(Date.now() / WEEK_MS));
     const currentCredits = user.creditos_escritura || 0;
     const updates = { 
       isWorldIdVerified: true,
       worldId_nullifier_hash: nullifier_hash,
       creditos_escritura: currentCredits + 1,
-      last_credit_reset: currentUTCDateStr
+      last_credit_reset: currentWeekCycle
     };
     console.log(`[WorldID Verify] User ${userId} receives +1 human credit. New total: ${updates.creditos_escritura}`);
 
@@ -154,7 +155,7 @@ router.post('/verify', async (req, res) => {
 
     res.json({ 
       success: true, 
-      message: '¡Humano verificado exitosamente! Se te ha acreditado 1 crédito diario para jugar (se renovará diariamente a las 00:00 UTC).', 
+      message: '¡Humano verificado exitosamente! Se te ha acreditado 1 crédito semanal para jugar (se renovará semanalmente tras cada entrega de premios con la cuenta regresiva).', 
       user: safeUser 
     });
 

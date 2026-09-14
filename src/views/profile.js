@@ -9,6 +9,7 @@ import { getAaveFinancialData, withdrawUSDC } from '../web3/contract.ts';
 import { parseUnits } from 'viem';
 import { isWorldAppWebView } from '../web3/world.ts';
 import { isLemonWebView } from '../web3/lemon.js';
+import { getUserLevel, renderLevelBadge, LEVELS } from '../utils/levels.js';
 
 export function renderProfilePage(container) {
   const user = getUser();
@@ -16,6 +17,8 @@ export function renderProfilePage(container) {
     window.location.hash = '#/auth';
     return;
   }
+
+  const userLevel = getUserLevel(user.total_depositado || 0);
 
   // Predefined avatar seeds for Dicebear Bottts
   const avatarSeeds = ['CyberBot', 'NeonPlayer', 'ByteGamer', 'GridRunner', 'CryptoNerd'];
@@ -98,6 +101,59 @@ export function renderProfilePage(container) {
             </div>
           </div>
 
+          <!-- PLAYER LEVEL & TIER CARD -->
+          <div class="card card-level" style="background: radial-gradient(circle at top, rgba(255,255,255,0.04) 0%, rgba(10,10,26,0.9) 100%); border: 1.5px solid ${userLevel.borderColor}; box-shadow: ${userLevel.shadow}; border-radius: var(--radius-md); padding: 18px 16px; margin-bottom: var(--space-md); box-sizing: border-box;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+              <div>
+                <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; display: block;">NIVEL DE JUGADOR</span>
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                  <span style="font-size: 1.6rem; line-height: 1;">${userLevel.icon}</span>
+                  <span style="font-family: var(--font-display); font-size: 1.25rem; font-weight: bold; color: ${userLevel.color}; letter-spacing: 0.05em;">
+                    ${userLevel.name}
+                  </span>
+                </div>
+              </div>
+              
+              <div style="text-align: right;">
+                <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; display: block;">Depósito en Aave</span>
+                <span style="font-family: var(--font-display); font-size: 1.05rem; font-weight: bold; color: var(--neon-cyan);">
+                  ${(user.total_depositado || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC
+                </span>
+              </div>
+            </div>
+
+            <!-- Progress Bar to Next Level -->
+            <div style="margin-top: 8px; margin-bottom: 12px;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 5px;">
+                <span>${userLevel.isMax ? '🏆 Rango Máximo Legendario' : `Progreso a Nivel ${userLevel.nextLevel?.name || ''}`}</span>
+                <span style="font-weight: bold; color: ${userLevel.color};">${userLevel.progress}%</span>
+              </div>
+              <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.08); border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
+                <div style="width: ${userLevel.progress}%; height: 100%; background: ${userLevel.bgGradient || 'var(--gradient-primary)'}; border-radius: 6px; transition: width 0.4s ease;"></div>
+              </div>
+              <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 5px; text-align: right;">
+                ${userLevel.isMax 
+                  ? '¡Has alcanzado la cima del ecosistema FrexLand!' 
+                  : `Faltan <strong style="color: var(--neon-cyan);">${userLevel.toNext} USDC</strong> para alcanzar Nivel ${userLevel.nextLevel?.name}`}
+              </div>
+            </div>
+
+            <!-- Tiers Guide (Collapsible details) -->
+            <details style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 8px 12px; font-size: 0.78rem; cursor: pointer;">
+              <summary style="font-weight: 600; color: var(--text-secondary); outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                <span>ℹ️ Ver Escala de Niveles y Requisitos</span>
+                <span style="color: var(--neon-cyan); font-size: 0.7rem;">Desplegar ▼</span>
+              </summary>
+              <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px; color: var(--text-secondary);">
+                <div style="display: flex; justify-content: space-between;"><span>🥉 <strong>Bronce:</strong> 10 a 49.99 USDC</span> <span style="color: var(--neon-green);">1 a 4 créditos/sem</span></div>
+                <div style="display: flex; justify-content: space-between;"><span>🥈 <strong>Plata:</strong> 50 a 99.99 USDC</span> <span style="color: var(--neon-green);">5 a 9 créditos/sem</span></div>
+                <div style="display: flex; justify-content: space-between;"><span>🥇 <strong>Oro:</strong> 100 a 499.99 USDC</span> <span style="color: var(--neon-green);">10 a 49 créditos/sem</span></div>
+                <div style="display: flex; justify-content: space-between;"><span>💠 <strong>Platino:</strong> 500 a 999.99 USDC</span> <span style="color: var(--neon-green);">50 a 99 créditos/sem</span></div>
+                <div style="display: flex; justify-content: space-between;"><span>💎 <strong>Diamante:</strong> 1000+ USDC</span> <span style="color: var(--neon-green);">100+ créditos/sem</span></div>
+              </div>
+            </details>
+          </div>
+
           <!-- Email (Read Only) -->
           <div class="input-group">
             <label>${t('profEmailLabel')}</label>
@@ -147,9 +203,9 @@ export function renderProfilePage(container) {
             </div>
             <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 6px; line-height: 1.4;">
               ${user.isWorldIdVerified ? `
-                🎉 Tu cuenta está verificada como humano real. Recibes <strong>+1 crédito de juego extra</strong> que se renueva automáticamente todos los días a las <strong>00:00 UTC</strong>.
+                🎉 Tu cuenta está verificada como humano real. Recibes <strong>+1 crédito de juego extra semanal</strong> que se renueva automáticamente tras cada entrega de premios con la cuenta regresiva.
               ` : `
-                🛡️ Al verificar tu humanidad con World ID Orb en la sección <a href="#/wallet" style="color: var(--neon-cyan); font-weight: 600;">Billetera</a>, obtienes <strong>+1 crédito extra diario</strong> renovable a las 00:00 UTC.
+                🛡️ Al verificar tu humanidad con World ID Orb en la sección <a href="#/wallet" style="color: var(--neon-cyan); font-weight: 600;">Billetera</a>, obtienes <strong>+1 crédito extra semanal</strong> renovable tras cada entrega de premios con la cuenta regresiva.
               `}
             </div>
           </div>

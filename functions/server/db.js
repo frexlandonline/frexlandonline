@@ -260,23 +260,26 @@ export const dbAPI = {
       return Number(result?.total) || 0;
     }
   },
-  // Verificación pasiva de créditos diarios
+  // Verificación pasiva de créditos semanales (renovación tras cada entrega de premios con la cuenta regresiva)
   async checkAndResetDailyCredits(userId) {
+    return await this.checkAndResetWeeklyCredits(userId);
+  },
+
+  async checkAndResetWeeklyCredits(userId) {
     const user = await this.getUserById(userId);
     if (!user) return user;
     
-    // Obtenemos la fecha UTC actual ("YYYY-MM-DD")
-    const now = new Date();
-    const currentUTCDateStr = now.toISOString().split('T')[0];
+    const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+    const currentWeekCycle = String(Math.floor(Date.now() / WEEK_MS));
     
-    // Si last_credit_reset no existe o es de un día anterior, reseteamos
-    if (!user.last_credit_reset || user.last_credit_reset < currentUTCDateStr) {
+    // Si last_credit_reset no existe o corresponde a un ciclo semanal anterior, renovamos los créditos
+    if (!user.last_credit_reset || String(user.last_credit_reset) !== currentWeekCycle) {
       const depositCredits = Math.floor((user.total_depositado || 0) / 10);
       const humanBonus = (user.isWorldIdVerified === true) ? 1 : 0;
-      const totalDailyCredits = depositCredits + humanBonus;
+      const totalWeeklyCredits = depositCredits + humanBonus;
       return await this.updateUser(userId, {
-        creditos_escritura: totalDailyCredits,
-        last_credit_reset: currentUTCDateStr
+        creditos_escritura: totalWeeklyCredits,
+        last_credit_reset: currentWeekCycle
       });
     }
     
@@ -653,6 +656,7 @@ export const dbAPI = {
           score,
           level,
           linesCleared,
+          total_depositado: userData.total_depositado || 0,
           createdAt: Timestamp.now()
         });
 
@@ -720,12 +724,13 @@ export const dbAPI = {
         score: data.score,
         level: data.level,
         linesCleared: data.linesCleared,
+        total_depositado: data.total_depositado || 0,
         createdAt: toIsoString(data.createdAt),
         rank: index + 1
       }));
     } else {
       const scores = sqliteDb.prepare(`
-        SELECT h.id, h.user_id, h.score, h.level, h.lines_cleared, h.platform, h.created_at, u.username, u.avatar_url
+        SELECT h.id, h.user_id, h.score, h.level, h.lines_cleared, h.platform, h.created_at, u.username, u.avatar_url, u.total_depositado
         FROM high_scores h
         JOIN users u ON h.user_id = u.id
         ORDER BY h.score DESC
@@ -742,6 +747,7 @@ export const dbAPI = {
         platform: s.platform || 'html5',
         createdAt: s.created_at,
         avatarUrl: s.avatar_url,
+        total_depositado: s.total_depositado || 0,
         rank: i + 1
       }));
     }
