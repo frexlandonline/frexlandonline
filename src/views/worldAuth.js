@@ -6,30 +6,38 @@ import { checkAndShowWinnerModal } from '../components/winnerModal.js';
 
 export function renderWorldAuthPage(container) {
   container.innerHTML = `
-    <div class="auth-page" style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 12px; box-sizing: border-box;">
-      <div class="auth-container" style="max-width: 440px; width: 100%;">
-        <div class="auth-logo" style="text-align: center; margin-bottom: 20px;">
-          <span class="auth-logo-icon" style="font-size: 3rem; display: block;">🕹️</span>
-          <div class="auth-logo-text" style="font-family: 'Press Start 2P', cursive; font-size: clamp(1.1rem, 5vw, 1.7rem); color: var(--neon-cyan); text-shadow: 3px 3px 0 var(--neon-magenta), 6px 6px 0 var(--neon-purple); margin-top: 8px; line-height: 1.3;">FREXLAND</div>
-          <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(0, 245, 255, 0.1); border: 1px solid rgba(0, 245, 255, 0.3); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; color: var(--neon-cyan); margin-top: 10px; font-weight: 600; font-family: var(--font-ui);">
+    <div class="auth-page frexland-page" style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; box-sizing: border-box; background: radial-gradient(circle at top, #2a0845 0%, #0c0018 100%);">
+      <div class="auth-container" style="max-width: 420px; width: 100%;">
+        
+        <!-- Retro Arcade Logo -->
+        <div class="auth-logo" style="text-align: center; margin-bottom: 24px;">
+          <span class="auth-logo-icon" style="font-size: 3.2rem; display: block; filter: drop-shadow(0 0 15px rgba(255, 140, 0, 0.6));">🕹️</span>
+          <div class="auth-logo-text retro-text" style="font-family: 'Press Start 2P', cursive; font-size: clamp(1.3rem, 6vw, 1.9rem); color: #ff8c00; text-shadow: 3px 3px 0 #9400d3, 5px 5px 0 #39ff14; margin-top: 10px; line-height: 1.3;">
+            FREXLAND
+          </div>
+          <p class="retro-text" style="font-family: 'Press Start 2P', cursive; font-size: clamp(0.55rem, 2.5vw, 0.72rem); color: #39ff14; margin-top: 8px; text-shadow: 1px 1px 2px #000;">
+            El Arcade del Futuro
+          </p>
+          <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(255, 140, 0, 0.15); border: 1.5px solid #ff8c00; padding: 5px 14px; border-radius: 8px; font-size: 0.62rem; color: #ffeb3b; margin-top: 12px; font-weight: 700; font-family: 'Press Start 2P', cursive; box-shadow: 0 0 10px rgba(255, 140, 0, 0.3);">
             <span>🌍</span> World App Edition
           </div>
         </div>
 
-        <div class="card card-glass" style="border: 2px solid var(--border-glow); background: rgba(15, 15, 30, 0.95); border-radius: var(--radius-lg); padding: 22px 14px; box-shadow: 0 0 40px rgba(0, 245, 255, 0.2); text-align: center; box-sizing: border-box;">
-          <div style="font-size: 2.2rem; margin-bottom: 10px;">🔑</div>
-          <h2 class="text-gradient" style="font-family: var(--font-display); font-size: clamp(1.05rem, 4vw, 1.3rem); margin-bottom: 10px; line-height: 1.3;">
-            Confirmar Billetera e Iniciar Sesión
+        <!-- Retro Arcade Card -->
+        <div class="card" style="border: 3px solid #ff8c00; background: rgba(26, 5, 46, 0.95); border-radius: 14px; padding: 26px 18px; box-shadow: 0 0 25px rgba(255, 140, 0, 0.4), 0 0 15px rgba(148, 0, 211, 0.3); text-align: center; box-sizing: border-box;">
+          <div style="font-size: 2.2rem; margin-bottom: 12px;">🪙</div>
+          <h2 class="retro-text" style="font-family: 'Press Start 2P', cursive; font-size: clamp(0.8rem, 3.6vw, 1.05rem); color: #ff8c00; text-shadow: 2px 2px 0 #9400d3; margin-bottom: 14px; line-height: 1.4;">
+            INSERT COIN & START
           </h2>
-          <p style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.45; margin-bottom: 20px;">
-            Detectamos tu acceso desde <strong>World App</strong>. Conecta tu billetera para ingresar directamente a los juegos y competir por el pozo semanal.
+          <p style="color: #ccc; font-size: 0.82rem; line-height: 1.5; margin-bottom: 22px; font-family: monospace;">
+            Conecta tu billetera de <strong style="color: #39ff14;">World App</strong> para entrar al arcade y competir por el pozo semanal.
           </p>
 
-          <button class="btn btn-primary btn-lg btn-full" id="btn-world-login-direct" style="min-height: 46px; font-size: clamp(0.85rem, 3.2vw, 0.98rem); font-family: var(--font-display); box-shadow: var(--shadow-glow-cyan); display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 14px; white-space: normal; padding: 10px 12px;">
+          <button class="btn btn-primary btn-lg btn-full" id="btn-world-login-direct" style="min-height: 48px; font-size: clamp(0.68rem, 2.7vw, 0.82rem); font-family: 'Press Start 2P', cursive; background: #9400d3; color: #39ff14; border: 2px solid #39ff14; box-shadow: 0 0 15px rgba(57, 255, 20, 0.5), 0 0 8px rgba(148, 0, 211, 0.6); display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 16px; white-space: normal; padding: 14px 10px; border-radius: 8px; cursor: pointer;">
             <span>🌐</span> Conectar e Iniciar Sesión
           </button>
 
-          <div style="font-size: 0.72rem; color: var(--text-muted); line-height: 1.35;">
+          <div style="font-size: 0.72rem; color: #888; line-height: 1.4; font-family: monospace;">
             Al conectar aceptas los Términos de Servicio y la Política de Privacidad de Frexland.
           </div>
         </div>

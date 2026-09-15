@@ -65,6 +65,31 @@ function navigate() {
   const isEmailVerified = !user || user.emailVerified;
   const inWorldApp = isWorldAppWebView();
 
+  // Theme Guard (Ensures Retro Arcade theme is active immediately on World App launch)
+  if (inWorldApp) {
+    document.body.classList.remove('frexland-theme');
+    document.body.classList.add('world-app-mode');
+  } else {
+    document.body.classList.remove('world-app-mode');
+    if (route === '/blockdrop' || route === '/play') {
+      document.body.classList.remove('frexland-theme');
+    } else {
+      document.body.classList.add('frexland-theme');
+    }
+  }
+
+  // Ad Banner Guard (Hidden entirely inside World App to comply with MiniKit guidelines)
+  const adContainer = document.getElementById('web3-ad-container');
+  if (adContainer) {
+    if (inWorldApp) {
+      adContainer.style.display = 'none';
+      document.body.style.paddingBottom = '0';
+    } else {
+      adContainer.style.display = 'block';
+      document.body.style.paddingBottom = '60px';
+    }
+  }
+
   // World App Guard: If opened in World App and not logged in, show World Auth directly
   if (inWorldApp && !loggedIn) {
     renderWorldAuthPage(app);
@@ -98,32 +123,6 @@ function navigate() {
       showInfoModal();
     }
     checkAndShowTermsModal();
-  }
-
-  // Theme Guard
-  if (inWorldApp) {
-    // In World App: Enforce unified dark cyberpunk theme across all screens
-    document.body.classList.remove('frexland-theme');
-    document.body.classList.add('world-app-mode');
-  } else {
-    document.body.classList.remove('world-app-mode');
-    if (route === '/blockdrop' || route === '/play') {
-      document.body.classList.remove('frexland-theme');
-    } else {
-      document.body.classList.add('frexland-theme');
-    }
-  }
-
-  // Ad Banner Guard (Hidden entirely inside World App to comply with MiniKit guidelines)
-  const adContainer = document.getElementById('web3-ad-container');
-  if (adContainer) {
-    if (inWorldApp) {
-      adContainer.style.display = 'none';
-      document.body.style.paddingBottom = '0';
-    } else {
-      adContainer.style.display = 'block';
-      document.body.style.paddingBottom = '60px';
-    }
   }
 
   const ADMIN_WALLETS = [
