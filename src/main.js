@@ -101,17 +101,29 @@ function navigate() {
   }
 
   // Theme Guard
-  if (route === '/blockdrop' || route === '/play') {
+  if (inWorldApp) {
+    // In World App: Enforce unified dark cyberpunk theme across all screens
     document.body.classList.remove('frexland-theme');
+    document.body.classList.add('world-app-mode');
   } else {
-    document.body.classList.add('frexland-theme');
+    document.body.classList.remove('world-app-mode');
+    if (route === '/blockdrop' || route === '/play') {
+      document.body.classList.remove('frexland-theme');
+    } else {
+      document.body.classList.add('frexland-theme');
+    }
   }
 
-  // Ad Banner Guard
+  // Ad Banner Guard (Hidden entirely inside World App to comply with MiniKit guidelines)
   const adContainer = document.getElementById('web3-ad-container');
   if (adContainer) {
-    adContainer.style.display = 'block';
-    document.body.style.paddingBottom = '60px';
+    if (inWorldApp) {
+      adContainer.style.display = 'none';
+      document.body.style.paddingBottom = '0';
+    } else {
+      adContainer.style.display = 'block';
+      document.body.style.paddingBottom = '60px';
+    }
   }
 
   const ADMIN_WALLETS = [

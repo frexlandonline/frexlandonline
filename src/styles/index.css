@@ -59,6 +59,207 @@ body.frexland-theme {
   --border-glow: rgba(255, 140, 0, 0.3);
 }
 
+/* ─── World App Unified Native Theme & Navigation ───────────── */
+body.world-app-mode {
+  --bg-primary: #0a0a1a !important;
+  --bg-secondary: #0f0f2a !important;
+  --bg-tertiary: #151535 !important;
+  --bg-card: rgba(15, 15, 42, 0.9) !important;
+  --bg-glass: rgba(15, 15, 42, 0.75) !important;
+
+  --neon-cyan: #00f5ff !important;
+  --neon-magenta: #ff00e5 !important;
+  --neon-purple: #8b5cf6 !important;
+  --neon-green: #00ff88 !important;
+  --neon-yellow: #ffd700 !important;
+
+  --gradient-primary: linear-gradient(135deg, #00f5ff, #8b5cf6) !important;
+  --gradient-secondary: linear-gradient(135deg, #ff00e5, #8b5cf6) !important;
+  --gradient-accent: linear-gradient(135deg, #00ff88, #00f5ff) !important;
+
+  --border-color: rgba(139, 92, 246, 0.25) !important;
+  --border-glow: rgba(0, 245, 255, 0.35) !important;
+
+  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  --font-display: 'Orbitron', -apple-system, sans-serif !important;
+  
+  padding-bottom: 74px !important;
+  background: #0a0a1a !important;
+}
+
+body.world-app-mode #web3-ad-container {
+  display: none !important;
+}
+
+body.world-app-mode .footer-section {
+  display: none !important;
+}
+
+body.world-app-mode .home-page {
+  padding-top: 60px !important;
+}
+
+/* World App TopBar */
+.world-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 54px;
+  background: rgba(10, 10, 26, 0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  padding-top: env(safe-area-inset-top, 0px);
+  z-index: 9999;
+  box-sizing: border-box;
+}
+
+.world-topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  background: linear-gradient(135deg, #00f5ff, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.world-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  /* Safe margin away from native World App upper-right close button */
+  margin-right: 14px;
+}
+
+/* World App Bottom Tab Bar */
+.world-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  padding-bottom: env(safe-area-inset-bottom, 8px);
+  background: rgba(10, 10, 26, 0.96);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 9999;
+  box-sizing: content-box;
+}
+
+.world-tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  flex: 1;
+  height: 100%;
+  color: var(--text-muted);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+.world-tab-icon {
+  font-size: 1.15rem;
+  line-height: 1;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.world-tab-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  font-family: var(--font-ui);
+  letter-spacing: 0.2px;
+  transition: color 0.2s ease;
+}
+
+.world-tab-item.active {
+  color: var(--neon-cyan);
+}
+
+.world-tab-item.active .world-tab-icon {
+  transform: translateY(-2px) scale(1.1);
+  filter: drop-shadow(0 0 8px rgba(0, 245, 255, 0.6));
+}
+
+.world-tab-item.active .world-tab-label {
+  color: #fff;
+  font-weight: 700;
+}
+
+/* World App More Modal / Sheet */
+.world-more-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 100000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: env(safe-area-inset-bottom, 12px);
+  animation: fadeIn 0.2s ease;
+}
+
+.world-more-sheet-content {
+  width: 95%;
+  max-width: 420px;
+  background: #121226;
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  border-radius: 20px;
+  padding: 20px 18px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), 0 0 20px rgba(139, 92, 246, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-sizing: border-box;
+  animation: slideUp 0.25s ease;
+}
+
+.world-sheet-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.world-sheet-item:active {
+  background: rgba(0, 245, 255, 0.1);
+  border-color: rgba(0, 245, 255, 0.3);
+}
+
 :root {
   /* Spacing */
   --space-xs: 4px;

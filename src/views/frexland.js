@@ -2,9 +2,11 @@ import { renderNavbar } from '../components/navbar.js';
 import { renderFooter } from '../components/footer.js';
 import { t } from '../utils/i18n.js';
 import { getUser } from '../services/auth.js';
+import { isWorldAppWebView } from '../web3/world.ts';
 
 export function renderFrexlandPage(container) {
   const user = getUser();
+  const inWorldApp = isWorldAppWebView();
   const ADMIN_WALLETS = [
     '0x7ca7022c3Ed27534192A2379a5eDd0252b3f6E65'.toLowerCase(),
     '0xf22d1687d3e6990b499ce9c7a417f0d8fae3e1c2'.toLowerCase()
@@ -19,6 +21,92 @@ export function renderFrexlandPage(container) {
   const IS_MAINTENANCE_MODE = false;
   const showMaintenanceBanner = false;
 
+  if (inWorldApp) {
+    // ─── UNIFIED CYBERPUNK NATIVE LAYOUT FOR WORLD APP ───
+    container.innerHTML = `
+      <div id="navbar-container"></div>
+      <div class="home-page" style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-bottom: var(--space-2xl); background: #0a0a1a; min-height: 100vh;">
+        <div style="max-width: 900px; width: 100%; display: flex; flex-direction: column; gap: var(--space-lg); align-items: center; padding: var(--space-md); box-sizing: border-box;">
+          
+          <!-- Unified Header -->
+          <div style="text-align: center; width: 100%; margin-top: 8px;">
+            <h1 class="text-gradient text-glow" style="font-size: clamp(1.6rem, 6.5vw, 2.5rem); margin-bottom: 6px; font-family: var(--font-display); letter-spacing: 2px;">
+              ⬢ FREXLAND
+            </h1>
+            <p style="font-size: 0.88rem; color: var(--text-secondary); margin: 0 auto; line-height: 1.4;">
+              El Arcade Descentralizado Web3
+            </p>
+          </div>
+
+          <!-- Games Section -->
+          <div style="width: 100%;">
+            <h3 style="font-size: 0.95rem; text-align: center; margin-bottom: var(--space-md); color: var(--neon-cyan); font-family: var(--font-display); letter-spacing: 1px; text-transform: uppercase;">
+              ${t('gameSelect')}
+            </h3>
+            <div class="games-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; width: 100%; box-sizing: border-box;">
+              
+              <!-- BlockDrop -->
+              <div class="game-card active-game card card-glass" onclick="localStorage.setItem('last_played_game', '#/play'); window.location.hash='#/blockdrop'" style="cursor: pointer; position: relative; overflow: hidden; border: 1.5px solid var(--border-glow); box-shadow: var(--shadow-neon-cyan); transition: transform 0.3s; border-radius: var(--radius-lg); padding: 0;">
+                <div style="height: 140px; background: linear-gradient(135deg, rgba(0, 245, 255, 0.2) 0%, rgba(139, 92, 246, 0.3) 100%); display: flex; align-items: center; justify-content: center; position: relative; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                  <div style="font-size: 3rem; animation: float 3s ease-in-out infinite;">🧱</div>
+                </div>
+                <div style="padding: 16px 14px; text-align: center;">
+                  <h4 style="font-family: var(--font-display); font-size: 1.2rem; color: #fff; margin-bottom: 8px;">BlockDrop</h4>
+                  <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.4;">${t('gameTetrisDesc')}</p>
+                  <button class="btn btn-primary" style="width: 100%; font-weight: bold; border-radius: var(--radius-md); font-family: var(--font-ui); font-size: 0.9rem; padding: 12px;">${t('playBtn')}</button>
+                </div>
+              </div>
+
+              <!-- Snake (Próximamente) -->
+              <div class="game-card disabled-game card" style="position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: rgba(15, 15, 42, 0.5); opacity: 0.6; border-radius: var(--radius-lg); padding: 0;">
+                <div style="height: 140px; background: rgba(255,255,255,0.02); display: flex; align-items: center; justify-content: center; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                  <div style="font-size: 2.5rem; filter: grayscale(1);">🐍</div>
+                </div>
+                <div style="padding: 16px 14px; text-align: center;">
+                  <h4 style="font-family: var(--font-display); font-size: 1.05rem; color: #888; margin-bottom: 8px;">Crypto Snake</h4>
+                  <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.4;">${t('gameComingSoonDesc')}</p>
+                  <button class="btn btn-secondary" style="width: 100%; cursor: not-allowed; border-radius: var(--radius-md); font-family: var(--font-ui); font-size: 0.85rem; padding: 12px; opacity: 0.5;">${t('gameComingSoon')}</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Tabla de Popularidad (Fondo Común Global) -->
+          <div class="card card-glass global-pool-section" style="width: 100%; border: 1.5px solid rgba(139, 92, 246, 0.3); box-shadow: 0 0 20px rgba(139, 92, 246, 0.15); border-radius: var(--radius-lg); margin-top: 6px; padding: 20px 16px; box-sizing: border-box;">
+            <div style="text-align: center; margin-bottom: var(--space-md);">
+              <h2 style="font-size: 1rem; color: var(--neon-cyan); margin-bottom: 8px; font-family: var(--font-display); line-height: 1.4;">${t('prizeDistTitle')}</h2>
+              <p style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.4;">${t('prizeDistDesc')}</p>
+            </div>
+
+            <div style="width: 100%; padding: 0 4px; box-sizing: border-box;">
+              <div style="font-size: 0.82rem; color: #fff; margin-bottom: 6px; display: flex; justify-content: space-between; font-weight: 600;">
+                <span>BlockDrop</span>
+                <span style="color: var(--neon-green);">100%</span>
+              </div>
+              <div style="width: 100%; height: 12px; background: rgba(255,255,255,0.06); border-radius: 6px; overflow: hidden; margin-bottom: 14px;">
+                <div style="width: 100%; height: 100%; background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green)); box-shadow: 0 0 10px rgba(0,255,136,0.4);"></div>
+              </div>
+
+              <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px; display: flex; justify-content: space-between;">
+                <span>Crypto Snake</span>
+                <span>0%</span>
+              </div>
+              <div style="width: 100%; height: 12px; background: rgba(255,255,255,0.04); border-radius: 6px; overflow: hidden;">
+                <div style="width: 0%; height: 100%;"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div id="footer-container"></div>
+    `;
+    renderNavbar(document.getElementById('navbar-container'), 'home');
+    return;
+  }
+
+  // ─── ORIGINAL DESKTOP & NON-WORLD APP LAYOUT ───
   container.innerHTML = `
     <div id="navbar-container"></div>
     <div class="home-page frexland-page" style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-bottom: var(--space-2xl); background: radial-gradient(circle at top, #2a0845 0%, #000000 100%); min-height: 100vh;">

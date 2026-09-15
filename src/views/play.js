@@ -6,6 +6,7 @@ import { getConnectedAddress } from '../web3/wallet.ts';
 import { t } from '../utils/i18n.js';
 import { renderFooter } from '../components/footer.js';
 import { setPendingScore } from '../services/gameSession.js';
+import { isWorldAppWebView } from '../web3/world.ts';
 
 let engine = null;
 let gameStartTime = 0;
@@ -603,20 +604,28 @@ function setupMobileAudio() {
 function startMobileGame() {
   gameStartTime = Date.now();
 
+  const inWorldApp = isWorldAppWebView();
   const pregame = document.getElementById('pregame-screen');
   const activeScreen = document.getElementById('active-game-screen');
   const navbar = document.getElementById('main-navbar');
+  const worldTopbar = document.getElementById('world-topbar');
+  const worldBottomNav = document.getElementById('world-bottom-nav');
   const footer = document.querySelector('footer') || document.querySelector('.footer');
   const adBanner = document.getElementById('web3-ad-container');
 
   if (pregame) pregame.style.display = 'none';
   if (navbar) navbar.style.display = 'none';
+  if (worldTopbar) worldTopbar.style.display = 'none';
+  if (worldBottomNav) worldBottomNav.style.display = 'none';
   if (footer) footer.style.display = 'none';
 
-  if (adBanner) {
+  if (!inWorldApp && adBanner) {
     adBanner.style.display = 'block';
     const adHeight = adBanner.offsetHeight || 68;
     if (activeScreen) activeScreen.style.bottom = `${adHeight}px`;
+  } else {
+    if (adBanner) adBanner.style.display = 'none';
+    if (activeScreen) activeScreen.style.bottom = '0px';
   }
 
   if (activeScreen) {
@@ -660,15 +669,22 @@ function exitMobileToLobby() {
     if (audioBtn) audioBtn.textContent = '🎵';
   }
 
+  const inWorldApp = isWorldAppWebView();
   const pregame = document.getElementById('pregame-screen');
   const activeScreen = document.getElementById('active-game-screen');
   const navbar = document.getElementById('main-navbar');
+  const worldTopbar = document.getElementById('world-topbar');
+  const worldBottomNav = document.getElementById('world-bottom-nav');
   const footer = document.querySelector('footer') || document.querySelector('.footer');
+  const adBanner = document.getElementById('web3-ad-container');
 
   if (activeScreen) activeScreen.style.display = 'none';
   if (pregame) pregame.style.display = 'flex';
   if (navbar) navbar.style.display = '';
-  if (footer) footer.style.display = '';
+  if (worldTopbar) worldTopbar.style.display = '';
+  if (worldBottomNav) worldBottomNav.style.display = '';
+  if (!inWorldApp && footer) footer.style.display = '';
+  if (inWorldApp && adBanner) adBanner.style.display = 'none';
 
   document.body.style.overflow = '';
   document.documentElement.style.overflow = '';
@@ -740,10 +756,19 @@ export function cleanupPlayPage() {
   if (btn && btn._fullscreenCleanup) {
     btn._fullscreenCleanup();
   }
+  const inWorldApp = isWorldAppWebView();
   const navbar = document.getElementById('main-navbar');
+  const worldTopbar = document.getElementById('world-topbar');
+  const worldBottomNav = document.getElementById('world-bottom-nav');
   const footer = document.querySelector('footer') || document.querySelector('.footer');
+  const adBanner = document.getElementById('web3-ad-container');
+
   if (navbar) navbar.style.display = '';
-  if (footer) footer.style.display = '';
+  if (worldTopbar) worldTopbar.style.display = '';
+  if (worldBottomNav) worldBottomNav.style.display = '';
+  if (!inWorldApp && footer) footer.style.display = '';
+  if (inWorldApp && adBanner) adBanner.style.display = 'none';
+
   document.body.style.overflow = '';
   document.documentElement.style.overflow = '';
 }
@@ -778,6 +803,7 @@ export function exitFullscreenMode() {
   const btn = document.getElementById('btn-fullscreen');
   const navbar = document.getElementById('main-navbar');
   const adBanner = document.getElementById('web3-ad-container');
+  const inWorldApp = isWorldAppWebView();
 
   if (gameWrapper) {
     gameWrapper.classList.remove('fullscreen-mode');
@@ -786,7 +812,7 @@ export function exitFullscreenMode() {
     document.documentElement.style.overflow = '';
 
     if (navbar) navbar.style.display = '';
-    if (adBanner) adBanner.style.display = '';
+    if (adBanner) adBanner.style.display = inWorldApp ? 'none' : '';
 
     if (btn) btn.innerHTML = '🖥️ ' + t('btnFullscreen');
 

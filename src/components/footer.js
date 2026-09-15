@@ -1,7 +1,11 @@
 import { showTermsOnlyModal } from './termsModal.js';
 import { t } from '../utils/i18n.js';
+import { isWorldAppWebView } from '../web3/world.ts';
 
 export function renderFooter(container) {
+  // Do not render desktop footer inside World App to maintain clean mobile mini-app UX
+  if (isWorldAppWebView()) return;
+
   // Check if footer already exists in the container to avoid duplicates
   if (container.querySelector('.footer-section')) return;
 

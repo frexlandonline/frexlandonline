@@ -27,7 +27,125 @@ export function renderNavbar(container, activePage = 'game') {
   const lang = getLang();
   const userLevel = getUserLevel(user.total_depositado || 0);
 
-  container.innerHTML = `
+  if (isWorldAppWebView()) {
+    container.innerHTML = `
+      <header class="world-topbar" id="world-topbar">
+        <div class="world-topbar-brand" id="world-nav-logo">
+          <span style="font-size: 1.25rem;">🕹️</span>
+          <span class="world-topbar-title">FREXLAND</span>
+        </div>
+        <div class="world-topbar-actions">
+          <div id="world-nav-profile-btn" style="display: flex; align-items: center; gap: 6px; cursor: pointer;" title="Mi Perfil">
+            ${wrapWithBadge(avatarHtml, platform)}
+            ${renderLevelBadge(userLevel, 'sm')}
+          </div>
+          <button id="world-btn-more" type="button" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 8px; width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.1rem; cursor: pointer; -webkit-tap-highlight-color: transparent;">☰</button>
+        </div>
+      </header>
+
+      <nav class="world-bottom-nav" id="world-bottom-nav">
+        <button class="world-tab-item ${activePage === 'home' ? 'active' : ''}" data-route="#/home">
+          <span class="world-tab-icon">🏠</span>
+          <span class="world-tab-label">Inicio</span>
+        </button>
+        <button class="world-tab-item ${activePage === 'blockdrop' ? 'active' : ''}" data-route="#/blockdrop">
+          <span class="world-tab-icon">🏆</span>
+          <span class="world-tab-label">Torneo</span>
+        </button>
+        <button class="world-tab-item ${activePage === 'game' ? 'active' : ''}" data-route="#/play">
+          <span class="world-tab-icon">🕹️</span>
+          <span class="world-tab-label">Jugar</span>
+        </button>
+        <button class="world-tab-item ${activePage === 'wallet' ? 'active' : ''}" data-route="#/wallet">
+          <span class="world-tab-icon">💎</span>
+          <span class="world-tab-label">Billetera</span>
+        </button>
+        <button class="world-tab-item ${activePage === 'profile' ? 'active' : ''}" data-route="#/profile">
+          <span class="world-tab-icon">👤</span>
+          <span class="world-tab-label">Perfil</span>
+        </button>
+      </nav>
+
+      <div id="world-more-sheet" class="world-more-sheet-overlay" style="display: none;">
+        <div class="world-more-sheet-content">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+            <span style="font-weight: 700; font-family: var(--font-display); font-size: 0.95rem; color: var(--neon-cyan);">Opciones de Frexland</span>
+            <button id="world-sheet-close" style="background: none; border: none; color: #aaa; font-size: 1.2rem; cursor: pointer; padding: 4px 8px;">✕</button>
+          </div>
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(255,255,255,0.02); border-radius: 10px;">
+            <span style="color: var(--text-secondary); font-size: 0.85rem;">Idioma / Language</span>
+            <div style="display: flex; gap: 6px;">
+              <button class="world-lang-btn ${lang === 'es' ? 'active' : ''}" data-lang="es" style="background: ${lang === 'es' ? 'var(--neon-cyan)' : 'transparent'}; color: ${lang === 'es' ? '#000' : '#fff'}; border: 1px solid var(--neon-cyan); border-radius: 6px; padding: 3px 8px; font-weight: bold; cursor: pointer;">ES</button>
+              <button class="world-lang-btn ${lang === 'en' ? 'active' : ''}" data-lang="en" style="background: ${lang === 'en' ? 'var(--neon-cyan)' : 'transparent'}; color: ${lang === 'en' ? '#000' : '#fff'}; border: 1px solid var(--neon-cyan); border-radius: 6px; padding: 3px 8px; font-weight: bold; cursor: pointer;">EN</button>
+            </div>
+          </div>
+
+          <a href="#/notifications" class="world-sheet-item">
+            <span style="font-size: 1.1rem;">🔔</span> <span>${t('notifTitle') || 'Novedades'}</span>
+          </a>
+          <a href="#/whitepaper" class="world-sheet-item">
+            <span style="font-size: 1.1rem;">📄</span> <span>${t('linkWhitepaper') || 'Whitepaper'}</span>
+          </a>
+          <a href="#/faq" class="world-sheet-item">
+            <span style="font-size: 1.1rem;">❓</span> <span>${t('linkFAQ') || 'Preguntas Frecuentes'}</span>
+          </a>
+          <a href="#/contact" class="world-sheet-item">
+            <span style="font-size: 1.1rem;">✉️</span> <span>${t('linkContact') || 'Contacto'}</span>
+          </a>
+          <button id="world-sheet-logout" class="world-sheet-item" style="color: var(--neon-red); border-color: rgba(255, 51, 102, 0.3); background: rgba(255, 51, 102, 0.05); width: 100%; justify-content: flex-start;">
+            <span style="font-size: 1.1rem;">🚪</span> <span>Cerrar Sesión</span>
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('world-nav-logo')?.addEventListener('click', () => { window.location.hash = '#/home'; });
+    document.getElementById('world-nav-profile-btn')?.addEventListener('click', () => { window.location.hash = '#/profile'; });
+
+    document.querySelectorAll('.world-tab-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const route = btn.getAttribute('data-route');
+        if (route) window.location.hash = route;
+      });
+    });
+
+    const moreBtn = document.getElementById('world-btn-more');
+    const moreSheet = document.getElementById('world-more-sheet');
+    const closeSheetBtn = document.getElementById('world-sheet-close');
+
+    moreBtn?.addEventListener('click', () => {
+      if (moreSheet) moreSheet.style.display = 'flex';
+    });
+    closeSheetBtn?.addEventListener('click', () => {
+      if (moreSheet) moreSheet.style.display = 'none';
+    });
+    moreSheet?.addEventListener('click', (e) => {
+      if (e.target === moreSheet) moreSheet.style.display = 'none';
+    });
+    moreSheet?.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        if (moreSheet) moreSheet.style.display = 'none';
+      });
+    });
+
+    document.querySelectorAll('.world-lang-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const newLang = btn.getAttribute('data-lang');
+        setLang(newLang);
+      });
+    });
+
+    document.getElementById('world-sheet-logout')?.addEventListener('click', () => {
+      if (moreSheet) moreSheet.style.display = 'none';
+      logout();
+      window.location.hash = '#/world-auth';
+    });
+
+  } else {
+    // DESKTOP & NON-WORLD APP NAVBAR
+    container.innerHTML = `
     <nav class="navbar" id="main-navbar">
       <div class="navbar-inner" style="gap: 15px;">
         <div class="navbar-logo" id="nav-logo" style="flex: 0 0 auto; display: flex; align-items: center; gap: 10px; cursor: pointer;">
@@ -154,6 +272,7 @@ export function renderNavbar(container, activePage = 'game') {
     logout(); 
     window.location.hash = '#/auth'; 
   });
+  }
 
   const ADMIN_WALLETS = [
     '0x7ca7022c3Ed27534192A2379a5eDd0252b3f6E65'.toLowerCase(),
