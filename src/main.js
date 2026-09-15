@@ -50,7 +50,7 @@ export function showToast(message, type = 'info') {
 // ─── Router ──────────────────────────────────────────────
 let currentCleanup = null;
 
-function navigate() {
+export function navigate() {
   // Run cleanup of previous page
   if (currentCleanup) {
     currentCleanup();
@@ -92,6 +92,9 @@ function navigate() {
 
   // World App Guard: If opened in World App and not logged in, show World Auth directly
   if (inWorldApp && !loggedIn) {
+    if (window.location.hash !== '#/world-auth') {
+      window.location.hash = '#/world-auth';
+    }
     renderWorldAuthPage(app);
     return;
   }
@@ -114,6 +117,8 @@ function navigate() {
   // Redirect verified logged-in users from auth and landing
   if ((route === '/auth' || route === '/' || route === '/landing' || route === '/world-auth') && loggedIn && isEmailVerified) {
     window.location.hash = '#/home';
+    renderFrexlandPage(app);
+    currentCleanup = cleanupFrexlandPage;
     return;
   }
 

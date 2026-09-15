@@ -1,7 +1,7 @@
 import { t } from '../utils/i18n.js';
 import { authenticateWorld } from '../web3/world.ts';
 import { loginWithWorld } from '../services/auth.js';
-import { showToast } from '../main.js';
+import { showToast, navigate } from '../main.js';
 import { checkAndShowWinnerModal } from '../components/winnerModal.js';
 
 export function renderWorldAuthPage(container) {
@@ -67,8 +67,13 @@ export function renderWorldAuthPage(container) {
         await loginWithWorld(walletAddress, message, signature);
 
         showToast('¡Bienvenido a Frexland!', 'success');
-        checkAndShowWinnerModal();
+        try {
+          checkAndShowWinnerModal();
+        } catch (e) {
+          console.warn("Winner modal error:", e);
+        }
         window.location.hash = '#/home';
+        navigate();
       } catch (err) {
         console.error("Error en World Login:", err);
         showToast(err.message || 'Error al conectar con World App', 'error');
