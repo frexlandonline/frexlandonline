@@ -578,16 +578,19 @@ function setupMobileGameEngine() {
     const durationSecs = Math.floor((Date.now() - gameStartTime) / 1000);
     renderMobileGameOverOverlay(score, level, lines);
 
-    const userWallet = getConnectedAddress();
+    const user = getUser();
+    const inWorldApp = isWorldAppWebView();
+    const userWallet = getConnectedAddress() || (user?.walletAddresses && user.walletAddresses[0]) || (user?.wallets && Object.values(user.wallets)[0]) || null;
     const packet = { 
       score, 
       level, 
       linesCleared: lines, 
       duracionPartidaSegundos: durationSecs,
       walletAddress: userWallet,
+      platform: inWorldApp ? 'worldchain' : 'html5',
     };
-    setPendingScore(packet);
-    showToast('Puntaje listo para guardar.', 'info');
+    setPendingScore(packet, 'blockdrop');
+    showToast('Puntaje listo para guardar. Ve a Registro.', 'info');
   };
 
   setupMobileAudio();
@@ -710,7 +713,14 @@ function renderMobileGameOverOverlay(score, level, lines) {
       </div>
     `;
   } else {
-    saveSection = `<div style="font-size: 0.82rem; color: var(--neon-cyan); margin-top: 10px; padding: 8px; background: rgba(0, 245, 255, 0.08); border: 1px dashed rgba(0, 245, 255, 0.35); border-radius: 8px; text-align: center;">💾 ${t('playPendingScore')}</div>`;
+    saveSection = `
+      <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px; width: 100%;">
+        <button class="btn btn-primary btn-md" onclick="window.location.hash='#/registro'" style="width: 100%; font-family: 'Press Start 2P', cursive; font-size: 0.62rem; padding: 12px 6px; background: #9400d3; color: #39ff14; border: 2px solid #39ff14; box-shadow: 0 0 10px rgba(57,255,20,0.4);">
+          📝 Inscribir Récord
+        </button>
+        <div style="font-size: 0.78rem; color: #ff8c00; text-align: center;">💾 ${t('playPendingScore')}</div>
+      </div>
+    `;
   }
 
   overlay.classList.remove('hidden');

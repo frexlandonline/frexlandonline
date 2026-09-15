@@ -59,32 +59,34 @@ body.frexland-theme {
   --border-glow: rgba(255, 140, 0, 0.3);
 }
 
-/* ─── World App Unified Native Theme & Navigation ───────────── */
+/* ─── World App Unified Native Theme & Navigation (Juegos Retro) ─── */
 body.world-app-mode {
-  --bg-primary: #0a0a1a !important;
-  --bg-secondary: #0f0f2a !important;
-  --bg-tertiary: #151535 !important;
-  --bg-card: rgba(15, 15, 42, 0.9) !important;
-  --bg-glass: rgba(15, 15, 42, 0.75) !important;
+  --bg-primary: #120024 !important;
+  --bg-secondary: #1a052e !important;
+  --bg-tertiary: #2a0845 !important;
+  --bg-card: rgba(26, 5, 46, 0.92) !important;
+  --bg-glass: rgba(26, 5, 46, 0.75) !important;
 
-  --neon-cyan: #00f5ff !important;
-  --neon-magenta: #ff00e5 !important;
-  --neon-purple: #8b5cf6 !important;
-  --neon-green: #00ff88 !important;
-  --neon-yellow: #ffd700 !important;
+  --neon-cyan: #ff8c00 !important; /* Arcade gold / orange */
+  --neon-magenta: #9400d3 !important; /* Arcade violet */
+  --neon-purple: #39ff14 !important; /* Arcade neon green */
+  --neon-green: #39ff14 !important;
+  --neon-yellow: #ffeb3b !important;
+  --neon-pink: #e91e63 !important;
 
-  --gradient-primary: linear-gradient(135deg, #00f5ff, #8b5cf6) !important;
-  --gradient-secondary: linear-gradient(135deg, #ff00e5, #8b5cf6) !important;
-  --gradient-accent: linear-gradient(135deg, #00ff88, #00f5ff) !important;
+  --gradient-primary: linear-gradient(135deg, #ff8c00, #9400d3) !important;
+  --gradient-secondary: linear-gradient(135deg, #9400d3, #39ff14) !important;
+  --gradient-accent: linear-gradient(135deg, #39ff14, #ff8c00) !important;
 
-  --border-color: rgba(139, 92, 246, 0.25) !important;
-  --border-glow: rgba(0, 245, 255, 0.35) !important;
+  --border-color: rgba(148, 0, 211, 0.45) !important;
+  --border-glow: rgba(255, 140, 0, 0.4) !important;
 
   --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
-  --font-display: 'Orbitron', -apple-system, sans-serif !important;
+  --font-display: 'Press Start 2P', cursive, monospace !important;
   
-  padding-bottom: 74px !important;
-  background: #0a0a1a !important;
+  padding-bottom: 76px !important;
+  background: radial-gradient(circle at top, #2a0845 0%, #0c0018 100%) !important;
+  color: #fff !important;
 }
 
 body.world-app-mode #web3-ad-container {
@@ -96,20 +98,21 @@ body.world-app-mode .footer-section {
 }
 
 body.world-app-mode .home-page {
-  padding-top: 60px !important;
+  padding-top: 56px !important;
 }
 
-/* World App TopBar */
+/* World App TopBar (Retro Arcade) */
 .world-topbar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   height: 54px;
-  background: rgba(10, 10, 26, 0.94);
+  background: rgba(18, 0, 36, 0.96);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 2px solid rgba(255, 140, 0, 0.4);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6), 0 0 10px rgba(148, 0, 211, 0.3);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -125,13 +128,12 @@ body.world-app-mode .home-page {
   gap: 8px;
   cursor: pointer;
   text-decoration: none;
-  font-family: var(--font-display);
-  font-size: 0.95rem;
-  font-weight: 800;
+  font-family: 'Press Start 2P', cursive, monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
   letter-spacing: 1px;
-  background: linear-gradient(135deg, #00f5ff, #8b5cf6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #ffeb3b;
+  text-shadow: 2px 2px 0 #e91e63, 0 0 8px rgba(255, 235, 59, 0.4);
 }
 
 .world-topbar-actions {
@@ -142,7 +144,7 @@ body.world-app-mode .home-page {
   margin-right: 14px;
 }
 
-/* World App Bottom Tab Bar */
+/* World App Bottom Tab Bar (Retro Arcade) */
 .world-bottom-nav {
   position: fixed;
   bottom: 0;
@@ -150,11 +152,11 @@ body.world-app-mode .home-page {
   right: 0;
   height: 56px;
   padding-bottom: env(safe-area-inset-bottom, 8px);
-  background: rgba(10, 10, 26, 0.96);
+  background: rgba(18, 0, 36, 0.97);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.6);
+  border-top: 2px solid rgba(148, 0, 211, 0.5);
+  box-shadow: 0 -6px 25px rgba(0, 0, 0, 0.7), 0 0 12px rgba(148, 0, 211, 0.3);
   display: flex;
   align-items: center;
   justify-content: space-around;
@@ -170,7 +172,7 @@ body.world-app-mode .home-page {
   gap: 2px;
   flex: 1;
   height: 100%;
-  color: var(--text-muted);
+  color: #a098c4;
   text-decoration: none;
   background: none;
   border: none;
@@ -188,7 +190,7 @@ body.world-app-mode .home-page {
 }
 
 .world-tab-label {
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 600;
   font-family: var(--font-ui);
   letter-spacing: 0.2px;
@@ -196,24 +198,47 @@ body.world-app-mode .home-page {
 }
 
 .world-tab-item.active {
-  color: var(--neon-cyan);
+  color: #39ff14;
 }
 
 .world-tab-item.active .world-tab-icon {
   transform: translateY(-2px) scale(1.1);
-  filter: drop-shadow(0 0 8px rgba(0, 245, 255, 0.6));
+  filter: drop-shadow(0 0 8px rgba(57, 255, 20, 0.7));
 }
 
 .world-tab-item.active .world-tab-label {
-  color: #fff;
+  color: #39ff14;
   font-weight: 700;
+  text-shadow: 0 0 6px rgba(57, 255, 20, 0.5);
+}
+
+/* Central Prominent Tab (Registro) */
+.world-tab-play-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff8c00, #9400d3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: -16px;
+  box-shadow: 0 4px 15px rgba(255, 140, 0, 0.6), 0 0 10px rgba(57, 255, 20, 0.4);
+  border: 2px solid #39ff14;
+  font-size: 1.25rem;
+  color: #fff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.world-tab-item.active .world-tab-play-btn {
+  transform: scale(1.08);
+  box-shadow: 0 0 20px rgba(57, 255, 20, 0.7), 0 0 10px rgba(255, 140, 0, 0.8);
 }
 
 /* World App More Modal / Sheet */
 .world-more-sheet-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   z-index: 100000;
@@ -227,11 +252,11 @@ body.world-app-mode .home-page {
 .world-more-sheet-content {
   width: 95%;
   max-width: 420px;
-  background: #121226;
-  border: 1px solid rgba(139, 92, 246, 0.35);
-  border-radius: 20px;
+  background: #18052e;
+  border: 2px solid rgba(148, 0, 211, 0.6);
+  border-radius: 16px;
   padding: 20px 18px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), 0 0 20px rgba(139, 92, 246, 0.2);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), 0 0 20px rgba(148, 0, 211, 0.4);
   display: flex;
   flex-direction: column;
   gap: 10px;

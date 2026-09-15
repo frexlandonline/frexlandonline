@@ -45,16 +45,19 @@ export function renderNavbar(container, activePage = 'game') {
 
       <nav class="world-bottom-nav" id="world-bottom-nav">
         <button class="world-tab-item ${activePage === 'home' ? 'active' : ''}" data-route="#/home">
-          <span class="world-tab-icon">🏠</span>
+          <span class="world-tab-icon">🕹️</span>
           <span class="world-tab-label">Inicio</span>
         </button>
-        <button class="world-tab-item ${activePage === 'blockdrop' ? 'active' : ''}" data-route="#/blockdrop">
-          <span class="world-tab-icon">🏆</span>
-          <span class="world-tab-label">Torneo</span>
-        </button>
-        <button class="world-tab-item ${activePage === 'game' ? 'active' : ''}" data-route="#/play">
-          <span class="world-tab-icon">🕹️</span>
+        <button class="world-tab-item ${activePage === 'play' || activePage === 'game' ? 'active' : ''}" data-route="#/play">
+          <span class="world-tab-icon">🎮</span>
           <span class="world-tab-label">Jugar</span>
+        </button>
+        <button class="world-tab-item world-tab-play ${activePage === 'registro' ? 'active' : ''}" data-route="#/registro">
+          <div class="world-tab-play-btn" style="position: relative;">
+            <span>📝</span>
+            <span id="world-tab-pending-badge" style="display: none; position: absolute; top: -3px; right: -3px; width: 12px; height: 12px; border-radius: 50%; background: #39ff14; box-shadow: 0 0 8px #39ff14; border: 2px solid #120024;"></span>
+          </div>
+          <span class="world-tab-label" style="margin-top: 2px;">Registro</span>
         </button>
         <button class="world-tab-item ${activePage === 'wallet' ? 'active' : ''}" data-route="#/wallet">
           <span class="world-tab-icon">💎</span>
@@ -69,7 +72,7 @@ export function renderNavbar(container, activePage = 'game') {
       <div id="world-more-sheet" class="world-more-sheet-overlay" style="display: none;">
         <div class="world-more-sheet-content">
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
-            <span style="font-weight: 700; font-family: var(--font-display); font-size: 0.95rem; color: var(--neon-cyan);">Opciones de Frexland</span>
+            <span style="font-weight: 700; font-family: var(--font-display); font-size: 0.85rem; color: var(--neon-cyan);">Opciones de Frexland</span>
             <button id="world-sheet-close" style="background: none; border: none; color: #aaa; font-size: 1.2rem; cursor: pointer; padding: 4px 8px;">✕</button>
           </div>
           
@@ -81,6 +84,9 @@ export function renderNavbar(container, activePage = 'game') {
             </div>
           </div>
 
+          <a href="#/blockdrop" class="world-sheet-item">
+            <span style="font-size: 1.1rem;">🏆</span> <span>${t('tabTournament') || 'Torneo y Ranking'}</span>
+          </a>
           <a href="#/notifications" class="world-sheet-item">
             <span style="font-size: 1.1rem;">🔔</span> <span>${t('notifTitle') || 'Novedades'}</span>
           </a>
@@ -357,9 +363,8 @@ function updateNavbarWalletInfo() {
 
 function updateButtonState() {
   const indicator = document.getElementById('nav-registro-indicator');
+  const worldBadge = document.getElementById('world-tab-pending-badge');
   
-  if (!indicator) return;
-
   const scoresObj = getPendingScore();
   let packet = null;
   if (scoresObj && Object.keys(scoresObj).length > 0) {
@@ -367,11 +372,21 @@ function updateButtonState() {
   }
 
   if (packet) {
-    indicator.style.background = 'var(--neon-green)';
-    indicator.style.boxShadow = '0 0 8px var(--neon-green)';
+    if (indicator) {
+      indicator.style.background = 'var(--neon-green)';
+      indicator.style.boxShadow = '0 0 8px var(--neon-green)';
+    }
+    if (worldBadge) {
+      worldBadge.style.display = 'block';
+    }
   } else {
-    indicator.style.background = '#666';
-    indicator.style.boxShadow = 'none';
+    if (indicator) {
+      indicator.style.background = '#666';
+      indicator.style.boxShadow = 'none';
+    }
+    if (worldBadge) {
+      worldBadge.style.display = 'none';
+    }
   }
 }
 

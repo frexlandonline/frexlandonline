@@ -7,26 +7,27 @@ import api from '../services/api.js';
 import { renderFooter } from '../components/footer.js';
 
 import { getConnectedAddress, subscribeToAccountChanges } from '../web3/wallet.ts';
+import { isWorldAppWebView } from '../web3/world.ts';
 
 let registroWalletUnsub = null;
 
 export function renderRegistroPage(container) {
   const user = getUser();
   const credits = user?.creditos_escritura || 0;
-  const connectedAddress = getConnectedAddress();
+  const inWorldApp = isWorldAppWebView();
 
   container.innerHTML = `
     <div id="navbar-container"></div>
-    <div class="page-content" style="padding: 100px 20px 20px 20px; max-width: 800px; margin: 0 auto; min-height: 80vh;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-        <h2 style="font-family: var(--font-display); color: #fff; margin: 0; text-transform: uppercase;">
+    <div class="page-content" style="padding: ${inWorldApp ? '74px 16px 30px 16px' : '100px 20px 20px 20px'}; max-width: 800px; margin: 0 auto; min-height: 80vh;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+        <h2 style="font-family: var(--font-display); color: #ff8c00; text-shadow: 2px 2px 0 #9400d3; margin: 0; text-transform: uppercase; font-size: clamp(0.95rem, 3.8vw, 1.35rem);">
           ${t('histTitle')}
         </h2>
-        <div id="registro-credits-display" style="background: rgba(0, 245, 255, 0.1); border: 1px solid rgba(0, 245, 255, 0.4); padding: 8px 16px; border-radius: 8px; color: var(--neon-cyan); font-weight: bold; display: ${connectedAddress ? 'block' : 'none'};">
+        <div id="registro-credits-display" style="background: rgba(255, 140, 0, 0.15); border: 1.5px solid #ff8c00; padding: 8px 14px; border-radius: 8px; color: #ffeb3b; font-weight: bold; font-family: 'Press Start 2P', cursive; font-size: 0.62rem; display: ${user ? 'block' : 'none'}; box-shadow: 0 0 10px rgba(255, 140, 0, 0.3);">
           💳 <span id="registro-credits-count">${credits}</span> ${t('histCredits')}
         </div>
       </div>
-      <p style="color: var(--text-secondary); margin-bottom: 30px;">
+      <p style="color: var(--text-secondary); margin-bottom: 24px; line-height: 1.5; font-size: 0.86rem;">
         ${t('histDesc')}
       </p>
       
@@ -36,7 +37,7 @@ export function renderRegistroPage(container) {
     </div>
   `;
 
-  renderNavbar(document.getElementById('navbar-container'), 'profile');
+  renderNavbar(document.getElementById('navbar-container'), 'registro');
   renderList();
   renderFooter(container);
 
@@ -97,17 +98,17 @@ function renderList() {
     const linesVal = game.linesCleared || 0;
     
     return `
-      <div class="card" style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 15px 20px; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-        <div style="display: flex; flex-direction: column; gap: 5px;">
-          <h3 style="margin: 0; color: var(--neon-cyan); font-family: var(--font-display); font-size: 1.2rem;">${gameName}</h3>
-          <span style="color: var(--text-muted); font-size: 0.8rem;">${date}</span>
-          <div style="color: #fff; margin-top: 5px;">
-            <strong style="color: var(--neon-purple); font-size: 1.1rem;">${Number(scoreVal).toLocaleString()} pts</strong> 
-            <span style="color: var(--text-secondary); font-size: 0.9rem;">(${t('histLevel')} ${levelVal} | ${linesVal} ${t('histLines')})</span>
+      <div class="card" style="background: rgba(26, 5, 46, 0.9); border: 2px solid #9400d3; padding: 18px 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; box-shadow: 0 0 15px rgba(148,0,211,0.3);">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <h3 style="margin: 0; color: #ff8c00; font-family: var(--font-display); font-size: 1.05rem;">${gameName}</h3>
+          <span style="color: var(--text-muted); font-size: 0.78rem;">${date}</span>
+          <div style="color: #fff; margin-top: 4px;">
+            <strong style="color: #39ff14; font-size: 1.25rem; font-family: monospace;">${Number(scoreVal).toLocaleString()} pts</strong> 
+            <span style="color: var(--text-secondary); font-size: 0.85rem;">(${t('histLevel')} ${levelVal} | ${linesVal} ${t('histLines')})</span>
           </div>
         </div>
         
-        <button class="btn btn-primary save-btn" data-game="${game.gameId || 'blockdrop'}" style="min-width: 200px;">
+        <button class="btn save-btn" data-game="${game.gameId || 'blockdrop'}" style="min-width: 180px; background: #9400d3; color: #39ff14; border: 2px solid #39ff14; font-family: 'Press Start 2P', cursive; font-size: 0.65rem; padding: 12px 16px; border-radius: 8px; box-shadow: 0 0 10px rgba(57,255,20,0.4); cursor: pointer;">
           ${t('histSaveBtn')}
         </button>
       </div>
@@ -143,7 +144,7 @@ function renderList() {
         // Update header credits display
         const creditsEl = document.getElementById('registro-credits-display');
         const countEl = document.getElementById('registro-credits-count');
-        if (creditsEl && countEl && currentUser && getConnectedAddress()) {
+        if (creditsEl && countEl && currentUser) {
           countEl.textContent = currentUser.creditos_escritura || 0;
         }
 

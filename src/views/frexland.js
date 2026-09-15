@@ -22,50 +22,55 @@ export function renderFrexlandPage(container) {
   const showMaintenanceBanner = false;
 
   if (inWorldApp) {
-    // ─── UNIFIED CYBERPUNK NATIVE LAYOUT FOR WORLD APP ───
+    // ─── UNIFIED RETRO ARCADE NATIVE LAYOUT FOR WORLD APP ───
     container.innerHTML = `
       <div id="navbar-container"></div>
-      <div class="home-page" style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-bottom: var(--space-2xl); background: #0a0a1a; min-height: 100vh;">
+      <div class="home-page frexland-page" style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-bottom: var(--space-2xl); background: radial-gradient(circle at top, #2a0845 0%, #0c0018 100%); min-height: 100vh;">
         <div style="max-width: 900px; width: 100%; display: flex; flex-direction: column; gap: var(--space-lg); align-items: center; padding: var(--space-md); box-sizing: border-box;">
           
-          <!-- Unified Header -->
+          <!-- Retro Arcade Header -->
           <div style="text-align: center; width: 100%; margin-top: 8px;">
-            <h1 class="text-gradient text-glow" style="font-size: clamp(1.6rem, 6.5vw, 2.5rem); margin-bottom: 6px; font-family: var(--font-display); letter-spacing: 2px;">
-              ⬢ FREXLAND
+            <h1 class="frexland-title retro-text" style="font-size: clamp(1.4rem, 6vw, 2.2rem); color: #ff8c00; text-shadow: 3px 3px 0 #9400d3, 5px 5px 0 #39ff14; margin-bottom: 8px; font-family: 'Press Start 2P', cursive; line-height: 1.3;">
+              FrexLand
             </h1>
-            <p style="font-size: 0.88rem; color: var(--text-secondary); margin: 0 auto; line-height: 1.4;">
-              El Arcade Descentralizado Web3
+            <p class="frexland-subtitle retro-text" style="font-size: clamp(0.6rem, 2.6vw, 0.8rem); color: #39ff14; margin-top: 6px; font-family: 'Press Start 2P', cursive; text-shadow: 1px 1px 2px #000;">
+              El Arcade del Futuro
             </p>
           </div>
 
           <!-- Games Section -->
           <div style="width: 100%;">
-            <h3 style="font-size: 0.95rem; text-align: center; margin-bottom: var(--space-md); color: var(--neon-cyan); font-family: var(--font-display); letter-spacing: 1px; text-transform: uppercase;">
+            <h3 class="retro-text" style="font-size: clamp(0.75rem, 3.2vw, 1rem); text-align: center; margin-bottom: var(--space-md); color: #fff; font-family: 'Press Start 2P', cursive; text-shadow: 2px 2px #9400d3;">
               ${t('gameSelect')}
             </h3>
             <div class="games-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; width: 100%; box-sizing: border-box;">
               
               <!-- BlockDrop -->
-              <div class="game-card active-game card card-glass" onclick="localStorage.setItem('last_played_game', '#/play'); window.location.hash='#/blockdrop'" style="cursor: pointer; position: relative; overflow: hidden; border: 1.5px solid var(--border-glow); box-shadow: var(--shadow-neon-cyan); transition: transform 0.3s; border-radius: var(--radius-lg); padding: 0;">
-                <div style="height: 140px; background: linear-gradient(135deg, rgba(0, 245, 255, 0.2) 0%, rgba(139, 92, 246, 0.3) 100%); display: flex; align-items: center; justify-content: center; position: relative; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-                  <div style="font-size: 3rem; animation: float 3s ease-in-out infinite;">🧱</div>
+              <div class="game-card active-game card" onclick="localStorage.setItem('last_played_game', '#/play'); window.location.hash='#/blockdrop'" style="cursor: pointer; position: relative; overflow: hidden; border: 3px solid #ff8c00; box-shadow: 0 0 15px rgba(255,140,0,0.5); transition: transform 0.3s; border-radius: 12px; padding: 0; background: rgba(0,0,0,0.85);">
+                <div style="height: 130px; background: linear-gradient(135deg, rgba(233,30,99,0.3) 0%, rgba(10,10,26,1) 100%); display: flex; align-items: center; justify-content: center; position: relative; border-bottom: 3px solid #ff8c00;">
+                  <div style="display: grid; grid-template-columns: repeat(3, 18px); gap: 3px;">
+                    <div style="width: 18px; height: 18px; background: #00e5ff; box-shadow: 0 0 8px #00e5ff;"></div>
+                    <div style="width: 18px; height: 18px; background: #e91e63; box-shadow: 0 0 8px #e91e63;"></div>
+                    <div style="width: 18px; height: 18px; background: #ffeb3b; box-shadow: 0 0 8px #ffeb3b;"></div>
+                    <div style="width: 18px; height: 18px; background: #39ff14; box-shadow: 0 0 8px #39ff14;"></div>
+                  </div>
                 </div>
                 <div style="padding: 16px 14px; text-align: center;">
-                  <h4 style="font-family: var(--font-display); font-size: 1.2rem; color: #fff; margin-bottom: 8px;">BlockDrop</h4>
-                  <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.4;">${t('gameTetrisDesc')}</p>
-                  <button class="btn btn-primary" style="width: 100%; font-weight: bold; border-radius: var(--radius-md); font-family: var(--font-ui); font-size: 0.9rem; padding: 12px;">${t('playBtn')}</button>
+                  <h4 style="font-family: 'Press Start 2P', cursive; font-size: 1rem; color: #ff8c00; margin-bottom: 10px;">BlockDrop</h4>
+                  <p style="font-size: 0.82rem; color: #ccc; margin-bottom: 16px; line-height: 1.4; font-family: monospace;">${t('gameTetrisDesc')}</p>
+                  <button class="btn" style="background: #9400d3; color: #39ff14; width: 100%; font-weight: bold; border-radius: 8px; font-family: 'Press Start 2P', cursive; font-size: 0.65rem; padding: 12px; border: 2px solid #39ff14; box-shadow: 0 0 8px rgba(57,255,20,0.4);">${t('playBtn')}</button>
                 </div>
               </div>
 
               <!-- Snake (Próximamente) -->
-              <div class="game-card disabled-game card" style="position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: rgba(15, 15, 42, 0.5); opacity: 0.6; border-radius: var(--radius-lg); padding: 0;">
-                <div style="height: 140px; background: rgba(255,255,255,0.02); display: flex; align-items: center; justify-content: center; border-bottom: 1px solid rgba(255,255,255,0.06);">
+              <div class="game-card disabled-game card" style="position: relative; overflow: hidden; border: 2px solid #555; background: rgba(0, 0, 0, 0.8); opacity: 0.6; border-radius: 12px; padding: 0;">
+                <div style="height: 130px; background: #222; display: flex; align-items: center; justify-content: center; border-bottom: 2px solid #555;">
                   <div style="font-size: 2.5rem; filter: grayscale(1);">🐍</div>
                 </div>
                 <div style="padding: 16px 14px; text-align: center;">
-                  <h4 style="font-family: var(--font-display); font-size: 1.05rem; color: #888; margin-bottom: 8px;">Crypto Snake</h4>
-                  <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.4;">${t('gameComingSoonDesc')}</p>
-                  <button class="btn btn-secondary" style="width: 100%; cursor: not-allowed; border-radius: var(--radius-md); font-family: var(--font-ui); font-size: 0.85rem; padding: 12px; opacity: 0.5;">${t('gameComingSoon')}</button>
+                  <h4 style="font-family: 'Press Start 2P', cursive; font-size: 0.9rem; color: #888; margin-bottom: 10px;">Crypto Snake</h4>
+                  <p style="font-size: 0.8rem; color: #777; margin-bottom: 16px; line-height: 1.4; font-family: monospace;">${t('gameComingSoonDesc')}</p>
+                  <button class="btn" style="background: #333; color: #888; width: 100%; cursor: not-allowed; border-radius: 8px; font-family: 'Press Start 2P', cursive; font-size: 0.55rem; padding: 12px; border: 2px solid #555;">${t('gameComingSoon')}</button>
                 </div>
               </div>
 
@@ -73,26 +78,26 @@ export function renderFrexlandPage(container) {
           </div>
 
           <!-- Tabla de Popularidad (Fondo Común Global) -->
-          <div class="card card-glass global-pool-section" style="width: 100%; border: 1.5px solid rgba(139, 92, 246, 0.3); box-shadow: 0 0 20px rgba(139, 92, 246, 0.15); border-radius: var(--radius-lg); margin-top: 6px; padding: 20px 16px; box-sizing: border-box;">
+          <div class="card card-glass global-pool-section" style="width: 100%; border: 2px solid #9400d3; box-shadow: 0 0 20px rgba(148, 0, 211, 0.4); border-radius: 12px; margin-top: 6px; padding: 20px 16px; box-sizing: border-box; background: rgba(0,0,0,0.85);">
             <div style="text-align: center; margin-bottom: var(--space-md);">
-              <h2 style="font-size: 1rem; color: var(--neon-cyan); margin-bottom: 8px; font-family: var(--font-display); line-height: 1.4;">${t('prizeDistTitle')}</h2>
-              <p style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.4;">${t('prizeDistDesc')}</p>
+              <h2 class="retro-text" style="font-size: clamp(0.75rem, 3vw, 0.95rem); color: #ff8c00; margin-bottom: 8px; font-family: 'Press Start 2P', cursive; line-height: 1.4;">${t('prizeDistTitle')}</h2>
+              <p style="color: #aaa; font-size: 0.8rem; line-height: 1.4;">${t('prizeDistDesc')}</p>
             </div>
 
             <div style="width: 100%; padding: 0 4px; box-sizing: border-box;">
-              <div style="font-size: 0.82rem; color: #fff; margin-bottom: 6px; display: flex; justify-content: space-between; font-weight: 600;">
+              <div style="font-size: 0.75rem; color: #fff; margin-bottom: 6px; display: flex; justify-content: space-between; font-family: 'Press Start 2P', cursive;">
                 <span>BlockDrop</span>
-                <span style="color: var(--neon-green);">100%</span>
+                <span style="color: #39ff14;">100%</span>
               </div>
-              <div style="width: 100%; height: 12px; background: rgba(255,255,255,0.06); border-radius: 6px; overflow: hidden; margin-bottom: 14px;">
-                <div style="width: 100%; height: 100%; background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green)); box-shadow: 0 0 10px rgba(0,255,136,0.4);"></div>
+              <div style="width: 100%; height: 14px; background: #000; border: 2px solid #fff; margin-bottom: 16px;">
+                <div style="width: 100%; height: 100%; background: #39ff14; box-shadow: 0 0 10px #39ff14;"></div>
               </div>
 
-              <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px; display: flex; justify-content: space-between;">
+              <div style="font-size: 0.75rem; color: #777; margin-bottom: 6px; display: flex; justify-content: space-between; font-family: 'Press Start 2P', cursive;">
                 <span>Crypto Snake</span>
                 <span>0%</span>
               </div>
-              <div style="width: 100%; height: 12px; background: rgba(255,255,255,0.04); border-radius: 6px; overflow: hidden;">
+              <div style="width: 100%; height: 14px; background: #000; border: 2px solid #555;">
                 <div style="width: 0%; height: 100%;"></div>
               </div>
             </div>
