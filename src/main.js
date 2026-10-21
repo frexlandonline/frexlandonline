@@ -19,7 +19,8 @@ import { renderLandingPage } from './views/landing.js';
 import { renderWorldAuthPage } from './views/worldAuth.js';
 import { renderMaintenancePage } from './views/maintenance.js';
 import { isWorldAppWebView } from './web3/world.ts';
-import { isLoggedIn, fetchCurrentUser, getUser, logout } from './services/auth.js';
+import { isLoggedIn, fetchCurrentUser, getUser, logout, updateLocalUser } from './services/auth.js';
+import api from './services/api.js';
 import { checkAndShowTermsModal } from './components/termsModal.js';
 import { showInfoModal } from './components/infoModal.js';
 import { checkAndShowWinnerModal } from './components/winnerModal.js';
@@ -58,10 +59,32 @@ export function navigate() {
   }
 
   const hash = window.location.hash || '#/';
-  const route = hash.replace('#', '');
+  const rawRoute = hash.replace('#', '');
+  const [route, queryStr] = rawRoute.split('?');
+  if (queryStr) {
+    const params = new URLSearchParams(queryStr);
+    const refParam = params.get('ref');
+    if (refParam) {
+      localStorage.setItem('frex_ref_code', refParam.trim().toUpperCase());
+    }
+  }
+  const searchParams = new URLSearchParams(window.location.search);
+  if (searchParams.get('ref')) {
+    localStorage.setItem('frex_ref_code', searchParams.get('ref').trim().toUpperCase());
+  }
 
   const loggedIn = isLoggedIn();
   const user = getUser();
+
+  // Auto-apply saved referral code if logged in and not yet referred
+  const pendingRef = localStorage.getItem('frex_ref_code');
+  if (loggedIn && user && !user.referred_by && pendingRef) {
+    localStorage.removeItem('frex_ref_code');
+    api.post('/wallet/referral/apply', { code: pendingRef }).then(res => {
+      if (res && res.user) updateLocalUser(res.user);
+      showToast(res.message || 'Código de referido vinculado', 'success');
+    }).catch(() => {});
+  }
   const isEmailVerified = !user || user.emailVerified;
   const inWorldApp = isWorldAppWebView();
 

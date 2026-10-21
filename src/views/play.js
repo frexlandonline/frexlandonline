@@ -7,6 +7,7 @@ import { t } from '../utils/i18n.js';
 import { renderFooter } from '../components/footer.js';
 import { setPendingScore } from '../services/gameSession.js';
 import { isWorldAppWebView } from '../web3/world.ts';
+import api from '../services/api.js';
 
 let engine = null;
 let gameStartTime = 0;
@@ -295,6 +296,7 @@ function setupDesktopGame() {
     const durationSecs = Math.floor((Date.now() - gameStartTime) / 1000);
     renderDesktopGameOverOverlay(score, level, lines);
 
+    const user = getUser();
     const userWallet = getConnectedAddress();
     const packet = { 
       score, 
@@ -303,8 +305,19 @@ function setupDesktopGame() {
       duracionPartidaSegundos: durationSecs,
       walletAddress: userWallet,
     };
-    setPendingScore(packet);
+    setPendingScore(packet, 'blockdrop');
     showToast('Puntaje listo para guardar.', 'info');
+
+    // Auto-record personal best in the Global Informative Leaderboard (no credits consumed)
+    if (user && score > 0) {
+      api.post('/scores/global', {
+        score,
+        level,
+        linesCleared: lines,
+        duracionPartidaSegundos: durationSecs,
+        gameId: 'blockdrop'
+      }).catch(() => {});
+    }
   };
 
   document.getElementById('btn-start')?.addEventListener('click', startDesktopGame);
@@ -591,6 +604,17 @@ function setupMobileGameEngine() {
     };
     setPendingScore(packet, 'blockdrop');
     showToast('Puntaje listo para guardar. Ve a Registro.', 'info');
+
+    // Auto-record personal best in the Global Informative Leaderboard (no credits consumed)
+    if (user && score > 0) {
+      api.post('/scores/global', {
+        score,
+        level,
+        linesCleared: lines,
+        duracionPartidaSegundos: durationSecs,
+        gameId: 'blockdrop'
+      }).catch(() => {});
+    }
   };
 
   setupMobileAudio();

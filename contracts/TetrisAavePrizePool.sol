@@ -95,12 +95,10 @@ contract TetrisAavePrizePool is Initializable, OwnableUpgradeable, ReentrancyGua
 
     /**
      * @dev Registra la entrada del usuario depositando en Aave
-     * Requiere que el monto sea múltiplo de 10 USDC
+     * Permite depositar cualquier cantidad mayor a 0 USDC
      */
     function registrarEntrada(uint256 _monto) external nonReentrant {
-        uint256 diezUsdc = 10 * 10**6;
-        require(_monto >= diezUsdc, "El monto minimo es de 10 USDC");
-        require(_monto % diezUsdc == 0, "El monto debe ser multiplo de 10 USDC");
+        require(_monto > 0, "El monto debe ser mayor a 0");
 
         usdc.safeTransferFrom(msg.sender, address(this), _monto);
         usdc.forceApprove(address(aavePool), _monto);
@@ -132,7 +130,8 @@ contract TetrisAavePrizePool is Initializable, OwnableUpgradeable, ReentrancyGua
 
     /**
      * @dev Distribuye los premios del torneo basado exclusivamente en los intereses generados en Aave.
-     * Implementa temporizador semanal y escalas matemáticas para Top 3 y Top 10.
+     * Reparto siempre 70% para premios de juegos y 30% para el proyecto al finalizar cada semana.
+     * Puestos: 1ro 50%, 2do 30%, 3ro 10% y el otro 10% entre los 10 siguientes (o 20, 30... si supera 10 USDC c/u).
      */
     function distribuirPremiosTorneo(address[] calldata ganadores) external onlyOwner nonReentrant {
         // Validación del temporizador (1 semana)
@@ -150,62 +149,52 @@ contract TetrisAavePrizePool is Initializable, OwnableUpgradeable, ReentrancyGua
         // Reiniciar temporizador
         ultimaDistribucion = block.timestamp;
 
-        // --- MATEMÁTICA DE DISTRIBUCIÓN ---
+        // --- MATEMÁTICA DE DISTRIBUCIÓN (Siempre 30% Proyecto / 70% Juegos) ---
         uint256 feeAdmin = (interesGenerado * 30) / 100;
-        uint256 prizePool = interesGenerado - feeAdmin;
+        uint256 montoARepartir = interesGenerado - feeAdmin;
 
-        uint256 excedenteAdmin = 0;
-        uint256 montoARepartir = prizePool;
-
-        uint256 cienUsdc = 100 * 10**6;
-        uint256 milUsdc = 1000 * 10**6;
-
-        // Lógica de tope de 1000 USD
-        if (prizePool > milUsdc) {
-            montoARepartir = milUsdc;
-            excedenteAdmin = prizePool - milUsdc;
+        // Pagar 30% al Proyecto / Admin
+        if (feeAdmin > 0) {
+            usdc.safeTransfer(owner(), feeAdmin);
         }
 
-        // Pagar al Admin (Fee fijo + Excedente si existe)
-        if (feeAdmin + excedenteAdmin > 0) {
-            usdc.safeTransfer(owner(), feeAdmin + excedenteAdmin);
+        require(ganadores.length >= 3, "Faltan direcciones para el podio");
+
+        uint256 p1 = (montoARepartir * 50) / 100;
+        uint256 p2 = (montoARepartir * 30) / 100;
+        uint256 p3 = (montoARepartir * 10) / 100;
+        uint256 pRestantesTotal = montoARepartir - p1 - p2 - p3; // 10% restante
+
+        if (p1 > 0 && ganadores[0] != address(0)) usdc.safeTransfer(ganadores[0], p1);
+        if (p2 > 0 && ganadores[1] != address(0)) usdc.safeTransfer(ganadores[1], p2);
+        if (p3 > 0 && ganadores[2] != address(0)) usdc.safeTransfer(ganadores[2], p3);
+
+        // Escalado dinámico para los siguientes puestos (10, 20, 30... cada vez que el premio menor supere 10 USDC)
+        uint256 diezUsdc = 10 * 10**6;
+        uint256 cantidadSiguientes = 10;
+        while ((pRestantesTotal / cantidadSiguientes) > diezUsdc) {
+            cantidadSiguientes += 10;
         }
 
-        // Reparto a Ganadores según monto
-        if (montoARepartir < cienUsdc) {
-            // Repartir al Top 3
-            require(ganadores.length >= 3, "Faltan direcciones para el Top 3");
+        if (ganadores.length > 3 && pRestantesTotal > 0) {
+            uint256 pCadaUno = pRestantesTotal / cantidadSiguientes;
+            uint256 maxIdx = ganadores.length < (3 + cantidadSiguientes) ? ganadores.length : (3 + cantidadSiguientes);
+            uint256 pagadoSiguientes = 0;
 
-            uint256 p1 = (montoARepartir * 50) / 100;
-            uint256 p2 = (montoARepartir * 35) / 100;
-            uint256 p3 = montoARepartir - p1 - p2; // 15% restante
-            
-            if (p1 > 0) usdc.safeTransfer(ganadores[0], p1);
-            if (p2 > 0) usdc.safeTransfer(ganadores[1], p2);
-            if (p3 > 0) usdc.safeTransfer(ganadores[2], p3);
-
-        } else {
-            // Repartir al Top 10 (montoARepartir entre 100 y 1000)
-            require(ganadores.length >= 10, "Faltan direcciones para el Top 10");
-
-            uint256 p1 = (montoARepartir * 45) / 100;
-            uint256 p2 = (montoARepartir * 30) / 100;
-            uint256 p3 = (montoARepartir * 10) / 100;
-            uint256 pRestantesTotal = montoARepartir - p1 - p2 - p3; // 15% restante
-            
-            uint256 pCadaUno = pRestantesTotal / 7;
-
-            if (p1 > 0) usdc.safeTransfer(ganadores[0], p1);
-            if (p2 > 0) usdc.safeTransfer(ganadores[1], p2);
-            if (p3 > 0) usdc.safeTransfer(ganadores[2], p3);
-
-            for (uint256 i = 3; i < 9; i++) {
-                if (pCadaUno > 0) usdc.safeTransfer(ganadores[i], pCadaUno);
+            for (uint256 i = 3; i < maxIdx; i++) {
+                if (pCadaUno > 0 && ganadores[i] != address(0)) {
+                    usdc.safeTransfer(ganadores[i], pCadaUno);
+                    pagadoSiguientes += pCadaUno;
+                }
             }
-            
-            // El décimo ganador se lleva el monto calculado + cualquier residuo por redondeo
-            uint256 pDecimo = pRestantesTotal - (pCadaUno * 6);
-            if (pDecimo > 0) usdc.safeTransfer(ganadores[9], pDecimo);
+
+            // Si quedan puestos vacantes no ocupados, el remanente va al proyecto/admin
+            uint256 remanente = pRestantesTotal - pagadoSiguientes;
+            if (remanente > 0) {
+                usdc.safeTransfer(owner(), remanente);
+            }
+        } else if (pRestantesTotal > 0) {
+            usdc.safeTransfer(owner(), pRestantesTotal);
         }
 
         emit PremiosDistribuidos(interesGenerado, ganadores);

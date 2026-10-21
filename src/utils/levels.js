@@ -1,4 +1,4 @@
-// Sistema de Niveles de Jugadores por Depósito en USDC
+// Sistema de Niveles de Jugadores por Depósito en USDC y Beneficios de Referidos
 export const LEVELS = [
   {
     id: 'diamante',
@@ -11,7 +11,11 @@ export const LEVELS = [
     borderColor: 'rgba(0, 245, 255, 0.6)',
     bgGradient: 'linear-gradient(135deg, rgba(0, 245, 255, 0.25) 0%, rgba(188, 19, 254, 0.35) 100%)',
     shadow: '0 0 16px rgba(0, 245, 255, 0.5)',
-    perk: 'Estatus Legendario • 100+ créditos semanales'
+    perk: '100+ créditos/sem • 100% Premio • Referidos: 5% N1 + 3% N2 • Transferir créditos',
+    canRefer: true,
+    canTransferCredits: true,
+    referralL1: 0.05,
+    referralL2: 0.03
   },
   {
     id: 'platino',
@@ -24,7 +28,11 @@ export const LEVELS = [
     borderColor: 'rgba(165, 180, 252, 0.6)',
     bgGradient: 'linear-gradient(135deg, rgba(165, 180, 252, 0.22) 0%, rgba(99, 102, 241, 0.3) 100%)',
     shadow: '0 0 14px rgba(165, 180, 252, 0.4)',
-    perk: 'Estatus Élite • 50 a 99 créditos semanales'
+    perk: '50 a 99 créditos/sem • 100% Premio • Referidos: 5% N1 + 1% N2 • Transferir créditos',
+    canRefer: true,
+    canTransferCredits: true,
+    referralL1: 0.05,
+    referralL2: 0.01
   },
   {
     id: 'oro',
@@ -37,7 +45,11 @@ export const LEVELS = [
     borderColor: 'rgba(255, 215, 0, 0.6)',
     bgGradient: 'linear-gradient(135deg, rgba(255, 215, 0, 0.22) 0%, rgba(217, 119, 6, 0.3) 100%)',
     shadow: '0 0 14px rgba(255, 215, 0, 0.4)',
-    perk: 'Estatus Avanzado • 10 a 49 créditos semanales'
+    perk: '10 a 49 créditos/sem • 100% Premio • Referidos: 3% N1 • Transferir créditos',
+    canRefer: true,
+    canTransferCredits: true,
+    referralL1: 0.03,
+    referralL2: 0
   },
   {
     id: 'plata',
@@ -50,7 +62,11 @@ export const LEVELS = [
     borderColor: 'rgba(203, 213, 225, 0.5)',
     bgGradient: 'linear-gradient(135deg, rgba(226, 232, 240, 0.18) 0%, rgba(148, 163, 184, 0.28) 100%)',
     shadow: '0 0 12px rgba(203, 213, 225, 0.35)',
-    perk: 'Estatus Intermedio • 5 a 9 créditos semanales'
+    perk: '5 a 9 créditos/sem • 100% Premio • Referidos: 1% N1',
+    canRefer: true,
+    canTransferCredits: false,
+    referralL1: 0.01,
+    referralL2: 0
   },
   {
     id: 'bronce',
@@ -63,22 +79,60 @@ export const LEVELS = [
     borderColor: 'rgba(205, 127, 50, 0.55)',
     bgGradient: 'linear-gradient(135deg, rgba(205, 127, 50, 0.2) 0%, rgba(180, 83, 9, 0.28) 100%)',
     shadow: '0 0 12px rgba(205, 127, 50, 0.35)',
-    perk: 'Estatus Inicial • 1 a 4 créditos semanales'
+    perk: '1 a 4 créditos/sem • 100% Premio • Habilita Código de Referido',
+    canRefer: true,
+    canTransferCredits: false,
+    referralL1: 0,
+    referralL2: 0
+  },
+  {
+    id: 'madera',
+    name: 'Madera',
+    icon: '🌳',
+    badgeText: 'Madera',
+    min: 1,
+    max: 10,
+    color: '#d97706',
+    borderColor: 'rgba(217, 119, 6, 0.55)',
+    bgGradient: 'linear-gradient(135deg, rgba(180, 83, 9, 0.22) 0%, rgba(120, 53, 15, 0.32) 100%)',
+    shadow: '0 0 12px rgba(217, 119, 6, 0.35)',
+    perk: '1 crédito semanal • Premio proporcional (10% por cada 1 USDC)',
+    canRefer: false,
+    canTransferCredits: false,
+    referralL1: 0,
+    referralL2: 0
   },
   {
     id: 'none',
     name: 'Sin Rango',
     icon: '🌱',
-    badgeText: 'Sin Nivel',
+    badgeText: 'Sin Rango',
     min: 0,
-    max: 10,
+    max: 1,
     color: '#94a3b8',
     borderColor: 'rgba(255, 255, 255, 0.15)',
     bgGradient: 'rgba(255, 255, 255, 0.05)',
     shadow: 'none',
-    perk: 'Deposita al menos 10 USDC para activar Nivel Bronce'
+    perk: 'Participa en Tabla Global Informativa • Deposita ≥ 1 USDC para Rango Madera',
+    canRefer: false,
+    canTransferCredits: false,
+    referralL1: 0,
+    referralL2: 0
   }
 ];
+
+/**
+ * Calcula los créditos semanales correspondientes al depósito acumulado:
+ * - < 1 USDC (Sin Rango): 0 créditos
+ * - >= 1 y < 10 USDC (Madera): 1 crédito semanal
+ * - >= 10 USDC (Bronce+): 1 crédito por cada 10 USDC (sin crédito adicional por Madera)
+ */
+export function calculateDepositCredits(depositAmount = 0) {
+  const deposit = Number(depositAmount) || 0;
+  if (deposit < 1) return 0;
+  if (deposit < 10) return 1;
+  return Math.floor((deposit + 0.000001) / 10);
+}
 
 export function getUserLevel(depositAmount = 0) {
   const deposit = Number(depositAmount) || 0;
@@ -140,12 +194,24 @@ export function getUserLevel(depositAmount = 0) {
       isMax: false
     };
   }
-  const toNext = Number((10 - deposit).toFixed(2));
-  const progress = Math.min(100, Math.max(0, Math.round((deposit / 10) * 100)));
+  if (deposit >= 1) {
+    const toNext = Number((10 - deposit).toFixed(2));
+    const progress = Math.min(100, Math.round(((deposit - 1) / 9) * 100));
+    return {
+      ...LEVELS[5],
+      deposit,
+      nextLevel: LEVELS[4],
+      toNext,
+      progress,
+      isMax: false
+    };
+  }
+  const toNext = Number((1 - deposit).toFixed(2));
+  const progress = Math.min(100, Math.max(0, Math.round((deposit / 1) * 100)));
   return {
-    ...LEVELS[5],
+    ...LEVELS[6],
     deposit,
-    nextLevel: LEVELS[4],
+    nextLevel: LEVELS[5],
     toNext,
     progress,
     isMax: false

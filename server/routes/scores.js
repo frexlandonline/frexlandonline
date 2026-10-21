@@ -4,13 +4,12 @@ import { authenticateToken } from '../middleware/auth.js';
 
 const router = Router();
 
-// ─── Save Score ──────────────────────────────────────────────
+// ─── Save Competition Score (Consume 1 crédito) ──────────────────
 router.post('/', authenticateToken, async (req, res) => {
   try {
-    const { score, level, linesCleared, duracionPartidaSegundos, walletAddress, platform } = req.body;
+    const { score, level, linesCleared, duracionPartidaSegundos, walletAddress, platform, gameId, unlockedSlots } = req.body;
     const userId = req.user.id;
 
-    // Modo mantenimiento para guardado de puntajes (solo Admin y Técnico)
     const ADMIN_WALLETS = [
       '0x7ca7022c3Ed27534192A2379a5eDd0252b3f6E65'.toLowerCase(),
       '0xf22d1687d3e6990b499ce9c7a417f0d8fae3e1c2'.toLowerCase()
@@ -32,7 +31,7 @@ router.post('/', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Puntaje inválido' });
     }
 
-    // 2. Anti-Cheat Estadístico Básico
+    // Anti-Cheat Estadístico Básico
     if (duracionPartidaSegundos) {
       if (duracionPartidaSegundos < 10 && score > 100) {
         return res.status(400).json({ error: 'Partida demasiado corta' });
@@ -55,12 +54,22 @@ router.post('/', authenticateToken, async (req, res) => {
     }
 
     await dbAPI.checkAndResetDailyCredits(userId);
-    const saved = await dbAPI.saveHighScore(userId, score, level || 1, linesCleared || 0, platform || 'html5', walletAddress);
+    const saved = await dbAPI.saveHighScore(
+      userId,
+      score,
+      level || 1,
+      linesCleared || 0,
+      platform || 'html5',
+      walletAddress,
+      gameId || 'blockdrop',
+      unlockedSlots || 13
+    );
 
     res.status(201).json({
       message: 'Puntaje guardado',
       score: saved,
-      rank: saved.rank
+      rank: saved.rank,
+      unlockedSlots: saved.unlockedSlots
     });
   } catch (error) {
     console.error('Save score error:', error);
@@ -71,41 +80,131 @@ router.post('/', authenticateToken, async (req, res) => {
   }
 });
 
-// ─── Get Global Leaderboard (Top 10) ─────────────────────────
+// ─── Save Global Informative High Score (Sin gastar créditos, todos los usuarios incluidos Sin Rango) ───
+router.post('/global', authenticateToken, async (req, res) => {
+  try {
+    const { score, level, linesCleared, duracionPartidaSegundos, gameId } = req.body;
+    const userId = req.user.id;
+
+    if (typeof score !== 'number' || score <= 0) {
+      return res.status(400).json({ error: 'Puntaje inválido' });
+    }
+
+    if (duracionPartidaSegundos) {
+      if (duracionPartidaSegundos < 5 && score > 100) {
+        return res.status(400).json({ error: 'Partida demasiado corta' });
+      }
+      const MAX_SCORE_PER_SECOND = 1500;
+      if ((score / duracionPartidaSegundos) > MAX_SCORE_PER_SECOND) {
+        return res.status(400).json({ error: 'Puntaje anómalo detectado' });
+      }
+    }
+
+    const result = await dbAPI.saveGlobalHighScore(
+      userId,
+      score,
+      level || 1,
+      linesCleared || 0,
+      gameId || 'blockdrop'
+    );
+
+    res.json({
+      success: true,
+      ...result
+    });
+  } catch (error) {
+    console.error('Save global score error:', error);
+    res.status(500).json({ error: 'Error al registrar puntaje en la tabla global.' });
+  }
+});
+
+// ─── Get Competition Leaderboard & Dynamic Unlocked Slots ────────────
 router.get('/leaderboard', async (req, res) => {
   try {
-    const limit = Math.min(parseInt(req.query.limit) || 10, 100);
-    const leaderboard = await dbAPI.getLeaderboard(limit);
+    const gameId = (req.query.gameId || 'blockdrop').toLowerCase().trim();
+    const poolBalance = parseFloat(req.query.poolBalance || '0');
 
-    res.json({ leaderboard });
+    const [metaBlockdrop, metaSnake] = await Promise.all([
+      dbAPI.getCompetitionMeta('blockdrop'),
+      dbAPI.getCompetitionMeta('snake')
+    ]);
+
+    const currentMeta = gameId === 'snake' ? metaSnake : metaBlockdrop;
+    let unlockedSlots = currentMeta.unlockedSlots || 13;
+
+    // Si el premio menor de los puestos siguientes (10% del pozo / cantidad_siguientes) supera 10 USDC,
+    // habilitamos +10 puestos nuevos con resultados vacíos para llenarse a partir de ese momento
+    if (poolBalance > 0) {
+      const tenPercent = poolBalance * 0.10;
+      let dynamicSecondary = Math.max(10, unlockedSlots - 3);
+      while ((tenPercent / dynamicSecondary) > 10) {
+        dynamicSecondary += 10;
+      }
+      const newTotalSlots = 3 + dynamicSecondary;
+      if (newTotalSlots > unlockedSlots) {
+        unlockedSlots = await dbAPI.setUnlockedSlots(gameId, newTotalSlots);
+      }
+    }
+
+    const limit = Math.min(parseInt(req.query.limit) || Math.max(50, unlockedSlots), 200);
+    const leaderboard = await dbAPI.getLeaderboard(limit, gameId);
+
+    const totalSubs = (metaBlockdrop.submissionsCount || 0) + (metaSnake.submissionsCount || 0);
+    const gamesDistribution = {
+      blockdrop: {
+        submissions: metaBlockdrop.submissionsCount || 0,
+        percentage: totalSubs > 0 ? Math.round(((metaBlockdrop.submissionsCount || 0) / totalSubs) * 100) : 100
+      },
+      snake: {
+        submissions: metaSnake.submissionsCount || 0,
+        percentage: totalSubs > 0 ? Math.round(((metaSnake.submissionsCount || 0) / totalSubs) * 100) : 0
+      },
+      totalSubmissions: totalSubs
+    };
+
+    res.json({
+      leaderboard,
+      unlockedSlots,
+      secondarySlots: Math.max(10, unlockedSlots - 3),
+      submissionsCount: currentMeta.submissionsCount || 0,
+      gamesDistribution
+    });
   } catch (error) {
     console.error('Leaderboard error:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
-// ─── Get User's Scores (Legacy / Unsupported in first draft) ──
+// ─── Get Global Informative Leaderboard (Usuario - Puntaje - Rango) ──
+router.get('/global-leaderboard', async (req, res) => {
+  try {
+    const gameId = (req.query.gameId || 'blockdrop').toLowerCase().trim();
+    const limit = Math.min(parseInt(req.query.limit) || 100, 200);
+    const globalLeaderboard = await dbAPI.getGlobalLeaderboard(gameId, limit);
+
+    res.json({
+      gameId,
+      globalLeaderboard
+    });
+  } catch (error) {
+    console.error('Global leaderboard error:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// ─── Get User's Scores ───────────────────────────────────────────────
 router.get('/my', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
-
-    // For simplicity, we fallback to sqlite direct or simulated data for personal history
-    // Since it's a minor view, let's keep it simple:
-    let scores = [];
-    let best = { best_score: 0, total_games: 0, total_lines: 0 };
-    
-    // We can fetch from local DB or Firestore
-    // Let's implement a quick mock/retrieve
     const user = await dbAPI.getUserById(userId);
     if (!user) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    // Return structure
     res.json({
       scores: [],
       stats: {
-        bestScore: 0,
+        bestScore: user.high_score || 0,
         totalGames: 0,
         totalLines: 0
       }

@@ -3,22 +3,11 @@ import { renderFooter } from '../components/footer.js';
 import { t } from '../utils/i18n.js';
 import { getUser } from '../services/auth.js';
 import { isWorldAppWebView } from '../web3/world.ts';
+import api from '../services/api.js';
 
 export function renderFrexlandPage(container) {
   const user = getUser();
   const inWorldApp = isWorldAppWebView();
-  const ADMIN_WALLETS = [
-    '0x7ca7022c3Ed27534192A2379a5eDd0252b3f6E65'.toLowerCase(),
-    '0xf22d1687d3e6990b499ce9c7a417f0d8fae3e1c2'.toLowerCase()
-  ];
-  const TECNICO_EMAILS = ['tecnico@frexland.com', 'tester@frexland.com'];
-  const userWallets = (user?.walletAddresses || []).concat(
-    user?.wallets ? Object.values(user.wallets) : []
-  ).map(w => (w || '').toLowerCase());
-  const isAdmin = user && (user.isAdmin === true || user.role === 'admin' || userWallets.some(w => ADMIN_WALLETS.includes(w)));
-  const isTecnico = user && (user.role === 'tecnico' || user.role === 'tester' || TECNICO_EMAILS.includes((user.email || '').toLowerCase()));
-  const canAccessGame = isAdmin || isTecnico;
-  const IS_MAINTENANCE_MODE = false;
   const showMaintenanceBanner = false;
 
   if (inWorldApp) {
@@ -77,23 +66,23 @@ export function renderFrexlandPage(container) {
             </div>
           </div>
 
-          <!-- Tabla de Popularidad (Fondo Común Global) -->
+          <!-- Tabla de Popularidad (70% Juegos según grabaciones de puntaje) -->
           <div class="card card-glass global-pool-section" style="width: 100%; border: 2px solid #9400d3; box-shadow: 0 0 20px rgba(148, 0, 211, 0.4); border-radius: 12px; margin-top: 6px; padding: 20px 16px; box-sizing: border-box; background: rgba(0,0,0,0.85);">
             <div style="text-align: center; margin-bottom: var(--space-md);">
               <h2 class="retro-text" style="font-size: clamp(0.75rem, 3vw, 0.95rem); color: #ff8c00; margin-bottom: 8px; font-family: 'Press Start 2P', cursive; line-height: 1.4;">${t('prizeDistTitle')}</h2>
-              <p style="color: #aaa; font-size: 0.8rem; line-height: 1.4;">${t('prizeDistDesc')}</p>
+              <p style="color: #aaa; font-size: 0.8rem; line-height: 1.4;">El 70% de los intereses semanales se reparte entre los juegos según la cantidad de grabaciones de puntaje en su tabla de competencia.</p>
             </div>
 
             <div style="width: 100%; padding: 0 4px; box-sizing: border-box;">
-              <div style="font-size: 0.75rem; color: #fff; margin-bottom: 6px; display: flex; justify-content: space-between; font-family: 'Press Start 2P', cursive;">
-                <span>BlockDrop</span>
-                <span style="color: #39ff14;">100%</span>
+              <div style="font-size: 0.72rem; color: #fff; margin-bottom: 6px; display: flex; justify-content: space-between; font-family: 'Press Start 2P', cursive;">
+                <span>BlockDrop <small id="frex-bd-count" style="color:#aaa; font-family:monospace;">(Activa)</small></span>
+                <span id="frex-bd-pct" style="color: #39ff14;">100%</span>
               </div>
               <div style="width: 100%; height: 14px; background: #000; border: 2px solid #fff; margin-bottom: 16px;">
-                <div style="width: 100%; height: 100%; background: #39ff14; box-shadow: 0 0 10px #39ff14;"></div>
+                <div id="frex-bd-bar" style="width: 100%; height: 100%; background: #39ff14; box-shadow: 0 0 10px #39ff14;"></div>
               </div>
 
-              <div style="font-size: 0.75rem; color: #777; margin-bottom: 6px; display: flex; justify-content: space-between; font-family: 'Press Start 2P', cursive;">
+              <div style="font-size: 0.72rem; color: #777; margin-bottom: 6px; display: flex; justify-content: space-between; font-family: 'Press Start 2P', cursive;">
                 <span>Crypto Snake</span>
                 <span>0%</span>
               </div>
@@ -108,6 +97,7 @@ export function renderFrexlandPage(container) {
       <div id="footer-container"></div>
     `;
     renderNavbar(document.getElementById('navbar-container'), 'home');
+    loadGamesPopularity();
     return;
   }
 
@@ -117,13 +107,11 @@ export function renderFrexlandPage(container) {
     <div class="home-page frexland-page" style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-bottom: var(--space-2xl); background: radial-gradient(circle at top, #2a0845 0%, #000000 100%); min-height: 100vh;">
       <div class="frexland-content" style="max-width: 1000px; width: 100%; display: flex; flex-direction: column; gap: var(--space-xl); align-items: center; padding: var(--space-md); box-sizing: border-box;">
         
-        <!-- Header Retro (Estilo Distinto a Blockdrop) -->
         <div class="frexland-header" style="text-align: center; width: 100%;">
           <h1 class="frexland-title retro-text" style="font-size: clamp(1.4rem, 6.5vw, 2.6rem); color: #ff8c00; text-shadow: 3px 3px 0 #9400d3, 6px 6px 0 #39ff14; margin-bottom: 8px; font-family: 'Press Start 2P', cursive; line-height: 1.3;">FrexLand</h1>
           <p class="frexland-subtitle retro-text" style="font-size: clamp(0.6rem, 2.6vw, 0.85rem); color: #39ff14; margin-top: 8px; font-family: 'Press Start 2P', cursive; text-shadow: 1px 1px 2px #000;">El Arcade del Futuro</p>
         </div>
 
-        <!-- Grid de Juegos (Ahora Primero) -->
         <div style="width: 100%;">
           ${showMaintenanceBanner ? `
             <div style="background: rgba(255, 140, 0, 0.15); border: 2px dashed #ff8c00; border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; text-align: center; color: #ffeb3b; font-family: 'Press Start 2P', cursive; font-size: clamp(0.6rem, 2.5vw, 0.75rem); line-height: 1.6; box-shadow: 0 0 15px rgba(255, 140, 0, 0.3);">
@@ -165,24 +153,23 @@ export function renderFrexlandPage(container) {
           </div>
         </div>
 
-        <!-- Tabla de Popularidad (Fondo Común Global) -->
+        <!-- Tabla de Popularidad (70% Juegos según grabaciones de puntaje) -->
         <div class="card card-glass global-pool-section" style="width: 100%; border: 3px solid #9400d3; box-shadow: 0 0 20px rgba(148,0,211,0.4); position: relative; overflow: hidden; background: rgba(0,0,0,0.85); margin-top: 6px; padding: 16px 12px; box-sizing: border-box;">
           <div style="text-align: center; margin-bottom: var(--space-md);">
             <h2 class="retro-text" style="font-size: clamp(0.75rem, 3.2vw, 1.05rem); color: #ff8c00; margin-bottom: 10px; font-family: 'Press Start 2P', cursive; line-height: 1.4;">${t('prizeDistTitle')}</h2>
-            <p style="color: #aaa; font-size: 0.8rem; line-height: 1.4;">${t('prizeDistDesc')}</p>
+            <p style="color: #aaa; font-size: 0.8rem; line-height: 1.4;">El 70% de los intereses semanales se reparte entre los juegos de acuerdo a la cantidad de grabaciones de puntaje en la tabla de competencia.</p>
           </div>
 
-          <!-- Distribución Mockup -->
           <div style="width: 100%; padding: 0 4px; box-sizing: border-box;">
-            <div style="font-size: 0.85rem; color: #fff; margin-bottom: 6px; display: flex; justify-content: space-between; font-family: 'Press Start 2P', cursive; font-size: 0.62rem;">
-              <span>BlockDrop</span>
-              <span style="color: #39ff14;">100%</span>
+            <div style="color: #fff; margin-bottom: 6px; display: flex; justify-content: space-between; font-family: 'Press Start 2P', cursive; font-size: 0.62rem;">
+              <span>BlockDrop <small id="frex-bd-count" style="color:#aaa; font-family:monospace;">(Activa)</small></span>
+              <span id="frex-bd-pct" style="color: #39ff14;">100%</span>
             </div>
             <div style="width: 100%; height: 14px; background: #000; border: 2px solid #fff; margin-bottom: 16px;">
-              <div style="width: 100%; height: 100%; background: #39ff14; box-shadow: 0 0 10px #39ff14;"></div>
+              <div id="frex-bd-bar" style="width: 100%; height: 100%; background: #39ff14; box-shadow: 0 0 10px #39ff14;"></div>
             </div>
 
-            <div style="font-size: 0.85rem; color: #fff; margin-bottom: 6px; display: flex; justify-content: space-between; font-family: 'Press Start 2P', cursive; font-size: 0.62rem;">
+            <div style="color: #fff; margin-bottom: 6px; display: flex; justify-content: space-between; font-family: 'Press Start 2P', cursive; font-size: 0.62rem;">
               <span>Crypto Snake</span>
               <span style="color: #555;">0%</span>
             </div>
@@ -199,6 +186,24 @@ export function renderFrexlandPage(container) {
 
   renderNavbar(document.getElementById('navbar-container'), 'home');
   renderFooter(document.getElementById('footer-container'));
+  loadGamesPopularity();
+}
+
+async function loadGamesPopularity() {
+  try {
+    const data = await api.get(`/scores/leaderboard?limit=5&gameId=blockdrop&t=${Date.now()}`);
+    const bdInfo = data?.gamesDistribution?.blockdrop;
+    if (bdInfo) {
+      const countEl = document.getElementById('frex-bd-count');
+      const pctEl = document.getElementById('frex-bd-pct');
+      const barEl = document.getElementById('frex-bd-bar');
+      if (countEl) countEl.textContent = `(${bdInfo.count || 0} grabaciones esta semana)`;
+      if (pctEl) pctEl.textContent = `${bdInfo.percentage ?? 100}%`;
+      if (barEl) barEl.style.width = `${bdInfo.percentage ?? 100}%`;
+    }
+  } catch (e) {
+    // Keep default 100% display
+  }
 }
 
 export function cleanupFrexlandPage() {

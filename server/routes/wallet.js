@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import dbAPI from '../db.js';
+import dbAPI, { calculateDepositCredits } from '../db.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { createWalletClient, createPublicClient, http, fallback, parseAbi } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
@@ -48,7 +48,6 @@ router.post('/connect', authenticateToken, async (req, res) => {
 
     const normalizedAddress = walletAddress.toLowerCase().trim();
 
-    // Check if wallet is already linked to another user
     const existingUser = await dbAPI.getUserByWalletAddress(normalizedAddress);
     if (existingUser && String(existingUser.id) !== String(userId)) {
       return res.status(400).json({ error: 'Esta billetera ya está vinculada a otro perfil' });
@@ -59,13 +58,10 @@ router.post('/connect', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    // Append wallet to the user's wallets list
     const wallets = user.wallets || {};
     wallets[selectedChain] = normalizedAddress;
 
     const updatedUser = await dbAPI.updateUser(userId, { wallets });
-
-    // Exclude password hash from safe payload
     const { passwordHash, ...safeUser } = updatedUser;
 
     res.json({ message: 'Wallet conectada y vinculada exitosamente', user: safeUser });
@@ -74,8 +70,9 @@ router.post('/connect', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
-// Helper: Puente automático de World Chain a Base y depósito en Aave
-async function bridgeAndDepositToAave(amountUSDC) {
+
+// Helper: Puente automático de World Chain a Base y depósito en Aave (Cualquier cantidad > 0)
+async function bridgeAndDepositToAave(netUSDC) {
   const rawPk = process.env.PRIVATE_KEY;
   if (!rawPk) return console.error('No relayer private key');
   const pk = rawPk.startsWith('0x') ? rawPk : '0x' + rawPk;
@@ -104,10 +101,8 @@ async function bridgeAndDepositToAave(amountUSDC) {
     'function approve(address, uint256) returns (bool)'
   ]);
 
-  // Monto neto en múltiplos de 10 USDC (ej. si deposita 10.01 -> 10 USDC, 20.01 -> 20 USDC)
-  const netUSDC = Math.floor(amountUSDC);
-  const amountToSupply = BigInt(netUSDC) * 1000000n;
-  if (amountToSupply < 10000000n) return; // Mínimo para Aave es 10 USDC
+  const amountToSupply = BigInt(Math.round(Number(netUSDC) * 1000000));
+  if (amountToSupply <= 0n) return;
 
   // 1. Cotizar puente en Relay
   const quoteRes = await fetch('https://api.relay.link/quote', {
@@ -162,7 +157,7 @@ async function bridgeAndDepositToAave(amountUSDC) {
     await baseClient.waitForTransactionReceipt({ hash: approveTx });
   }
 
-  // 5. Depositar en el contrato (que suministra a Aave)
+  // 5. Llamar a registrarEntrada en Aave Prize Pool
   const depTx = await baseWallet.writeContract({
     address: CONTRACT_ADDRESS,
     abi: contractAbi,
@@ -173,23 +168,15 @@ async function bridgeAndDepositToAave(amountUSDC) {
   console.log(`[Auto-Deposit Aave] Exitoso: ${depTx} por ${netUSDC} USDC`);
 }
 
-// ─── Deposit USDC for Credits ──────────────────────────────────
+// ─── Deposit USDC (Permite cualquier cantidad sin múltiplo de 10 USDC) ───
 router.post('/deposit', authenticateToken, async (req, res) => {
   try {
     const { amount, platform, txHash } = req.body;
     const userId = req.user.id;
     const depositAmount = parseFloat(amount);
 
-    if (isNaN(depositAmount) || depositAmount < 10.01) {
-      return res.status(400).json({ error: 'El monto mínimo de depósito es 10.01 USDC (10 USDC + 0.01 USDC para comisiones).' });
-    }
-
-    // Validar que sea estrictamente múltiplo de 10 USDC + 0.01 USDC
-    const netCents = Math.round((depositAmount - 0.01) * 100);
-    if (netCents < 1000 || (netCents % 1000 !== 0)) {
-      return res.status(400).json({ 
-        error: 'El monto a depositar debe ser múltiplo de 10 USDC sumando 0.01 USDC para comisiones (ej. 10.01, 20.01, 50.01 USDC).' 
-      });
+    if (isNaN(depositAmount) || depositAmount <= 0) {
+      return res.status(400).json({ error: 'El monto a depositar debe ser mayor a 0 USDC.' });
     }
 
     const user = await dbAPI.checkAndResetDailyCredits(userId);
@@ -197,36 +184,47 @@ router.post('/deposit', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    // Descuento exacto: 0.01 USDC para comisiones de red y bridge
-    const netAmount = Math.floor(depositAmount); // Múltiplo exacto de 10 USDC (10, 20, 30...)
-    const realFee = Math.round((depositAmount - netAmount) * 100) / 100; // 0.01 USDC
+    // Si el monto incluye el centavo adicional (.01) para comisión de red, descontamos 0.01 USDC; de lo contrario acreditamos el monto neto
+    const cents = Math.round((depositAmount % 1) * 100);
+    const hasFeeCents = cents === 1 && depositAmount > 0.01;
+    const realFee = hasFeeCents ? 0.01 : 0;
+    const netAmount = Math.round((depositAmount - realFee) * 1e6) / 1e6;
 
-    const currentTotal = user.total_depositado || 0;
+    const currentTotal = Number(user.total_depositado) || 0;
     const newTotal = Math.round((currentTotal + netAmount) * 1e6) / 1e6;
 
-    // Calcular créditos ganados: 1 crédito por cada 10 USDC netos acumulados
-    const oldCreditsFromDeposit = Math.floor((currentTotal + 0.000001) / 10);
-    const newCreditsFromDeposit = Math.floor((newTotal + 0.000001) / 10);
+    // Calcular créditos ganados según nueva escala:
+    // - Madera (1 a <10 USDC): 1 crédito semanal
+    // - Bronce+ (>= 10 USDC): 1 crédito cada 10 USDC (sin crédito extra por Madera)
+    const oldCreditsFromDeposit = calculateDepositCredits(currentTotal);
+    const newCreditsFromDeposit = calculateDepositCredits(newTotal);
     const creditsToAdd = Math.max(0, newCreditsFromDeposit - oldCreditsFromDeposit);
 
-    const currentCredits = user.creditos_escritura || 0;
+    const currentCredits = Number(user.creditos_escritura) || 0;
 
+    // Si el usuario alcanzó Rango Bronce (>= 10 USDC) y aún no tenía código de referido, podemos generarlo automáticamente
     const updatedUser = await dbAPI.updateUser(userId, {
       creditos_escritura: currentCredits + creditsToAdd,
       total_depositado: newTotal
     });
 
+    if (newTotal >= 10 && !updatedUser.referral_code) {
+      await dbAPI.generateReferralCode(userId).catch(() => {});
+    }
+
+    const finalUser = await dbAPI.getUserById(userId);
+
     // Si el depósito proviene de World Chain, ejecutamos el puente y depósito en Aave en Base en segundo plano
     if (platform === 'worldchain' || req.body.platform === 'worldchain' || user.platform === 'worldchain') {
-      console.log(`[WorldChain Deposit] Iniciando puente automático hacia Base y depósito en Aave de ${depositAmount} USDC en segundo plano...`);
-      bridgeAndDepositToAave(depositAmount).catch(bridgeErr => {
+      console.log(`[WorldChain Deposit] Iniciando puente automático hacia Base y depósito en Aave de ${netAmount} USDC...`);
+      bridgeAndDepositToAave(netAmount).catch(bridgeErr => {
         console.warn(`[WorldChain Deposit Warning] El puente a Aave se retrasó o falló: ${bridgeErr.message}. Los créditos del usuario ya están protegidos.`);
       });
     }
 
-    const { passwordHash, ...safeUser } = updatedUser;
+    const { passwordHash, ...safeUser } = finalUser;
     res.json({ 
-      message: `Depósito de ${depositAmount.toFixed(6)} USDC procesado. Comisión de red descontada: ${realFee.toFixed(6)} USDC. Monto neto en Aave: ${netAmount.toFixed(6)} USDC (+${creditsToAdd} créditos).`, 
+      message: `Depósito de ${netAmount.toFixed(2)} USDC acreditado exitosamente${creditsToAdd > 0 ? ` (+${creditsToAdd} ${creditsToAdd === 1 ? 'crédito' : 'créditos'})` : ''}.`, 
       user: safeUser,
       netAmount,
       fee: realFee
@@ -263,17 +261,22 @@ router.post('/sync-deposit', authenticateToken, async (req, res) => {
       return res.json({ synced: false, message: 'Admin deposit managed manually.' });
     }
 
-    const currentTotal = user.total_depositado || 0;
+    const currentTotal = Number(user.total_depositado) || 0;
     
-    // Solo actualizamos si el balance on-chain es mayor al guardado
     if (amount > currentTotal) {
-      const creditsToAdd = Math.floor((amount - currentTotal) / 10);
-      const currentCredits = user.creditos_escritura || 0;
+      const oldCredits = calculateDepositCredits(currentTotal);
+      const newCredits = calculateDepositCredits(amount);
+      const creditsToAdd = Math.max(0, newCredits - oldCredits);
+      const currentCredits = Number(user.creditos_escritura) || 0;
       
-      const updatedUser = await dbAPI.updateUser(userId, {
+      await dbAPI.updateUser(userId, {
         creditos_escritura: currentCredits + creditsToAdd,
         total_depositado: amount
       });
+      if (amount >= 10 && !user.referral_code) {
+        await dbAPI.generateReferralCode(userId).catch(() => {});
+      }
+      const updatedUser = await dbAPI.getUserById(userId);
       const { passwordHash, ...safeUser } = updatedUser;
       return res.json({ synced: true, user: safeUser });
     }
@@ -282,6 +285,70 @@ router.post('/sync-deposit', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Sync deposit error:', error);
     res.status(500).json({ error: 'Error al sincronizar depósito.' });
+  }
+});
+
+// ─── Referral System Endpoints ─────────────────────────────────────
+
+router.get('/referrals', authenticateToken, async (req, res) => {
+  try {
+    const stats = await dbAPI.getReferralStats(req.user.id);
+    res.json({ success: true, ...stats });
+  } catch (error) {
+    console.error('Get referrals error:', error);
+    res.status(500).json({ error: error.message || 'Error al obtener información de referidos.' });
+  }
+});
+
+router.post('/referral/generate', authenticateToken, async (req, res) => {
+  try {
+    const code = await dbAPI.generateReferralCode(req.user.id);
+    const updatedUser = await dbAPI.getUserById(req.user.id);
+    const { passwordHash, ...safeUser } = updatedUser;
+    res.json({
+      success: true,
+      referralCode: code,
+      user: safeUser,
+      message: '¡Código de referido generado exitosamente!'
+    });
+  } catch (error) {
+    console.error('Generate referral code error:', error);
+    res.status(400).json({ error: error.message || 'No se pudo generar el código de referido.' });
+  }
+});
+
+router.post('/referral/apply', authenticateToken, async (req, res) => {
+  try {
+    const { code } = req.body;
+    const result = await dbAPI.applyReferralCode(req.user.id, code);
+    const { passwordHash, ...safeUser } = result.user;
+    res.json({
+      success: true,
+      user: safeUser,
+      referrer: result.referrer,
+      message: `¡Código aplicado! Has sido vinculado como referido de ${result.referrer.username}.`
+    });
+  } catch (error) {
+    console.error('Apply referral code error:', error);
+    res.status(400).json({ error: error.message || 'No se pudo aplicar el código de referido.' });
+  }
+});
+
+router.post('/transfer-credits', authenticateToken, async (req, res) => {
+  try {
+    const { recipientId, amount } = req.body;
+    const result = await dbAPI.transferCreditsToReferral(req.user.id, recipientId, amount);
+    const { passwordHash, ...safeUser } = result.sender;
+    res.json({
+      success: true,
+      user: safeUser,
+      recipient: result.recipient,
+      transferred: result.transferred,
+      message: `¡Transferiste ${result.transferred} ${result.transferred === 1 ? 'crédito' : 'créditos'} a tu referido ${result.recipient.username}!`
+    });
+  } catch (error) {
+    console.error('Transfer credits error:', error);
+    res.status(400).json({ error: error.message || 'No se pudo realizar la transferencia de créditos.' });
   }
 });
 
@@ -297,22 +364,14 @@ router.post('/bridge-world-to-base', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Parámetros inválidos para bridge.' });
     }
 
-    // TODO: Usar viem para consultar la API de Circle Iris
-    // 1. Obtener el messageHash del evento en burnTxHash
-    // 2. Hacer polling a https://iris-api.circle.com/v1/messages/{domain}/{messageHash}
-    // 3. Cuando status === 'complete', obtener attestation
-    // 4. Llamar a receiveMessage en Base con la private key del owner
-    // 5. Llamar a registrarEntrada en TetrisAavePrizePool
-
     console.log(`[CCTP Bridge] Procesando tx ${burnTxHash} por ${amount} USDC...`);
     
-    // Por ahora, simulamos el éxito del bridge y depósito para continuar con la lógica
     const user = await dbAPI.getUserById(userId);
     if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
 
-    const currentTotal = user.total_depositado || 0;
-    const newTotal = currentTotal + amount;
-    const maxCreditsNow = Math.floor(newTotal / 10);
+    const currentTotal = Number(user.total_depositado) || 0;
+    const newTotal = currentTotal + Number(amount);
+    const maxCreditsNow = calculateDepositCredits(newTotal);
     const newCredits = Math.max(user.creditos_escritura || 0, maxCreditsNow);
 
     const updatedUser = await dbAPI.updateUser(userId, {
@@ -343,7 +402,7 @@ router.post('/request-withdraw', authenticateToken, async (req, res) => {
     const user = await dbAPI.getUserById(userId);
     if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
 
-    const currentTotal = user.total_depositado || 0;
+    const currentTotal = Number(user.total_depositado) || 0;
     if (amount > currentTotal) {
       return res.status(400).json({ error: 'No puedes retirar más del saldo que tienes depositado.' });
     }
@@ -374,12 +433,11 @@ router.post('/confirm-withdraw', authenticateToken, async (req, res) => {
     const user = await dbAPI.getUserById(userId);
     if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
 
-    const currentTotal = user.total_depositado || 0;
+    const currentTotal = Number(user.total_depositado) || 0;
     if (amount > currentTotal) {
       return res.status(400).json({ error: 'No puedes retirar más del saldo que tienes depositado.' });
     }
 
-    // Valida las 24 horas si no es admin
     if (!isAdmin) {
       if (!user.withdraw_request_time || user.withdraw_request_amount !== amount) {
          return res.status(400).json({ error: 'Solicitud de retiro no encontrada o monto no coincide.' });
@@ -392,7 +450,7 @@ router.post('/confirm-withdraw', authenticateToken, async (req, res) => {
     }
 
     const newTotal = Math.max(0, Math.round((currentTotal - amount) * 1e6) / 1e6);
-    const maxCreditsNow = Math.floor((newTotal + 0.015) / 10);
+    const maxCreditsNow = calculateDepositCredits(newTotal);
     const humanBonus = (user.isWorldIdVerified === true) ? 1 : 0;
     const newCredits = Math.min(user.creditos_escritura || 0, maxCreditsNow + humanBonus);
 
@@ -427,7 +485,7 @@ router.post('/confirm-withdraw-world', authenticateToken, async (req, res) => {
     const user = await dbAPI.getUserById(userId);
     if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
 
-    const currentTotal = user.total_depositado || 0;
+    const currentTotal = Number(user.total_depositado) || 0;
     if (withdrawAmount > currentTotal) {
       return res.status(400).json({ error: 'No puedes retirar más del saldo que tienes depositado.' });
     }
@@ -463,7 +521,6 @@ router.post('/confirm-withdraw-world', authenticateToken, async (req, res) => {
     ]);
     const withdrawAmountBigInt = BigInt(Math.round(withdrawAmount * 1e6));
 
-    // 1. Verificar balance del relayer en Base antes de retirar del contrato
     const adminBaseBalance = await baseClient.readContract({
       address: usdcBase,
       abi: erc20Abi,
@@ -496,10 +553,9 @@ router.post('/confirm-withdraw-world', authenticateToken, async (req, res) => {
       await baseClient.waitForTransactionReceipt({ hash: withdrawTx });
       console.log(`[Withdraw] Confirmado retiro on-chain: ${withdrawTx}`);
     } else {
-      console.log(`[Withdraw] Relayer ya cuenta con saldo suficiente en Base (${Number(adminBaseBalance) / 1e6} USDC >= ${withdrawAmount} USDC). Procediendo directo al puente.`);
+      console.log(`[Withdraw] Relayer ya cuenta con saldo suficiente en Base. Procediendo directo al puente.`);
     }
 
-    // 2. Cotizar puente en Relay (usando EXACT_INPUT para que la comisión se descuente del monto retirado)
     console.log(`[Bridge] Cotizando Relay puente hacia World Chain (${recipient})...`);
     const quoteRes = await fetch('https://api.relay.link/quote', {
       method: 'POST',
@@ -541,7 +597,7 @@ router.post('/confirm-withdraw-world', authenticateToken, async (req, res) => {
     console.log(`[Bridge] Puente completado. Tx de depósito en Relay: ${lastTxHash}`);
 
     const newTotal = Math.max(0, Math.round((currentTotal - withdrawAmount) * 1e6) / 1e6);
-    const maxCreditsNow = Math.floor((newTotal + 0.000001) / 10);
+    const maxCreditsNow = calculateDepositCredits(newTotal);
     const humanBonus = (user.isWorldIdVerified === true) ? 1 : 0;
     const newCredits = Math.min(user.creditos_escritura || 0, maxCreditsNow + humanBonus);
 
@@ -569,7 +625,7 @@ router.post('/confirm-withdraw-world', authenticateToken, async (req, res) => {
 });
 
 // ==========================================
-// Get Polygon Tokens (Legacy helper, keep intact)
+// Get Polygon Tokens (Legacy helper)
 // ==========================================
 router.get('/tokens/:address', async (req, res) => {
   try {
@@ -579,7 +635,6 @@ router.get('/tokens/:address', async (req, res) => {
       return res.status(400).json({ error: 'Dirección de wallet inválida' });
     }
 
-    // Popular Polygon tokens
     const tokens = [
       { symbol: 'POL', name: 'POL (ex-MATIC)', address: 'native', decimals: 18, logo: '🟣' },
       { symbol: 'USDC', name: 'USD Coin', address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359', decimals: 6, logo: '🔵' },
@@ -593,7 +648,6 @@ router.get('/tokens/:address', async (req, res) => {
 
     const RPC_URL = 'https://polygon-rpc.com';
 
-    // Get native POL balance
     const nativeBalanceResponse = await fetch(RPC_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -608,7 +662,6 @@ router.get('/tokens/:address', async (req, res) => {
     const nativeResult = await nativeBalanceResponse.json();
     const nativeBalance = parseInt(nativeResult.result || '0', 16);
 
-    // Build batch request for ERC20 balances
     const balanceOfSelector = '0x70a08231';
     const paddedAddress = address.slice(2).toLowerCase().padStart(64, '0');
 
@@ -650,7 +703,6 @@ router.get('/tokens/:address', async (req, res) => {
       }
     }
 
-    // Format response
     const result = tokens.map(token => {
       let rawBalance, formattedBalance;
 

@@ -10,7 +10,7 @@ import { isLemonWebView, depositLemon, withdrawLemon } from '../web3/lemon.js';
 import { isWorldAppWebView, payWorld } from '../web3/world.ts';
 import { bridgeUSDCToBase } from '../web3/cctp.ts';
 import { verifyHumanity } from '../web3/worldId.ts';
-import { getUserLevel, renderLevelBadge, LEVELS } from '../utils/levels.js';
+import { getUserLevel, renderLevelBadge, LEVELS, calculateDepositCredits } from '../utils/levels.js';
 
 // Modern Web3 EVM imports from Agent 3 TypeScript module
 import { 
@@ -237,7 +237,7 @@ function renderWalletContent() {
             <div class="card" style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 20px; border-radius: var(--radius-md);">
               <h3 style="font-family: var(--font-display); font-size: 1.1rem; margin-bottom: 8px;">📥 Depósitos para Créditos</h3>
               <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 16px; line-height: 1.4;">
-                ${walletState.chain === 'worldchain' ? 'Operando en la red <strong>World Chain</strong>. Deposita USDC para obtener créditos. (10 USDC = 1 Crédito semanal renovable tras la entrega de premios).' : 'La red oficial del juego es <strong>Base</strong>. Deposita USDC para obtener créditos. (10 USDC = 1 Crédito semanal renovable tras la entrega de premios con la cuenta regresiva). El registro de tu récord consume 1 crédito.'}
+                ${walletState.chain === 'worldchain' ? 'Operando en la red <strong>World Chain</strong>. Puedes depositar <strong>cualquier cantidad de USDC</strong> (Desde 1 USDC activas Rango Madera 🌳 con 1 crédito semanal; desde 10 USDC Rango Bronce 🥉 con 1 crédito cada 10 USDC).' : 'La red oficial del juego es <strong>Base</strong>. Puedes depositar <strong>cualquier cantidad de USDC</strong> sin restricción de múltiplos (Desde 1 USDC activas Rango Madera 🌳 con 1 crédito semanal; desde 10 USDC Rango Bronce 🥉 con 1 crédito cada 10 USDC).'}
               </p>
               
               ${isLemonWebView() ? `
@@ -327,21 +327,24 @@ function renderWalletContent() {
                     </div>
                   ` : ''}
 
-                <!-- BANNER COMISIÓN DE RED / PUENTE -->
+                <!-- BANNER DEPÓSITOS LIBRES Y RANGOS -->
                 <div class="deposit-commission-banner" style="background: rgba(0, 245, 255, 0.05); border: 1px solid rgba(0, 245, 255, 0.25); padding: 12px 14px; border-radius: var(--radius-sm); margin-bottom: 14px; font-size: 0.8rem; line-height: 1.45;">
                   <div style="font-weight: 700; color: var(--neon-cyan); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                    <span>ℹ️</span> Regla de Depósitos y Comisiones de Red
+                    <span>ℹ️</span> Depósitos Libres y Sistema de Rangos
                   </div>
                   <div style="color: var(--text-secondary); margin-bottom: 6px;">
-                    Los depósitos deben ser obligatoriamente en <strong>múltiplos de 10 USDC sumando 0.01 USDC</strong> para cubrir comisiones de red y bridge (ej: <strong>10.01, 50.01, 100.01, 500.01, 1000.01 USDC</strong>).
+                    Puedes depositar <strong>cualquier cantidad de USDC</strong> (ya no es obligatorio múltiplos de 10). Agrega <strong>+0.01 USDC</strong> para cubrir comisiones operativas de red/bridge (ej: <strong>1.01, 5.01, 10.01, 50.01 USDC</strong>).
                   </div>
                   <div style="color: #FFA500; font-weight: 600; background: rgba(255, 165, 0, 0.08); padding: 8px 10px; border-radius: 4px; border: 1px solid rgba(255, 165, 0, 0.25); line-height: 1.4;">
-                    💡 <strong>Aviso Importante:</strong> De los 0.01 USDC se descontarán únicamente las comisiones cobradas por las redes, de modo que ingresa al pozo de Aave exactamente un múltiplo de 10 USDC (10, 50, 100...), garantizando <strong>1 crédito semanal por cada 10 USDC aportados</strong> (renovables tras cada entrega de premios con la cuenta regresiva). Si el monto no cumple este formato, la transacción no será procesada.
+                    🌳 <strong>Rango Madera (1 a &lt;10 USDC):</strong> Otorga <strong>1 crédito semanal</strong> y premio proporcional (10% por cada 1 USDC depositado).<br>
+                    🥉 <strong>Rango Bronce+ (≥ 10 USDC):</strong> Otorga el <strong>100% del premio</strong>, habilita <strong>Código de Referido</strong> y mantiene <strong>1 crédito semanal por cada 10 USDC</strong>.
                   </div>
                 </div>
 
                 <!-- BOTONES DE SELECCIÓN RÁPIDA POR NIVEL -->
                 <div style="display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;">
+                  <button type="button" class="btn-quick-deposit" data-amount="1.01" style="font-size: 0.72rem; padding: 5px 8px; background: rgba(217, 119, 6, 0.15); border: 1px solid rgba(217, 119, 6, 0.45); color: #d97706; border-radius: 4px; cursor: pointer; font-weight: 600;">🌳 1.01 (Madera)</button>
+                  <button type="button" class="btn-quick-deposit" data-amount="5.01" style="font-size: 0.72rem; padding: 5px 8px; background: rgba(217, 119, 6, 0.15); border: 1px solid rgba(217, 119, 6, 0.45); color: #d97706; border-radius: 4px; cursor: pointer; font-weight: 600;">🌳 5.01 (Madera 50%)</button>
                   <button type="button" class="btn-quick-deposit" data-amount="10.01" style="font-size: 0.72rem; padding: 5px 8px; background: rgba(205, 127, 50, 0.15); border: 1px solid rgba(205, 127, 50, 0.4); color: #cd7f32; border-radius: 4px; cursor: pointer; font-weight: 600;">🥉 10.01 (Bronce)</button>
                   <button type="button" class="btn-quick-deposit" data-amount="50.01" style="font-size: 0.72rem; padding: 5px 8px; background: rgba(203, 213, 225, 0.12); border: 1px solid rgba(203, 213, 225, 0.35); color: #e2e8f0; border-radius: 4px; cursor: pointer; font-weight: 600;">🥈 50.01 (Plata)</button>
                   <button type="button" class="btn-quick-deposit" data-amount="100.01" style="font-size: 0.72rem; padding: 5px 8px; background: rgba(255, 215, 0, 0.12); border: 1px solid rgba(255, 215, 0, 0.35); color: #ffd700; border-radius: 4px; cursor: pointer; font-weight: 600;">🥇 100.01 (Oro)</button>
@@ -351,7 +354,7 @@ function renderWalletContent() {
 
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                   <div style="flex: 1; min-width: 140px;">
-                    <input type="number" id="deposit-amount" class="form-input" placeholder="Monto (ej. 10.01, 20.01)" min="10.01" step="10" value="10.01" style="width: 100%; height: 40px; font-family: var(--font-display); font-size: 0.85rem; padding: 6px 10px; box-sizing: border-box;">
+                    <input type="number" id="deposit-amount" class="form-input" placeholder="Monto libre (ej. 1.01, 5, 10.01)" min="0.1" step="any" value="10.01" style="width: 100%; height: 40px; font-family: var(--font-display); font-size: 0.85rem; padding: 6px 10px; box-sizing: border-box;">
                   </div>
                   <div style="display: flex; gap: 6px; flex-shrink: 0;">
                     <button class="btn btn-primary" id="btn-deposit-base" style="height: 40px; padding: 0 16px; font-size: 0.85rem; box-shadow: var(--shadow-glow-cyan);">Depositar</button>
@@ -359,8 +362,8 @@ function renderWalletContent() {
                 </div>
 
                 <div id="deposit-breakdown-preview" style="margin-top: 8px; font-size: 0.76rem; color: var(--text-secondary); background: rgba(255,255,255,0.02); padding: 8px 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
-                  <span>Créditos a recibir: <strong style="color: var(--neon-green);" id="preview-credits">1 Crédito</strong></span>
-                  <span id="preview-breakdown" style="color: var(--text-muted);">10.00 USDC neto en Aave (0.01 USDC comisión)</span>
+                  <span>Créditos semanales tras depósito: <strong style="color: var(--neon-green);" id="preview-credits">1 Crédito</strong></span>
+                  <span id="preview-breakdown" style="color: var(--text-muted);">10.00 USDC neto en Aave (Rango Bronce 🥉)</span>
                 </div>
 
                 <div style="margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.05);">
@@ -551,24 +554,25 @@ function renderWalletContent() {
           const creditsEl = document.getElementById('preview-credits');
           const breakdownEl = document.getElementById('preview-breakdown');
           if (!creditsEl) return;
-          if (isNaN(val) || val < 10.01) {
+          if (isNaN(val) || val <= 0.01) {
             creditsEl.textContent = '0 Créditos';
             creditsEl.style.color = '#FFA500';
-            if (breakdownEl) breakdownEl.textContent = '⚠️ Mínimo 10.01 USDC (10 USDC + 0.01 de comisión)';
+            if (breakdownEl) breakdownEl.textContent = '⚠️ Ingresa un monto válido mayor a 0.01 USDC';
             return;
           }
-          const netCents = Math.round((val - 0.01) * 100);
-          if (netCents < 1000 || (netCents % 1000 !== 0)) {
-            creditsEl.textContent = 'Monto Inválido';
-            creditsEl.style.color = 'var(--neon-red)';
-            if (breakdownEl) breakdownEl.textContent = '⚠️ Debe ser múltiplo de 10 USDC + 0.01 USDC (ej. 10.01, 20.01)';
-            return;
+          const cents = Math.round((val % 1) * 100);
+          const hasFeeCents = cents === 1 && val > 0.01;
+          const netUSDC = hasFeeCents ? Number((val - 0.01).toFixed(6)) : val;
+          const curDep = Number(currentUser?.total_depositado) || 0;
+          const projectedTotal = Number((curDep + netUSDC).toFixed(6));
+          const projectedCredits = calculateDepositCredits(projectedTotal);
+          const projectedLevel = getUserLevel(projectedTotal);
+
+          creditsEl.textContent = `${projectedCredits} ${projectedCredits === 1 ? 'Crédito Semanal' : 'Créditos Semanales'} (${projectedLevel.icon} ${projectedLevel.name})`;
+          creditsEl.style.color = projectedCredits > 0 ? 'var(--neon-green)' : '#FFA500';
+          if (breakdownEl) {
+            breakdownEl.textContent = `+${netUSDC.toFixed(2)} USDC neto en Aave (Total: ${projectedTotal.toFixed(2)} USDC)`;
           }
-          const netUSDC = Math.floor(val);
-          const credits = Math.floor(netUSDC / 10);
-          creditsEl.textContent = `${credits} ${credits === 1 ? 'Crédito' : 'Créditos'}`;
-          creditsEl.style.color = 'var(--neon-green)';
-          if (breakdownEl) breakdownEl.textContent = `${netUSDC}.00 USDC neto en Aave (0.01 USDC comisión de red)`;
         };
         depositInput?.addEventListener('input', updateDepositPreview);
         updateDepositPreview();
@@ -792,17 +796,11 @@ async function handleSwitchToBase() {
 async function handleDepositBase() {
   const input = document.getElementById('deposit-amount');
   const amount = parseFloat(input ? input.value : '0');
-  if (isNaN(amount) || amount < 10.01) {
-    showToast('El monto mínimo es de 10.01 USDC (10 USDC + 0.01 USDC de comisión).', 'error');
+  if (isNaN(amount) || amount <= 0.01) {
+    showToast('Ingresa un monto válido mayor a 0.01 USDC para depositar.', 'error');
     return;
   }
-  
-  const netCents = Math.round((amount - 0.01) * 100);
-  if (netCents < 1000 || (netCents % 1000 !== 0)) {
-    showToast('El monto debe ser múltiplo de 10 USDC sumando 0.01 USDC para comisiones (ej. 10.01, 20.01, 50.01 USDC).', 'error');
-    return;
-  }
-  
+
   const currentUser = getUser();
   const btn = document.getElementById('btn-deposit-base');
   const originalText = btn.textContent;
@@ -861,9 +859,10 @@ async function handleDepositBase() {
   btn.disabled = true;
 
   try {
-    // El contrato en Base exige múltiplos exactos de 10 USDC (10 * 10^6)
-    const netAmountUSDC = Math.floor(amount);
-    const amountWei = BigInt(netAmountUSDC) * 1000000n;
+    // El contrato en Base acepta cualquier cantidad mayor a 0 USDC
+    const cents = Math.round((amount % 1) * 100);
+    const netAmountUSDC = (cents === 1 && amount > 0.01) ? Number((amount - 0.01).toFixed(6)) : amount;
+    const amountWei = BigInt(Math.round(netAmountUSDC * 1000000));
     
     // Check existing allowance first
     const address = getConnectedAddress();

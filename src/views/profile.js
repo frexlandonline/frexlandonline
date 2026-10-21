@@ -27,7 +27,7 @@ export function renderProfilePage(container) {
   container.innerHTML = `
     <div id="navbar-container"></div>
     <div class="home-page" style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 120px var(--space-md) var(--space-xl);">
-      <div class="card card-glass" style="width: 100%; max-width: 500px; border: 1.5px solid var(--border-glow); box-shadow: var(--shadow-neon-purple); position: relative; overflow: hidden;">
+      <div class="card card-glass" style="width: 100%; max-width: 520px; border: 1.5px solid var(--border-glow); box-shadow: var(--shadow-neon-purple); position: relative; overflow: hidden;">
         
         <div style="text-align: center; margin-bottom: var(--space-xl);">
           <h2 class="text-gradient" style="font-family: var(--font-display); font-size: 1.8rem; letter-spacing: 1px; text-shadow: 0 0 10px rgba(139, 92, 246, 0.4);">
@@ -102,7 +102,7 @@ export function renderProfilePage(container) {
           </div>
 
           <!-- PLAYER LEVEL & TIER CARD -->
-          <div class="card card-level" style="background: radial-gradient(circle at top, rgba(255,255,255,0.04) 0%, rgba(10,10,26,0.9) 100%); border: 1.5px solid ${userLevel.borderColor}; box-shadow: ${userLevel.shadow}; border-radius: var(--radius-md); padding: 18px 16px; margin-bottom: var(--space-md); box-sizing: border-box;">
+          <div class="card card-level" style="background: radial-gradient(circle at top, rgba(255,255,255,0.04) 0%, rgba(10,10,26,0.9) 100%); border: 1.5px solid ${userLevel.borderColor}; box-shadow: ${userLevel.shadow}; border-radius: var(--radius-md); padding: 18px 16px; margin-bottom: 4px; box-sizing: border-box;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
               <div>
                 <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; display: block;">NIVEL DE JUGADOR</span>
@@ -139,19 +139,87 @@ export function renderProfilePage(container) {
             </div>
 
             <!-- Tiers Guide (Collapsible details) -->
-            <details style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 8px 12px; font-size: 0.78rem; cursor: pointer;">
+            <details style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 8px 12px; font-size: 0.76rem; cursor: pointer;">
               <summary style="font-weight: 600; color: var(--text-secondary); outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center;">
-                <span>ℹ️ Ver Escala de Niveles y Requisitos</span>
+                <span>ℹ️ Ver Escala de Niveles, Premios y Beneficios</span>
                 <span style="color: var(--neon-cyan); font-size: 0.7rem;">Desplegar ▼</span>
               </summary>
               <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px; color: var(--text-secondary);">
-                <div style="display: flex; justify-content: space-between;"><span>🥉 <strong>Bronce:</strong> 10 a 49.99 USDC</span> <span style="color: var(--neon-green);">1 a 4 créditos/sem</span></div>
-                <div style="display: flex; justify-content: space-between;"><span>🥈 <strong>Plata:</strong> 50 a 99.99 USDC</span> <span style="color: var(--neon-green);">5 a 9 créditos/sem</span></div>
-                <div style="display: flex; justify-content: space-between;"><span>🥇 <strong>Oro:</strong> 100 a 499.99 USDC</span> <span style="color: var(--neon-green);">10 a 49 créditos/sem</span></div>
-                <div style="display: flex; justify-content: space-between;"><span>💠 <strong>Platino:</strong> 500 a 999.99 USDC</span> <span style="color: var(--neon-green);">50 a 99 créditos/sem</span></div>
-                <div style="display: flex; justify-content: space-between;"><span>💎 <strong>Diamante:</strong> 1000+ USDC</span> <span style="color: var(--neon-green);">100+ créditos/sem</span></div>
+                <div style="display: flex; justify-content: space-between; flex-wrap: wrap;"><span>🌱 <strong>Sin Rango:</strong> &lt; 1 USDC</span> <span style="color: var(--text-muted);">0 créd/sem • Tabla Global</span></div>
+                <div style="display: flex; justify-content: space-between; flex-wrap: wrap;"><span>🌳 <strong>Madera:</strong> 1 a 9.99 USDC</span> <span style="color: #d97706;">1 créd/sem • Premio prop. (10%/USDC)</span></div>
+                <div style="display: flex; justify-content: space-between; flex-wrap: wrap;"><span>🥉 <strong>Bronce:</strong> 10 a 49.99 USDC</span> <span style="color: var(--neon-green);">1 a 4 créd/sem • 100% Premio + Cód. Ref</span></div>
+                <div style="display: flex; justify-content: space-between; flex-wrap: wrap;"><span>🥈 <strong>Plata:</strong> 50 a 99.99 USDC</span> <span style="color: var(--neon-green);">5 a 9 créd/sem • +1% Ref L1</span></div>
+                <div style="display: flex; justify-content: space-between; flex-wrap: wrap;"><span>🥇 <strong>Oro:</strong> 100 a 499.99 USDC</span> <span style="color: var(--neon-green);">10 a 49 créd/sem • +3% L1 + Transf. Créd</span></div>
+                <div style="display: flex; justify-content: space-between; flex-wrap: wrap;"><span>💠 <strong>Platino:</strong> 500 a 999.99 USDC</span> <span style="color: var(--neon-green);">50 a 99 créd/sem • +5% L1 / +1% L2</span></div>
+                <div style="display: flex; justify-content: space-between; flex-wrap: wrap;"><span>💎 <strong>Diamante:</strong> 1000+ USDC</span> <span style="color: var(--neon-green);">100+ créd/sem • +5% L1 / +3% L2</span></div>
               </div>
             </details>
+          </div>
+
+          <!-- REFERRAL & CREDIT TRANSFER SECTION -->
+          <div id="referral-system-card" style="background: rgba(139, 92, 246, 0.06); border: 1.5px solid rgba(139, 92, 246, 0.35); border-radius: var(--radius-md); padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
+              <h3 style="font-family: var(--font-display); font-size: 0.95rem; color: var(--neon-cyan); margin: 0;">
+                🤝 Sistema de Referidos y Créditos
+              </h3>
+              <span style="font-size: 0.72rem; background: rgba(0, 245, 255, 0.12); border: 1px solid rgba(0, 245, 255, 0.3); color: var(--neon-cyan); padding: 2px 8px; border-radius: 12px; font-weight: 700;">
+                ${userLevel.referralL1 > 0
+                  ? `Comisión Activa: ${(userLevel.referralL1 * 100).toFixed(0)}% L1${userLevel.referralL2 > 0 ? ` + ${(userLevel.referralL2 * 100).toFixed(0)}% L2` : ''}`
+                  : (userLevel.canRefer ? 'Código Activo (Sube a Plata para % comisión)' : 'Requiere Bronce (≥10 USDC)')}
+              </span>
+            </div>
+
+            <!-- 1. Personal Referral Code (Bronce+) -->
+            <div id="referral-my-code-box" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px;">
+              <div style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 600; margin-bottom: 6px;">
+                🔗 Tu Código de Invitación Personal
+              </div>
+              <div id="referral-code-content" style="font-size: 0.82rem; color: var(--text-muted);">
+                Cargando datos de referidos...
+              </div>
+            </div>
+
+            <!-- 2. Apply Referrer Code (if not referred yet) -->
+            <div id="referral-apply-box" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px; display: none;">
+              <div style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 600; margin-bottom: 6px;">
+                🎟️ ¿Te invitó un jugador Bronce o superior?
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="input-apply-ref-code" class="input-field" placeholder="Ej: FREX-AB12CD" style="flex: 1; font-size: 0.82rem; padding: 8px 10px; text-transform: uppercase;">
+                <button type="button" id="btn-apply-ref-code" class="btn btn-secondary btn-sm" style="white-space: nowrap; border-color: var(--neon-cyan); color: var(--neon-cyan);">
+                  Vincular
+                </button>
+              </div>
+            </div>
+
+            <!-- 3. Referral Network Stats -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;">
+              <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 8px 4px;">
+                <div style="font-size: 0.68rem; color: var(--text-muted);">Directos (N1)</div>
+                <div id="ref-stat-l1" style="font-family: var(--font-display); font-size: 1rem; color: #fff; font-weight: bold; margin-top: 2px;">0</div>
+              </div>
+              <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 8px 4px;">
+                <div style="font-size: 0.68rem; color: var(--text-muted);">De Referidos (N2)</div>
+                <div id="ref-stat-l2" style="font-family: var(--font-display); font-size: 1rem; color: var(--neon-purple); font-weight: bold; margin-top: 2px;">0</div>
+              </div>
+              <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 8px 4px;">
+                <div style="font-size: 0.68rem; color: var(--text-muted);">Ganancia Ref.</div>
+                <div id="ref-stat-earnings" style="font-family: var(--font-display); font-size: 0.9rem; color: var(--neon-green); font-weight: bold; margin-top: 2px;">0.00 USDC</div>
+              </div>
+            </div>
+
+            <!-- 4. Transfer Credits to Direct Referrals (Oro+) -->
+            <div id="referral-transfer-box" style="background: rgba(234, 179, 8, 0.06); border: 1px solid rgba(234, 179, 8, 0.25); border-radius: 8px; padding: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-size: 0.76rem; color: #facc15; font-weight: 700;">🎁 Transferir Créditos a Referidos (Rango Oro+)</span>
+                <span id="profile-my-credits-pill" style="font-size: 0.72rem; color: var(--neon-green); font-weight: bold;">
+                  Disponibles: ${user.creditos_escritura || 0} créd.
+                </span>
+              </div>
+              <div id="referral-transfer-content" style="font-size: 0.8rem; color: var(--text-secondary);">
+                Cargando...
+              </div>
+            </div>
           </div>
 
           <!-- Email (Read Only) -->
@@ -246,18 +314,18 @@ export function renderProfilePage(container) {
               <h4 style="font-family: var(--font-display); font-size: 0.8rem; color: var(--neon-purple); margin-bottom: 8px;">Desglose de Intereses</h4>
               
               <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 2px;">
-                <span>• 30% Owner / Desarrollo:</span>
+                <span>• 30% Owner / Proyecto:</span>
                 <span id="owner-stats-profit-owner" style="color: var(--neon-cyan);">0.000000 USDC</span>
               </div>
               
               <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 6px;">
-                <span>• 70% Para Repartir (Pozo de Premios):</span>
+                <span>• 70% Para Repartir (Pozo de Juegos):</span>
                 <span id="owner-stats-profit-pool" style="color: var(--neon-cyan);">0.000000 USDC</span>
               </div>
 
               <div style="padding-left: 10px; border-left: 2px solid var(--neon-purple); margin-left: 5px;">
                 <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 4px;">
-                  <span>└ 100% BlockDrop:</span>
+                  <span>└ Pozo BlockDrop:</span>
                   <span id="owner-stats-blockdrop-total" style="color: var(--text-primary);">0.000000 USDC</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px; padding-left: 15px;">
@@ -265,12 +333,16 @@ export function renderProfilePage(container) {
                   <span id="owner-stats-bd-1st">0.000000 USDC</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px; padding-left: 15px;">
-                  <span>🥈 2do Puesto (35%):</span>
+                  <span>🥈 2do Puesto (30%):</span>
                   <span id="owner-stats-bd-2nd">0.000000 USDC</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px; padding-left: 15px;">
-                  <span>🥉 3er Puesto (15%):</span>
+                  <span>🥉 3er Puesto (10%):</span>
                   <span id="owner-stats-bd-3rd">0.000000 USDC</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px; padding-left: 15px;">
+                  <span>🏅 Siguientes Puestos (10%):</span>
+                  <span id="owner-stats-bd-others">0.000000 USDC</span>
                 </div>
               </div>
             </div>
@@ -307,6 +379,7 @@ export function renderProfilePage(container) {
   renderNavbar(document.getElementById('navbar-container'), 'profile');
   renderFooter(container.querySelector('.home-page'));
   setupProfile(selectedAvatar);
+  loadReferralSection();
   
   const ADMIN_WALLETS = [
     '0x7ca7022c3Ed27534192A2379a5eDd0252b3f6E65'.toLowerCase(),
@@ -321,6 +394,174 @@ export function renderProfilePage(container) {
   }
 }
 
+async function loadReferralSection() {
+  const user = getUser();
+  if (!user) return;
+  const userLevel = getUserLevel(user.total_depositado || 0);
+
+  const codeContentEl = document.getElementById('referral-code-content');
+  const applyBoxEl = document.getElementById('referral-apply-box');
+  const transferContentEl = document.getElementById('referral-transfer-content');
+  const statL1El = document.getElementById('ref-stat-l1');
+  const statL2El = document.getElementById('ref-stat-l2');
+  const statEarningsEl = document.getElementById('ref-stat-earnings');
+  const creditsPillEl = document.getElementById('profile-my-credits-pill');
+
+  try {
+    const stats = await api.get('/wallet/referrals?t=' + Date.now());
+
+    if (statL1El) statL1El.textContent = (stats.directReferrals || []).length;
+    if (statL2El) statL2El.textContent = stats.indirectReferralsCount || 0;
+    if (statEarningsEl) statEarningsEl.textContent = `${(stats.referral_earnings || 0).toFixed(2)} USDC`;
+
+    // 1. Personal Referral Code UI
+    if (codeContentEl) {
+      if (!userLevel.canRefer) {
+        codeContentEl.innerHTML = `
+          <div style="color: var(--text-muted); font-size: 0.78rem; line-height: 1.4;">
+            🔒 Alcanza <strong style="color: #cd7f32;">Rango Bronce (≥ 10 USDC)</strong> para desbloquear tu código de referido y ganar el 100% de los premios semanales.
+          </div>
+        `;
+      } else if (stats.referral_code) {
+        const refLink = `${window.location.origin}/#/auth?ref=${stats.referral_code}`;
+        codeContentEl.innerHTML = `
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0, 245, 255, 0.08); border: 1px dashed var(--neon-cyan); padding: 8px 12px; border-radius: 6px;">
+              <span style="font-family: var(--font-display); font-size: 1rem; font-weight: bold; color: var(--neon-cyan); letter-spacing: 1px;">${stats.referral_code}</span>
+              <div style="display: flex; gap: 6px;">
+                <button type="button" id="btn-copy-ref-code" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 0.72rem;">📋 Código</button>
+                <button type="button" id="btn-copy-ref-link" class="btn btn-primary btn-sm" style="padding: 4px 8px; font-size: 0.72rem;">🔗 Enlace</button>
+              </div>
+            </div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); line-height: 1.35;">
+              Comparte tu código. En <strong>Plata (1%)</strong>, <strong>Oro (3%)</strong>, <strong>Platino (5% N1 + 1% N2)</strong> y <strong>Diamante (5% N1 + 3% N2)</strong> recibes comisión automática cuando tus referidos (Bronce+) ganan premios en el torneo semanal.
+            </div>
+          </div>
+        `;
+        document.getElementById('btn-copy-ref-code')?.addEventListener('click', () => {
+          navigator.clipboard.writeText(stats.referral_code);
+          showToast('Código de referido copiado', 'success');
+        });
+        document.getElementById('btn-copy-ref-link')?.addEventListener('click', () => {
+          navigator.clipboard.writeText(refLink);
+          showToast('Enlace de invitación copiado', 'success');
+        });
+      } else {
+        codeContentEl.innerHTML = `
+          <button type="button" id="btn-generate-ref-code" class="btn btn-primary btn-sm" style="width: 100%; font-family: var(--font-display);">
+            ✨ Generar mi Código de Referido
+          </button>
+        `;
+        document.getElementById('btn-generate-ref-code')?.addEventListener('click', async () => {
+          try {
+            const res = await api.post('/wallet/referral/generate', {});
+            if (res.user) updateLocalUser(res.user);
+            showToast(res.message || '¡Código generado!', 'success');
+            loadReferralSection();
+          } catch (err) {
+            showToast(err.message || 'Error al generar código', 'error');
+          }
+        });
+      }
+    }
+
+    // 2. Apply Referrer Code UI
+    if (applyBoxEl) {
+      if (!stats.referred_by) {
+        applyBoxEl.style.display = 'block';
+        const savedRef = localStorage.getItem('frex_ref_code');
+        const inputEl = document.getElementById('input-apply-ref-code');
+        if (savedRef && inputEl && !inputEl.value) {
+          inputEl.value = savedRef;
+        }
+        const applyBtn = document.getElementById('btn-apply-ref-code');
+        if (applyBtn && !applyBtn._bound) {
+          applyBtn._bound = true;
+          applyBtn.addEventListener('click', async () => {
+            const code = document.getElementById('input-apply-ref-code')?.value?.trim();
+            if (!code) {
+              showToast('Ingresa un código de referido', 'warning');
+              return;
+            }
+            try {
+              applyBtn.disabled = true;
+              const res = await api.post('/wallet/referral/apply', { code });
+              if (res.user) updateLocalUser(res.user);
+              localStorage.removeItem('frex_ref_code');
+              showToast(res.message || '¡Código vinculado!', 'success');
+              loadReferralSection();
+            } catch (err) {
+              showToast(err.message || 'Error al vincular código', 'error');
+            } finally {
+              applyBtn.disabled = false;
+            }
+          });
+        }
+      } else {
+        applyBoxEl.style.display = 'none';
+      }
+    }
+
+    // 3. Transfer Credits UI (Oro+)
+    if (transferContentEl) {
+      const currentUser = getUser();
+      if (creditsPillEl) {
+        creditsPillEl.textContent = `Disponibles: ${currentUser?.creditos_escritura || 0} créd.`;
+      }
+      if (!userLevel.canTransferCredits) {
+        transferContentEl.innerHTML = `
+          <div style="color: var(--text-muted); font-size: 0.76rem; line-height: 1.4;">
+            🔒 Alcanza <strong style="color: #facc15;">Rango Oro (≥ 100 USDC)</strong> para transferir tus créditos de competencia semanales a tus referidos directos.
+          </div>
+        `;
+      } else if (!stats.directReferrals || stats.directReferrals.length === 0) {
+        transferContentEl.innerHTML = `
+          <div style="color: var(--text-muted); font-size: 0.76rem;">
+            Aún no tienes referidos directos vinculados para transferirles créditos. ¡Comparte tu código!
+          </div>
+        `;
+      } else {
+        transferContentEl.innerHTML = `
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <select id="select-transfer-referral" class="input-field" style="flex: 2; min-width: 150px; padding: 7px 10px; font-size: 0.8rem;">
+                ${stats.directReferrals.map(r => `<option value="${r.id}">${r.username} (${r.creditos_escritura || 0} créd.)</option>`).join('')}
+              </select>
+              <input type="number" id="input-transfer-credits-amount" class="input-field" min="1" max="${currentUser?.creditos_escritura || 1}" value="1" placeholder="Cant." style="flex: 1; min-width: 70px; padding: 7px 10px; font-size: 0.8rem;">
+            </div>
+            <button type="button" id="btn-transfer-credits" class="btn btn-primary btn-sm" style="width: 100%; background: linear-gradient(90deg, #eab308, #ca8a04); color: #000; font-weight: 800;">
+              📤 Enviar Créditos al Referido
+            </button>
+          </div>
+        `;
+
+        document.getElementById('btn-transfer-credits')?.addEventListener('click', async () => {
+          const targetUserId = document.getElementById('select-transfer-referral')?.value;
+          const amount = parseInt(document.getElementById('input-transfer-credits-amount')?.value, 10);
+          if (!targetUserId || !amount || amount <= 0) {
+            showToast('Selecciona un referido y una cantidad válida', 'warning');
+            return;
+          }
+          try {
+            const btn = document.getElementById('btn-transfer-credits');
+            if (btn) btn.disabled = true;
+            const res = await api.post('/wallet/transfer-credits', { targetUserId, amount });
+            if (res.user) updateLocalUser(res.user);
+            showToast(res.message || 'Créditos transferidos con éxito', 'success');
+            loadReferralSection();
+          } catch (err) {
+            showToast(err.message || 'Error al transferir créditos', 'error');
+            const btn = document.getElementById('btn-transfer-credits');
+            if (btn) btn.disabled = false;
+          }
+        });
+      }
+    }
+  } catch (err) {
+    console.error('Error loading referral section:', err);
+  }
+}
+
 async function loadOwnerStats() {
   const container = document.getElementById('owner-stats-container');
   const btnDistributePrizes = document.getElementById('btn-distribute-prizes');
@@ -331,7 +572,7 @@ async function loadOwnerStats() {
   if (btnDistributePrizes) {
     btnDistributePrizes.style.display = 'block';
     btnDistributePrizes.addEventListener('click', async () => {
-      if (confirm('¿Estás seguro de ejecutar la distribución de premios manualmente? Esto vaciará los puntajes y asignará premios a los usuarios.')) {
+      if (confirm('¿Estás seguro de ejecutar la distribución de premios manualmente? Esto vaciará los puntajes de competencia y asignará premios a los usuarios.')) {
         try {
           btnDistributePrizes.disabled = true;
           btnDistributePrizes.innerHTML = 'Procesando...';
@@ -359,7 +600,6 @@ async function loadOwnerStats() {
   try {
     const res = await api.get('/admin/profit-stats?t=' + Date.now());
     adminWithdrawn = res.withdrawn || 0;
-    // Usamos el total depositado real desde la base de datos
     totalDeposited = res.totalDeposited || 0;
     window.adminWithdrawHistory = res.history || [];
   } catch (e) {
@@ -379,22 +619,21 @@ async function loadOwnerStats() {
     depEl.textContent = `${totalDeposited.toFixed(6)} USDC`;
     document.getElementById('owner-stats-interest').textContent = `${currentInterest.toFixed(6)} USDC`;
     
-    // El profit del owner generado históricamente es el 30% del interés, pero hay que descontar lo que ya retiró.
     const ownerProfitGenerated = currentInterest * 0.30;
     const ownerProfitAvailable = Math.max(0, ownerProfitGenerated - adminWithdrawn);
     const poolProfit = currentInterest * 0.70;
     
-    // Guardamos el disponible en el window para el boton
     window.adminProfitAvailable = ownerProfitAvailable;
     
     document.getElementById('owner-stats-profit-owner').textContent = `${ownerProfitAvailable.toFixed(6)} USDC`;
     document.getElementById('owner-stats-profit-pool').textContent = `${poolProfit.toFixed(6)} USDC`;
     
-    // 100% to BlockDrop currently
     document.getElementById('owner-stats-blockdrop-total').textContent = `${poolProfit.toFixed(6)} USDC`;
     document.getElementById('owner-stats-bd-1st').textContent = `${(poolProfit * 0.50).toFixed(6)} USDC`;
-    document.getElementById('owner-stats-bd-2nd').textContent = `${(poolProfit * 0.35).toFixed(6)} USDC`;
-    document.getElementById('owner-stats-bd-3rd').textContent = `${(poolProfit * 0.15).toFixed(6)} USDC`;
+    document.getElementById('owner-stats-bd-2nd').textContent = `${(poolProfit * 0.30).toFixed(6)} USDC`;
+    document.getElementById('owner-stats-bd-3rd').textContent = `${(poolProfit * 0.10).toFixed(6)} USDC`;
+    const othersEl = document.getElementById('owner-stats-bd-others');
+    if (othersEl) othersEl.textContent = `${(poolProfit * 0.10).toFixed(6)} USDC`;
     
     const btnWithdrawEarnings = document.getElementById('btn-admin-withdraw');
     if (btnWithdrawEarnings) {
@@ -423,8 +662,6 @@ async function loadOwnerStats() {
   const fetchFromChain = async () => {
     try {
       const data = await getAaveFinancialData();
-      // Ya no usamos data.totalDeposited del contrato porque no refleja los premios y retiros correctamente off-chain
-      // Calculamos el interés en base al balance total en aave (data.currentBalance) menos el capital total (base de datos)
       const currentBalance = data.currentBalance || 0;
       interest = Math.max(0, currentBalance - totalDeposited);
       simulatedInterest = interest;
@@ -436,10 +673,8 @@ async function loadOwnerStats() {
     }
   };
 
-  // Initial fetch
   await fetchFromChain();
   
-  // Aave APY ~4% base. Calculate interest per 100ms.
   fastInterval = setInterval(() => {
     if (totalDeposited > 0) {
       const interestPerSecond = (totalDeposited * 0.04) / (365 * 24 * 60 * 60);
@@ -448,7 +683,6 @@ async function loadOwnerStats() {
     }
   }, 100);
 
-  // Re-sync with blockchain every 10 seconds to correct drift
   slowInterval = setInterval(fetchFromChain, 10000);
 }
 
@@ -475,15 +709,12 @@ async function handleAdminWithdrawProfit() {
 function setupProfile(selectedAvatar) {
   let activeAvatarUrl = selectedAvatar;
   const avatarPreviewImg = document.getElementById('avatar-preview-img');
-  const customSeedInput = document.getElementById('avatar-custom-seed');
 
-  // Helper to update preview
   const updateAvatarPreview = (url) => {
     activeAvatarUrl = url;
     if (avatarPreviewImg) avatarPreviewImg.src = url;
   };
 
-  // Avatar seed selectors click handlers
   document.querySelectorAll('.avatar-option').forEach(option => {
     option.addEventListener('click', (e) => {
       document.querySelectorAll('.avatar-option').forEach(opt => {
@@ -497,13 +728,11 @@ function setupProfile(selectedAvatar) {
     });
   });
 
-  // Custom image upload changes
   const avatarUploadInput = document.getElementById('avatar-upload');
   avatarUploadInput?.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Check file size (e.g., limit to 2MB before compression)
     if (file.size > 2 * 1024 * 1024) {
       showToast('La imagen es muy pesada (máximo 2MB)', 'error');
       return;
@@ -515,7 +744,7 @@ function setupProfile(selectedAvatar) {
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        const maxSize = 150; // Pequeño y liviano
+        const maxSize = 150;
 
         let width = img.width;
         let height = img.height;
@@ -547,7 +776,6 @@ function setupProfile(selectedAvatar) {
     reader.readAsDataURL(file);
   });
 
-  // Save changes submit handler
   document.getElementById('profile-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('btn-save-profile');
@@ -570,12 +798,8 @@ function setupProfile(selectedAvatar) {
         telegram
       });
 
-      // Update local storage user session
       updateLocalUser(response.user);
-
       showToast('¡Perfil actualizado con éxito!', 'success');
-      
-      // Refresh Navbar
       renderNavbar(document.getElementById('navbar-container'), 'profile');
     } catch (err) {
       showToast(err.message || 'Error al guardar los cambios del perfil', 'error');
@@ -587,11 +811,8 @@ function setupProfile(selectedAvatar) {
     }
   });
 
-  // Logout button handler
   document.getElementById('btn-profile-logout')?.addEventListener('click', () => {
     logout();
     window.location.hash = '#/auth';
   });
 }
-
-

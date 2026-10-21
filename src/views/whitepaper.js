@@ -15,9 +15,9 @@ export function renderWhitepaperPage(container) {
           <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 15px;">
             <li><a href="#intro" style="color: var(--text-secondary); text-decoration: none; font-weight: bold; transition: color 0.2s;">1. Introducción</a></li>
             <li><a href="#interfaz" style="color: var(--text-secondary); text-decoration: none; font-weight: bold; transition: color 0.2s;">2. Guía de Interfaz</a></li>
-            <li><a href="#juegos" style="color: var(--text-secondary); text-decoration: none; font-weight: bold; transition: color 0.2s;">3. Juegos (BlockDrop)</a></li>
-            <li><a href="#niveles" style="color: var(--text-secondary); text-decoration: none; font-weight: bold; transition: color 0.2s;">4. Sistema de Niveles y Rangos</a></li>
-            <li><a href="#finanzas" style="color: var(--text-secondary); text-decoration: none; font-weight: bold; transition: color 0.2s;">5. Finanzas y Retiros</a></li>
+            <li><a href="#juegos" style="color: var(--text-secondary); text-decoration: none; font-weight: bold; transition: color 0.2s;">3. Juegos y Tablas</a></li>
+            <li><a href="#niveles" style="color: var(--text-secondary); text-decoration: none; font-weight: bold; transition: color 0.2s;">4. Niveles y Referidos</a></li>
+            <li><a href="#finanzas" style="color: var(--text-secondary); text-decoration: none; font-weight: bold; transition: color 0.2s;">5. Finanzas y Premios</a></li>
             <li><a href="#objetivos" style="color: var(--text-secondary); text-decoration: none; font-weight: bold; transition: color 0.2s;">6. Objetivos del Proyecto</a></li>
             <li><a href="#equipo" style="color: var(--text-secondary); text-decoration: none; font-weight: bold; transition: color 0.2s;">7. El Equipo</a></li>
             <li><a href="#seguridad" style="color: var(--text-secondary); text-decoration: none; font-weight: bold; transition: color 0.2s;">8. Seguridad y Contratos</a></li>
@@ -46,43 +46,38 @@ export function renderWhitepaperPage(container) {
             <p>El Navbar es tu centro de control en todo momento. Desde aquí puedes acceder rápidamente a:</p>
             <ul>
               <li style="margin-bottom: 10px;"><strong>Jugar:</strong> Te dirige a BlockDrop.</li>
-              <li style="margin-bottom: 10px;"><strong>Leaderboard:</strong> Tabla de posiciones global actualizada en tiempo real con niveles e insignias.</li>
-              <li style="margin-bottom: 10px;"><strong>Billetera:</strong> Sección para gestionar tus depósitos de USDC y tus retiros, con selector de rangos.</li>
+              <li style="margin-bottom: 10px;"><strong>Leaderboard (Competencia y Global):</strong> Tabla de posiciones semanal por premios y tabla global informativa actualizada en tiempo real con niveles e insignias.</li>
+              <li style="margin-bottom: 10px;"><strong>Billetera:</strong> Sección para gestionar tus depósitos libres de USDC y tus retiros.</li>
               <li style="margin-bottom: 10px;"><strong>Información de Créditos:</strong> En la parte derecha verás tu saldo de USDC y de Créditos semanales disponibles.</li>
-              <li style="margin-bottom: 10px;"><strong>Menú de Perfil (Avatar):</strong> Al hacer clic en tu insignia de nivel o avatar, despliegas tu rango de jugador, barra de progreso al siguiente nivel y accesos directos.</li>
+              <li style="margin-bottom: 10px;"><strong>Menú de Perfil (Avatar):</strong> Al hacer clic en tu insignia de nivel o avatar, accedes a tu rango de jugador, barra de progreso al siguiente nivel, sistema de referidos y transferencia de créditos.</li>
             </ul>
 
             <h3 style="color: var(--neon-cyan); margin-top: 30px;">Conexión de Cuenta y Perfil</h3>
             <div style="width:100%; margin: 15px 0; text-align: center;">
               <img src="/assets/images/login.png" alt="Menú de Conexión" style="max-width: 100%; max-height: 400px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
             </div>
-            <p>La plataforma ofrece múltiples vías de registro (Correo/Contraseña o Google). Una vez dentro de tu perfil, la seguridad de las cuentas es estricta: un medio de conexión no sobrescribe a otro y tu sesión está protegida mediante almacenamiento temporal. Al cerrar sesión o en caso de inactividad, se limpia tu información local por seguridad.</p>
+            <p>La plataforma ofrece múltiples vías de registro (Correo/Contraseña, Google o World App). Una vez dentro de tu perfil, la seguridad de las cuentas es estricta: un medio de conexión no sobrescribe a otro y tu sesión está protegida mediante almacenamiento temporal.</p>
 
-            <h3 style="color: var(--neon-cyan); margin-top: 30px;">Botones de Juego y Puntaje Pendiente</h3>
+            <h3 style="color: var(--neon-cyan); margin-top: 30px;">Botones de Juego, Tabla Global y Puntaje de Competencia</h3>
             <div style="width:100%; margin: 15px 0; text-align: center;">
               <img src="/assets/images/game.png" alt="Menú del Juego BlockDrop" style="max-width: 100%; max-height: 500px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
             </div>
-            <p>Dentro de BlockDrop verás el área de juego y, en caso de superar tu récord temporal, aparecerá la opción de <strong>Guardar Puntaje</strong> en la barra superior o en el panel de resumen de la partida.</p>
-            <div style="background: rgba(255,0,0,0.1); padding: 15px; border-radius: 8px; border-left: 4px solid var(--neon-pink); margin-bottom: 15px;">
-              <h4 style="color: var(--neon-pink); margin-top: 0;">¡ATENCIÓN! Guardado Local</h4>
-              <p style="margin-bottom: 0;">Es crucial entender que <strong>el puntaje pendiente NO se graba en la base de datos hasta que tú decidas gastar 1 crédito para guardarlo</strong>. Mientras tanto, tu puntaje máximo sin guardar permanece de manera <strong>local en el navegador de tu dispositivo actual</strong>.</p>
-            </div>
-            <p>Esto significa que <strong>si juegas en tu computadora y generas un gran puntaje, NO podrás abrir tu cuenta desde el celular para guardarlo allí.</strong> El puntaje pendiente vive estrictamente en la memoria de la ventana/navegador donde se jugó. Una vez guardado oficialmente con un crédito, ya es público, se inscribe en la blockchain y se asocia para siempre a tu usuario en la nube, y ahí el registro local se elimina para evitar duplicados.</p>
+            <p>Al terminar una partida en BlockDrop, tu mejor puntaje histórico se registra automáticamente en la <strong>Tabla Global de Puntos (Informativa)</strong> sin gastar créditos. Además, si deseas competir por el pozo semanal de premios en USDC, puedes inscribir tu puntaje en la <strong>Tabla de Competencia</strong> desde la sección <strong>Registro</strong> utilizando 1 crédito.</p>
           </section>
 
           <section id="juegos" style="margin-bottom: 50px;">
-            <h2 style="color: #fff; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 20px;">3. Juegos (BlockDrop)</h2>
-            <p><strong>BlockDrop</strong> es el primer juego insignia de FrexLand. Inspirado en clásicos rompecabezas, los jugadores conectan su billetera, depositan USDC (en la red Base) para obtener créditos, y compiten por alcanzar el puntaje más alto.</p>
+            <h2 style="color: #fff; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 20px;">3. Juegos y Tablas (Competencia vs. Global)</h2>
+            <p><strong>BlockDrop</strong> es el primer juego insignia de FrexLand. Cada juego cuenta con dos tablas diferenciadas:</p>
             <ul>
-              <li style="margin-bottom: 10px;"><strong>Depósitos:</strong> 10 USDC = 1 Crédito semanal para registrar récord.</li>
-              <li style="margin-bottom: 10px;"><strong>Juego Libre:</strong> Puedes practicar de forma ilimitada sin gastar créditos.</li>
-              <li style="margin-bottom: 10px;"><strong>Registro y Renovación Semanal:</strong> Al usar 1 crédito, tu puntaje se inscribe en el ranking semanal del pozo. Los créditos se renuevan semanalmente al completarse la cuenta regresiva del pozo de premios.</li>
+              <li style="margin-bottom: 10px;"><strong>🏆 Tabla de Competencia (Torneo Semanal):</strong> Exclusiva para quienes inscriben su puntaje usando 1 crédito semanal. Compite por el 70% de los intereses semanales de Aave V3.</li>
+              <li style="margin-bottom: 10px;"><strong>🌍 Tabla Global de Puntos (Informativa por Juego):</strong> Registra automáticamente el mayor puntaje histórico de cada usuario (incluyendo usuarios <em>Sin Rango</em> que no hayan depositado), mostrando <strong>Usuario - Puntaje - Rango</strong>.</li>
+              <li style="margin-bottom: 10px;"><strong>Depósitos Libres:</strong> Puedes depositar cualquier cantidad de USDC sin restricción de múltiplos de 10.</li>
             </ul>
           </section>
 
           <section id="niveles" style="margin-bottom: 50px;">
-            <h2 style="color: #fff; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 20px;">4. Sistema de Niveles y Rangos</h2>
-            <p>Para premiar y distinguir el respaldo que cada jugador aporta al pool de liquidez, FrexLand cuenta con un <strong>Sistema de Rangos por Depósito</strong> en USDC en Aave V3. Cada nivel desbloquea insignias exclusivas en el perfil y rankings, además de un volumen proporcional de créditos semanales:</p>
+            <h2 style="color: #fff; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 20px;">4. Sistema de Niveles, Referidos y Transferencia de Créditos</h2>
+            <p>FrexLand cuenta con un <strong>Sistema de Rangos por Depósito</strong> en USDC en Aave V3 que determina tus créditos semanales, el porcentaje de premio recibido y las comisiones por referidos:</p>
 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin: 25px 0;">
               
@@ -91,7 +86,15 @@ export function renderWhitepaperPage(container) {
                   <span style="font-size: 1.3rem;">🌱</span>
                   <strong style="color: #94a3b8; font-size: 1.05rem;">Sin Rango</strong>
                 </div>
-                <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">Depósito: <strong>&lt; 10 USDC</strong><br>Créditos semanales: <strong>0 créditos</strong> (modo práctica ilimitado).</p>
+                <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">Depósito: <strong>&lt; 1 USDC</strong><br>Créditos semanales: <strong>0 créditos</strong>.<br>Participa en la Tabla Global de Puntos informativa.</p>
+              </div>
+
+              <div style="background: rgba(217, 119, 6, 0.08); border: 1px solid rgba(217, 119, 6, 0.35); border-radius: 8px; padding: 16px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                  <span style="font-size: 1.3rem;">🌳</span>
+                  <strong style="color: #d97706; font-size: 1.05rem;">Nivel Madera</strong>
+                </div>
+                <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">Depósito: <strong>1 a 9.99 USDC (sin incluir 10)</strong><br>Créditos semanales: <strong>1 crédito</strong>.<br>Premio proporcional al depósito: <strong>1 USDC = 10%, 3 USDC = 30%, etc.</strong> El resto del premio se deposita al proyecto / administrador.</p>
               </div>
 
               <div style="background: rgba(205, 127, 50, 0.05); border: 1px solid rgba(205, 127, 50, 0.3); border-radius: 8px; padding: 16px;">
@@ -99,7 +102,7 @@ export function renderWhitepaperPage(container) {
                   <span style="font-size: 1.3rem;">🥉</span>
                   <strong style="color: #cd7f32; font-size: 1.05rem;">Nivel Bronce</strong>
                 </div>
-                <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">Depósito: <strong>10 a 49.99 USDC</strong><br>Créditos semanales: <strong>1 a 4 créditos</strong>.</p>
+                <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">Depósito: <strong>10 a 49.99 USDC</strong><br>Créditos semanales: <strong>1 a 4 créditos (1 cada 10 USDC)</strong>.<br>Gana el <strong>100% del premio</strong> y habilita generar <strong>Código de Referido</strong>.</p>
               </div>
 
               <div style="background: rgba(148, 163, 184, 0.06); border: 1px solid rgba(148, 163, 184, 0.3); border-radius: 8px; padding: 16px;">
@@ -107,7 +110,7 @@ export function renderWhitepaperPage(container) {
                   <span style="font-size: 1.3rem;">🥈</span>
                   <strong style="color: #cbd5e1; font-size: 1.05rem;">Nivel Plata</strong>
                 </div>
-                <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">Depósito: <strong>50 a 99.99 USDC</strong><br>Créditos semanales: <strong>5 a 9 créditos</strong>.</p>
+                <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">Depósito: <strong>50 a 99.99 USDC</strong><br>Créditos semanales: <strong>5 a 9 créditos</strong>.<br>Recibe el <strong>1%</strong> de lo que ganen sus referidos directos (Bronce+).</p>
               </div>
 
               <div style="background: rgba(234, 179, 8, 0.06); border: 1px solid rgba(234, 179, 8, 0.3); border-radius: 8px; padding: 16px;">
@@ -115,7 +118,7 @@ export function renderWhitepaperPage(container) {
                   <span style="font-size: 1.3rem;">🥇</span>
                   <strong style="color: #facc15; font-size: 1.05rem;">Nivel Oro</strong>
                 </div>
-                <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">Depósito: <strong>100 a 499.99 USDC</strong><br>Créditos semanales: <strong>10 a 49 créditos</strong>.</p>
+                <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">Depósito: <strong>100 a 499.99 USDC</strong><br>Créditos semanales: <strong>10 a 49 créditos</strong>.<br>Recibe el <strong>3%</strong> de referidos directos y puede <strong>transferir sus créditos a sus referidos</strong>.</p>
               </div>
 
               <div style="background: rgba(34, 211, 238, 0.06); border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 8px; padding: 16px;">
@@ -123,7 +126,7 @@ export function renderWhitepaperPage(container) {
                   <span style="font-size: 1.3rem;">💠</span>
                   <strong style="color: #22d3ee; font-size: 1.05rem;">Nivel Platino</strong>
                 </div>
-                <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">Depósito: <strong>500 a 999.99 USDC</strong><br>Créditos semanales: <strong>50 a 99 créditos</strong>.</p>
+                <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">Depósito: <strong>500 a 999.99 USDC</strong><br>Créditos semanales: <strong>50 a 99 créditos</strong>.<br>Recibe el <strong>5%</strong> de referidos directos + <strong>1%</strong> de referidos de referidos (N2) + transferencia de créditos.</p>
               </div>
 
               <div style="background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.35); border-radius: 8px; padding: 16px;">
@@ -131,26 +134,31 @@ export function renderWhitepaperPage(container) {
                   <span style="font-size: 1.3rem;">💎</span>
                   <strong style="color: #c084fc; font-size: 1.05rem;">Nivel Diamante</strong>
                 </div>
-                <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">Depósito: <strong>1000+ USDC</strong><br>Créditos semanales: <strong>100+ créditos</strong> (Rango Legendario).</p>
+                <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">Depósito: <strong>1000+ USDC</strong><br>Créditos semanales: <strong>100+ créditos</strong>.<br>Recibe el <strong>5%</strong> de referidos directos + <strong>3%</strong> de referidos de referidos (N2) + transferencia de créditos.</p>
               </div>
 
             </div>
 
             <div style="background: rgba(0, 245, 255, 0.05); border-left: 4px solid var(--neon-cyan); border-radius: 8px; padding: 15px; margin-top: 15px;">
-              <h4 style="color: var(--neon-cyan); margin-top: 0;">Fórmula y Renovación Semanal de Créditos</h4>
-              <p style="margin-bottom: 0;">Los créditos semanales se determinan mediante la fórmula: <code>⌊Depósito / 10⌋ + (1 si verificaste World ID)</code>. Estos créditos se renuevan de manera fija y automática cada semana al finalizar la cuenta regresiva del pozo, tras la distribución de premios a los ganadores del ranking.</p>
+              <h4 style="color: var(--neon-cyan); margin-top: 0;">Reglas de Créditos y Comisiones de Referidos</h4>
+              <p style="margin-bottom: 0;">• En <strong>Madera (1 a &lt;10 USDC)</strong> recibes 1 crédito semanal. Desde <strong>Bronce (≥ 10 USDC)</strong> se mantiene <strong>1 crédito cada 10 USDC</strong> (<code>⌊Depósito / 10⌋</code>, sin sumar crédito extra de Madera), más <code>+1 crédito</code> si verificaste World ID.<br>
+              • Las comisiones de referidos se aplican al finalizar el torneo semanal siempre y cuando los ganadores de premios sean <strong>Bronce o superior (≥ 10 USDC)</strong>, evaluando el rango del referente en el momento de repartir los premios y descontándose de la recompensa del ganador.</p>
             </div>
           </section>
 
           <section id="finanzas" style="margin-bottom: 50px;">
-            <h2 style="color: #fff; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 20px;">5. Finanzas y Retiros</h2>
-            <p>Todo el USDC depositado por los usuarios se envía de forma transparente a un pool de liquidez en Aave (Base Network), generando intereses constantemente.</p>
+            <h2 style="color: #fff; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 20px;">5. Finanzas, Distribución de Premios y Puestos Dinámicos</h2>
+            <p>Todo el USDC depositado por los usuarios se suministra de forma transparente al pool de liquidez en Aave V3 (Base Network), generando intereses constantemente.</p>
             <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid var(--neon-cyan);">
-              <h4 style="color: var(--neon-cyan); margin-top: 0;">Distribución del Interés Semanal</h4>
+              <h4 style="color: var(--neon-cyan); margin-top: 0;">Distribución Semanal de Intereses (70% Juegos / 30% Proyecto)</h4>
               <p style="margin-bottom: 0;">Cada semana, al finalizar la cuenta regresiva (Jueves 00:00 UTC), los intereses generados se reparten:<br>
-              • <strong>70%</strong> se divide entre el Top 3 (50%, 35%, 15%).<br>
-              • <strong>30%</strong> va al equipo de desarrollo para el mantenimiento de la plataforma.<br>
-              Inmediatamente después de la entrega, se renuevan los créditos semanales de todos los jugadores de acuerdo a su nivel.</p>
+              • <strong>70% para los distintos juegos:</strong> Se asigna proporcionalmente a cada juego de acuerdo a la cantidad de grabaciones de puntaje en su tabla de competencia semanal.<br>
+              • <strong>30% para el Proyecto:</strong> Se deposita al proyecto / desarrollo al finalizar cada semana.<br><br>
+              <strong>Reparto dentro de cada juego:</strong><br>
+              • <strong>🥇 1° Puesto:</strong> 50% del pozo del juego.<br>
+              • <strong>🥈 2° Puesto:</strong> 30% del pozo del juego.<br>
+              • <strong>🥉 3° Puesto:</strong> 10% del pozo del juego.<br>
+              • <strong>🏅 Siguientes Puestos (4° al 13°+):</strong> El otro <strong>10%</strong> se reparte en partes iguales entre los primeros 10 siguientes (puestos 4° al 13°). Si el premio para cada uno de esos 10 puestos supera los <strong>10 USDC</strong>, se habilitan automáticamente <strong>+10 puestos adicionales con resultados vacíos</strong> (20 siguientes, 30 siguientes, y así sucesivamente cada vez que el menor premio supere los 10 USDC).</p>
             </div>
             <p><strong>Retiros Seguros:</strong> Tu depósito inicial siempre es tuyo. Puedes solicitar su retiro, el cual tiene un período de seguridad y confirmación de 24 horas para proteger el capital del pool contra ataques de manipulación.</p>
           </section>
@@ -178,46 +186,33 @@ export function renderWhitepaperPage(container) {
             <h3 style="color: var(--neon-cyan); margin-top: 30px;">Auditoría con Slither</h3>
             <p>El código del contrato ha sido analizado profundamente utilizando <strong>Slither</strong>, el framework de análisis estático más avanzado para Solidity. Durante el desarrollo y la auditoría, se implementaron las siguientes protecciones de estándar industrial:</p>
             <ul>
-              <li style="margin-bottom: 10px;"><strong>Protección contra Reentrancy:</strong> Utilizamos <code>ReentrancyGuard</code> de OpenZeppelin en todas las funciones sensibles (especialmente el retiro de fondos) para prevenir ataques donde un contrato malicioso intente drenar liquidez llamando recursivamente a la función.</li>
-              <li style="margin-bottom: 10px;"><strong>Patrón "Pull over Push":</strong> En lugar de que el contrato envíe fondos automáticamente a los ganadores (lo cual es riesgoso y puede causar bloqueos si una transferencia falla), el protocolo requiere que los usuarios soliciten su retiro. Esto aísla el riesgo de fallo de un usuario del resto del ecosistema.</li>
-              <li style="margin-bottom: 10px;"><strong>Time-Lock de 24 Horas:</strong> Implementamos un mecanismo de seguridad estricto que obliga a esperar 24 horas tras solicitar un retiro. Esto neutraliza manipulaciones de precios flash-loan y da tiempo a reaccionar en caso de un evento inesperado.</li>
-              <li style="margin-bottom: 10px;"><strong>Interacción Segura con Aave V3:</strong> El contrato no reinventa la rueda financiera; deposita los USDC directamente en Aave V3 utilizando integraciones estándar y comprobadas, limitando el riesgo sistémico únicamente a la seguridad ampliamente validada de Aave.</li>
-              <li style="margin-bottom: 10px;"><strong>Sin "Owner Trap":</strong> El propietario del contrato no tiene capacidad de pausar los retiros legítimos de los usuarios ni de acceder a sus depósitos, garantizando la confianza y descentralización de los fondos.</li>
+              <li style="margin-bottom: 10px;"><strong>Protección contra Reentrancy:</strong> Utilizamos <code>ReentrancyGuard</code> de OpenZeppelin en todas las funciones sensibles para prevenir ataques recursivos.</li>
+              <li style="margin-bottom: 10px;"><strong>Patrón "Pull over Push":</strong> El protocolo requiere que los usuarios soliciten su retiro, aislando el riesgo de fallo de un usuario del resto del ecosistema.</li>
+              <li style="margin-bottom: 10px;"><strong>Time-Lock de 24 Horas:</strong> Obliga a esperar 24 horas tras solicitar un retiro, neutralizando manipulaciones flash-loan.</li>
+              <li style="margin-bottom: 10px;"><strong>Interacción Segura con Aave V3:</strong> Deposita los USDC directamente en Aave V3 utilizando integraciones estándar.</li>
             </ul>
           </section>
 
           <section id="worldapp" style="margin-bottom: 50px;">
             <h2 style="color: #fff; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 20px;">9. Integración World App & World ID (Anti-Bots y Mecanismo Cross-Chain)</h2>
-            <p>FrexLand ha sido concebido desde sus cimientos para ofrecer una experiencia de juego limpia, justa y libre de bots automatizados. Gracias a la integración con el ecosistema de <strong>World (World App, World Chain y World ID)</strong>, resolvemos uno de los desafíos más críticos de los videojuegos Web3: la suplantación de identidad (ataques Sybil) y el abuso de scripts.</p>
+            <p>FrexLand ofrece una experiencia de juego limpia y libre de bots gracias a la integración con <strong>World (World App, World Chain y World ID)</strong>.</p>
 
             <h3 style="color: var(--neon-cyan); margin-top: 30px;">9.1. Mini-App en World App (MiniKit)</h3>
-            <p>FrexLand funciona como una Mini-App verificada dentro de <strong>World App</strong> mediante el framework oficial <strong>MiniKit</strong>. Esto permite que millones de usuarios globales accedan directamente desde sus teléfonos móviles sin necesidad de lidiar con frases semilla complejas, configuraciones manuales de RPC ni extensiones externas de navegador. Los pagos, depósitos y verificaciones ocurren en un entorno protegido y nativo.</p>
+            <p>FrexLand funciona como una Mini-App dentro de <strong>World App</strong> mediante el framework oficial <strong>MiniKit</strong>, permitiendo pagos, depósitos libres y verificaciones en un entorno nativo.</p>
 
-            <h3 style="color: var(--neon-cyan); margin-top: 30px;">9.2. Verificación de Humanidad (Proof of Personhood con World ID Orb)</h3>
-            <p>El pilar fundamental de nuestra protección contra bots es <strong>World ID</strong> verificado por <strong>Orb</strong>:</p>
+            <h3 style="color: var(--neon-cyan); margin-top: 30px;">9.2. Verificación de Humanidad (World ID Orb)</h3>
             <ul>
-              <li style="margin-bottom: 10px;"><strong>Privacidad Cero-Conocimiento (ZKP):</strong> World ID utiliza pruebas criptográficas de conocimiento cero (Zero-Knowledge Proofs). En ningún momento se revelan ni almacenan datos biométricos o personales. La plataforma únicamente recibe una prueba matemática irrefutable de que quien juega es un ser humano real y único en el mundo.</li>
-              <li style="margin-bottom: 10px;"><strong>Protección de Leaderboards y Torneos:</strong> Cada usuario verificado genera un <code>nullifier_hash</code> único que impide la creación de múltiples cuentas por una misma persona para monopolizar los premios del pozo semanal.</li>
-              <li style="margin-bottom: 10px;"><strong>Crédito Semanal de Humanidad (Renovación con la Cuenta Regresiva de Premios):</strong> Una vez que un jugador verifica su condición de humano mediante World ID Orb, el protocolo le otorga <strong>1 crédito extra de juego semanal</strong>. Este crédito se renueva y acredita automáticamente cada semana tras el cierre de la cuenta regresiva y la distribución de premios del pozo, permitiéndole registrar sus récords en el leaderboard semana tras semana junto a los créditos por su capital depositado.</li>
+              <li style="margin-bottom: 10px;"><strong>Privacidad Cero-Conocimiento (ZKP):</strong> Garantiza que cada jugador es un humano único sin exponer datos personales.</li>
+              <li style="margin-bottom: 10px;"><strong>Crédito Semanal de Humanidad:</strong> Otorga <strong>+1 crédito extra semanal</strong> renovable cada semana tras la distribución de premios.</li>
             </ul>
 
-            <h3 style="color: var(--neon-cyan); margin-top: 30px;">9.3. Mecanismo Cross-Chain y Regla de Depósitos (World Chain a Base / Aave V3)</h3>
-            <p>Para maximizar la eficiencia y el rendimiento financiero de los fondos, el protocolo opera con una arquitectura multi-cadena perfectamente coordinada:</p>
+            <h3 style="color: var(--neon-cyan); margin-top: 30px;">9.3. Mecanismo Cross-Chain y Depósitos Libres (World Chain a Base / Aave V3)</h3>
             <div style="background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 8px; padding: 18px; margin: 20px 0; line-height: 1.6;">
-              <h4 style="color: var(--neon-purple); margin-top: 0; margin-bottom: 8px;">Arquitectura de Depósito y Rendimiento:</h4>
-              <p style="margin-bottom: 10px;">1. <strong>Depósito en World Chain:</strong> El usuario transfiere USDC desde su billetera de World App en la red World Chain.</p>
-              <p style="margin-bottom: 10px;">2. <strong>Regla de Múltiplos de 10 USDC + 0.01 USDC:</strong> Los depósitos deben ser obligatoriamente en montos de <strong>(10 × N) + 0.01 USDC</strong> (ej: <strong>10.01, 50.01, 100.01, 500.01, 1000.01 USDC</strong>). Los 0.01 USDC se destinan estrictamente a solventar las comisiones reales de red y el puente cross-chain.</p>
-              <p style="margin-bottom: 10px;">3. <strong>Puente a Base y Suministro a Aave V3:</strong> Los fondos se transfieren hacia la red Base y el contrato inteligente invoca automáticamente <code>registrarEntrada</code> con el múltiplo exacto de 10 USDC (10, 50, 100 USDC...). Dichos fondos se suministran a Aave V3 para generar intereses en aUSDC.</p>
-              <p style="margin-bottom: 0;">4. <strong>Generación de Créditos Semanales:</strong> Por cada 10 USDC netos en Aave, el usuario obtiene 1 crédito semanal permanente correspondiente a su rango (ej. Bronce: 10 USDC = 1 crédito semanal; Plata: 50 USDC = 5 créditos semanales; Oro: 100 USDC = 10 créditos semanales; Platino: 500 USDC = 50 créditos semanales; Diamante: 1000 USDC = 100 créditos semanales). Sumado al crédito por verificación de humanidad con World ID, un usuario verificado con 10 USDC en Aave dispone de <strong>2 créditos todas las semanas al reiniciarse la cuenta regresiva de premios</strong>.</p>
+              <h4 style="color: var(--neon-purple); margin-top: 0; margin-bottom: 8px;">Arquitectura de Depósito Libre y Rendimiento:</h4>
+              <p style="margin-bottom: 10px;">1. <strong>Depósito de Cualquier Cantidad:</strong> Puedes depositar cualquier monto de USDC (desde 1 USDC para Rango Madera o desde 10 USDC para Rango Bronce y superiores).</p>
+              <p style="margin-bottom: 10px;">2. <strong>En World Chain (+0.01 USDC de Fee de Puente):</strong> En World App se adiciona únicamente 0.01 USDC para cubrir el puente cross-chain hacia Base.</p>
+              <p style="margin-bottom: 0;">3. <strong>Suministro a Aave V3 y Créditos:</strong> Los fondos se suministran a Aave V3 en Base para generar intereses en aUSDC, activando instantáneamente tu rango (Madera: 1 crédito semanal; Bronce+: 1 crédito semanal cada 10 USDC depositados).</p>
             </div>
-
-            <h3 style="color: var(--neon-cyan); margin-top: 30px;">9.4. Mecanismo de Retiro On-Chain</h3>
-            <p>Cuando un usuario de World App solicita retirar su capital depositado:</p>
-            <ul>
-              <li style="margin-bottom: 10px;">Tras cumplirse el período de seguridad de 24 horas (Time-Lock contra manipulaciones flash-loan), el contrato inteligente retira los USDC correspondientes desde el pool de Aave V3 en la red Base.</li>
-              <li style="margin-bottom: 10px;">La infraestructura ejecuta el puente inverso hacia World Chain directamente a la dirección del usuario.</li>
-              <li style="margin-bottom: 10px;">Las comisiones de red y bridge requeridas por la transacción se descuentan directamente del capital retirado, garantizando un balance contable matemáticamente exacto y sostenible sin generar deudas para el protocolo.</li>
-            </ul>
           </section>
         </div>
       </div>
@@ -226,7 +221,6 @@ export function renderWhitepaperPage(container) {
 
   renderNavbar(container.querySelector('#navbar-container'), 'whitepaper');
   
-  // Attach footer
   const pageContainer = container.querySelector('.home-page');
   const footerDiv = document.createElement('div');
   footerDiv.style.marginTop = 'auto';
