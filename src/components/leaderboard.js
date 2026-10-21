@@ -4,18 +4,18 @@ import { getUserLevel, renderLevelBadge } from '../utils/levels.js';
 
 let leaderboardData = [];
 let leaderboardMeta = {
-  unlockedSlots: 13,
-  secondarySlots: 10,
+  unlockedSlots: 3,
+  secondarySlots: 0,
   gamesDistribution: { blockdrop: { count: 0, percentage: 100 } },
 };
 
-export async function fetchLeaderboard(limit = 50, gameId = 'blockdrop') {
+export async function fetchLeaderboard(limit = 50, gameId = 'blockdrop', poolBalance = 0) {
   try {
-    const data = await api.get(`/scores/leaderboard?limit=${limit}&gameId=${gameId}&t=${Date.now()}`);
+    const data = await api.get(`/scores/leaderboard?limit=${limit}&gameId=${gameId}&poolBalance=${poolBalance}&t=${Date.now()}`);
     leaderboardData = data.leaderboard || [];
     leaderboardMeta = {
-      unlockedSlots: data.unlockedSlots || 13,
-      secondarySlots: data.secondarySlots || 10,
+      unlockedSlots: data.unlockedSlots || 3,
+      secondarySlots: data.secondarySlots !== undefined ? data.secondarySlots : Math.max(0, (data.unlockedSlots || 3) - 3),
       gamesDistribution: data.gamesDistribution || { blockdrop: { count: 0, percentage: 100 } },
     };
     return leaderboardData;

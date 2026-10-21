@@ -154,11 +154,10 @@ export function renderWhitepaperPage(container) {
               <p style="margin-bottom: 0;">Cada semana, al finalizar la cuenta regresiva (Jueves 00:00 UTC), los intereses generados se reparten:<br>
               • <strong>70% para los distintos juegos:</strong> Se asigna proporcionalmente a cada juego de acuerdo a la cantidad de grabaciones de puntaje en su tabla de competencia semanal.<br>
               • <strong>30% para el Proyecto:</strong> Se deposita al proyecto / desarrollo al finalizar cada semana.<br><br>
-              <strong>Reparto dentro de cada juego:</strong><br>
-              • <strong>🥇 1° Puesto:</strong> 50% del pozo del juego.<br>
-              • <strong>🥈 2° Puesto:</strong> 30% del pozo del juego.<br>
-              • <strong>🥉 3° Puesto:</strong> 10% del pozo del juego.<br>
-              • <strong>🏅 Siguientes Puestos (4° al 13°+):</strong> El otro <strong>10%</strong> se reparte en partes iguales entre los primeros 10 siguientes (puestos 4° al 13°). Si el premio para cada uno de esos 10 puestos supera los <strong>10 USDC</strong>, se habilitan automáticamente <strong>+10 puestos adicionales con resultados vacíos</strong> (20 siguientes, 30 siguientes, y así sucesivamente cada vez que el menor premio supere los 10 USDC).</p>
+              <strong>Reparto dentro de cada juego y Escalado de Puestos:</strong><br>
+              • <strong>Al principio:</strong> Solo se reparte entre los <strong>3 primeros puestos</strong> (1°, 2° y 3°).<br>
+              • <strong>Cuando el premio del 3° Puesto supera 10 USDC:</strong> Se habilita el reparto a los <strong>primeros 10 siguientes (puestos 4° al 13°)</strong> con la distribución: <strong>🥇 1° Puesto: 50%</strong>, <strong>🥈 2° Puesto: 30%</strong>, <strong>🥉 3° Puesto: 10%</strong> y el otro <strong>10% repartido entre los primeros 10 siguientes</strong>.<br>
+              • <strong>Expansión sucesiva (+10 puestos vacíos):</strong> Cuando el premio de esos 10 puestos siguientes supere los <strong>10 USDC c/u</strong>, se habilitan los <strong>siguientes 10 (20 siguientes, 30 siguientes...)</strong> con resultados vacíos para llenarse, y así sucesivamente.</p>
             </div>
             <p><strong>Retiros Seguros:</strong> Tu depósito inicial siempre es tuyo. Puedes solicitar su retiro, el cual tiene un período de seguridad y confirmación de 24 horas para proteger el capital del pool contra ataques de manipulación.</p>
           </section>

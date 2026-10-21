@@ -160,41 +160,55 @@ contract TetrisAavePrizePool is Initializable, OwnableUpgradeable, ReentrancyGua
 
         require(ganadores.length >= 3, "Faltan direcciones para el podio");
 
-        uint256 p1 = (montoARepartir * 50) / 100;
-        uint256 p2 = (montoARepartir * 30) / 100;
-        uint256 p3 = (montoARepartir * 10) / 100;
-        uint256 pRestantesTotal = montoARepartir - p1 - p2 - p3; // 10% restante
-
-        if (p1 > 0 && ganadores[0] != address(0)) usdc.safeTransfer(ganadores[0], p1);
-        if (p2 > 0 && ganadores[1] != address(0)) usdc.safeTransfer(ganadores[1], p2);
-        if (p3 > 0 && ganadores[2] != address(0)) usdc.safeTransfer(ganadores[2], p3);
-
-        // Escalado dinámico para los siguientes puestos (10, 20, 30... cada vez que el premio menor supere 10 USDC)
         uint256 diezUsdc = 10 * 10**6;
-        uint256 cantidadSiguientes = 10;
-        while ((pRestantesTotal / cantidadSiguientes) > diezUsdc) {
-            cantidadSiguientes += 10;
-        }
+        uint256 p3Base = (montoARepartir * 10) / 100;
 
-        if (ganadores.length > 3 && pRestantesTotal > 0) {
-            uint256 pCadaUno = pRestantesTotal / cantidadSiguientes;
-            uint256 maxIdx = ganadores.length < (3 + cantidadSiguientes) ? ganadores.length : (3 + cantidadSiguientes);
-            uint256 pagadoSiguientes = 0;
+        // Al principio solo se reparte entre los 3 primeros.
+        // Cuando el premio del 3er puesto supere 10 USDC, se habilita el reparto a los primeros 10 siguientes, y así sucesivamente.
+        if (p3Base <= diezUsdc) {
+            uint256 p1Top3 = (montoARepartir * 50) / 90;
+            uint256 p2Top3 = (montoARepartir * 30) / 90;
+            uint256 p3Top3 = montoARepartir - p1Top3 - p2Top3;
 
-            for (uint256 i = 3; i < maxIdx; i++) {
-                if (pCadaUno > 0 && ganadores[i] != address(0)) {
-                    usdc.safeTransfer(ganadores[i], pCadaUno);
-                    pagadoSiguientes += pCadaUno;
+            if (p1Top3 > 0 && ganadores[0] != address(0)) usdc.safeTransfer(ganadores[0], p1Top3);
+            if (p2Top3 > 0 && ganadores[1] != address(0)) usdc.safeTransfer(ganadores[1], p2Top3);
+            if (p3Top3 > 0 && ganadores[2] != address(0)) usdc.safeTransfer(ganadores[2], p3Top3);
+        } else {
+            uint256 p1 = (montoARepartir * 50) / 100;
+            uint256 p2 = (montoARepartir * 30) / 100;
+            uint256 p3 = p3Base;
+            uint256 pRestantesTotal = montoARepartir - p1 - p2 - p3; // 10% restante
+
+            if (p1 > 0 && ganadores[0] != address(0)) usdc.safeTransfer(ganadores[0], p1);
+            if (p2 > 0 && ganadores[1] != address(0)) usdc.safeTransfer(ganadores[1], p2);
+            if (p3 > 0 && ganadores[2] != address(0)) usdc.safeTransfer(ganadores[2], p3);
+
+            // Escalado dinámico para los siguientes puestos (10, 20, 30... cada vez que el premio menor supere 10 USDC)
+            uint256 cantidadSiguientes = 10;
+            while ((pRestantesTotal / cantidadSiguientes) > diezUsdc) {
+                cantidadSiguientes += 10;
+            }
+
+            if (ganadores.length > 3 && pRestantesTotal > 0) {
+                uint256 pCadaUno = pRestantesTotal / cantidadSiguientes;
+                uint256 maxIdx = ganadores.length < (3 + cantidadSiguientes) ? ganadores.length : (3 + cantidadSiguientes);
+                uint256 pagadoSiguientes = 0;
+
+                for (uint256 i = 3; i < maxIdx; i++) {
+                    if (pCadaUno > 0 && ganadores[i] != address(0)) {
+                        usdc.safeTransfer(ganadores[i], pCadaUno);
+                        pagadoSiguientes += pCadaUno;
+                    }
                 }
-            }
 
-            // Si quedan puestos vacantes no ocupados, el remanente va al proyecto/admin
-            uint256 remanente = pRestantesTotal - pagadoSiguientes;
-            if (remanente > 0) {
-                usdc.safeTransfer(owner(), remanente);
+                // Si quedan puestos vacantes no ocupados, el remanente va al proyecto/admin
+                uint256 remanente = pRestantesTotal - pagadoSiguientes;
+                if (remanente > 0) {
+                    usdc.safeTransfer(owner(), remanente);
+                }
+            } else if (pRestantesTotal > 0) {
+                usdc.safeTransfer(owner(), pRestantesTotal);
             }
-        } else if (pRestantesTotal > 0) {
-            usdc.safeTransfer(owner(), pRestantesTotal);
         }
 
         emit PremiosDistribuidos(interesGenerado, ganadores);

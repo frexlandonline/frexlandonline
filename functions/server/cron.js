@@ -31,17 +31,24 @@ function getReferrerRatesAtDistribution(depositAmount = 0) {
 }
 
 /**
- * Calcula cuántos puestos secundarios (después del 3er puesto) corresponden según el 10% del pozo del juego:
- * Por defecto son 10 siguientes (puestos 4 al 13).
- * Si el premio a los 10 siguientes es mayor a 10 USDC c/u, pasa a 20 siguientes, 30 siguientes, etc.
+ * Calcula cuántos puestos secundarios (después del 3er puesto) corresponden según el pozo del juego:
+ * - Al principio solo se reparte entre los 3 primeros (0 puestos secundarios, total 3 puestos).
+ * - Cuando el premio del 3er puesto (10% del pozo del juego) sea mayor a 10 USDC, habilita el reparto a los primeros 10 siguientes (puestos 4 al 13).
+ * - Cuando el premio de esos 10 siguientes supere 10 USDC c/u, habilita los siguientes 10 (20 siguientes, 30 siguientes, etc.).
  */
-export function calculateSecondarySlotsCount(gamePrizePool = 0, currentUnlockedSlots = 13) {
+export function calculateSecondarySlotsCount(gamePrizePool = 0, currentUnlockedSlots = 3) {
+  const thirdPlacePrize = Number(gamePrizePool) * 0.10;
   const tenPercentPool = Number(gamePrizePool) * 0.10;
+  const fromUnlocked = Math.max(0, (Number(currentUnlockedSlots) || 3) - 3);
+
+  if (thirdPlacePrize <= 10 && fromUnlocked === 0) {
+    return 0;
+  }
+
   let nextSlots = 10;
   while ((tenPercentPool / nextSlots) > 10) {
     nextSlots += 10;
   }
-  const fromUnlocked = Math.max(10, (Number(currentUnlockedSlots) || 13) - 3);
   return Math.max(nextSlots, fromUnlocked);
 }
 
@@ -128,20 +135,27 @@ export async function distributePrizes() {
       const gameShareRatio = gInfo.submissionsCount / totalSubmissionsAllGames;
       const gamePool = totalGamesPrizePool * gameShareRatio;
 
-      // Escalado dinámico de puestos siguientes (10, 20, 30... cada vez que el menor premio > 10 USDC)
+      // Escalado dinámico: al inicio 0 secundarios (solo Top 3); cuando 3ro > 10 USDC pasa a 10, 20, 30...
       const secondaryCount = calculateSecondarySlotsCount(gamePool, gInfo.meta.unlockedSlots);
       const totalPrizePositions = 3 + secondaryCount;
 
-      // Porcentajes por puesto: 1ro 50%, 2do 30%, 3ro 10%, y el otro 10% dividido entre secondaryCount
-      const secondaryIndividualShare = 0.10 / secondaryCount;
+      // Si solo están habilitados los 3 primeros puestos, el 100% del pozo del juego se reparte entre el Top 3 (50/90, 30/90, 10/90).
+      // Cuando se habilitan los puestos siguientes (10, 20, 30...), es 1ro 50%, 2do 30%, 3ro 10% y 10% entre secondaryCount.
+      const secondaryIndividualShare = secondaryCount > 0 ? (0.10 / secondaryCount) : 0;
 
       for (let posIdx = 0; posIdx < totalPrizePositions; posIdx++) {
         const rank = posIdx + 1;
         let positionPercentage = 0;
-        if (posIdx === 0) positionPercentage = 0.50;
-        else if (posIdx === 1) positionPercentage = 0.30;
-        else if (posIdx === 2) positionPercentage = 0.10;
-        else positionPercentage = secondaryIndividualShare;
+        if (secondaryCount === 0) {
+          if (posIdx === 0) positionPercentage = 0.50 / 0.90;
+          else if (posIdx === 1) positionPercentage = 0.30 / 0.90;
+          else if (posIdx === 2) positionPercentage = 0.10 / 0.90;
+        } else {
+          if (posIdx === 0) positionPercentage = 0.50;
+          else if (posIdx === 1) positionPercentage = 0.30;
+          else if (posIdx === 2) positionPercentage = 0.10;
+          else positionPercentage = secondaryIndividualShare;
+        }
 
         const grossPrize = gamePool * positionPercentage;
         if (grossPrize <= 0) continue;

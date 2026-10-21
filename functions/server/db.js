@@ -988,7 +988,7 @@ export const dbAPI = {
 
   // ─── Competition Leaderboard (Con créditos, premios y escalado dinámico de +10 puestos vacíos) ───
 
-  async saveHighScore(userId, score, level, linesCleared, platform = 'html5', walletAddress = null, gameId = 'blockdrop', requestedMaxSlots = 13) {
+  async saveHighScore(userId, score, level, linesCleared, platform = 'html5', walletAddress = null, gameId = 'blockdrop', requestedMaxSlots = 3) {
     await this.checkAndResetDailyCredits(userId);
     const cleanGame = (gameId || 'blockdrop').toLowerCase().trim();
     const docPath = getCompetitionDocPath(cleanGame);
@@ -1010,7 +1010,7 @@ export const dbAPI = {
         const doc = await transaction.get(rankingRef);
         const docData = doc.exists ? doc.data() : {};
         let topList = docData.top10 || [];
-        const currentUnlockedSlots = Math.max(13, Number(docData.unlockedSlots) || 13, Number(requestedMaxSlots) || 13);
+        const currentUnlockedSlots = Math.max(3, Number(docData.unlockedSlots) || 3, Number(requestedMaxSlots) || 3);
         const submissionsCount = (Number(docData.submissionsCount) || 0) + 1;
         
         const minScoreParaEntrar = topList.length >= currentUnlockedSlots ? topList[currentUnlockedSlots - 1].score : 0;
@@ -1078,8 +1078,8 @@ export const dbAPI = {
 
       const unlockedKey = `unlocked_slots_${cleanGame}`;
       const subCountKey = `submissions_count_${cleanGame}`;
-      const savedSlots = parseInt(await this.getSystemConfig(unlockedKey) || '13');
-      const currentUnlockedSlots = Math.max(13, savedSlots, Number(requestedMaxSlots) || 13);
+      const savedSlots = parseInt(await this.getSystemConfig(unlockedKey) || '3');
+      const currentUnlockedSlots = Math.max(3, savedSlots, Number(requestedMaxSlots) || 3);
       const currentSubCount = parseInt(await this.getSystemConfig(subCountKey) || '0') + 1;
 
       await this.updateSystemConfig(unlockedKey, String(currentUnlockedSlots));
@@ -1178,15 +1178,15 @@ export const dbAPI = {
     const docPath = getCompetitionDocPath(cleanGame);
     if (useFirestore) {
       const doc = await firestoreDb.doc(docPath).get();
-      if (!doc.exists) return { unlockedSlots: 13, submissionsCount: 0 };
+      if (!doc.exists) return { unlockedSlots: 3, submissionsCount: 0 };
       const d = doc.data();
       const listLen = (d.top10 || []).length;
       return {
-        unlockedSlots: Math.max(13, Number(d.unlockedSlots) || 13),
+        unlockedSlots: Math.max(3, Number(d.unlockedSlots) || 3),
         submissionsCount: Math.max(listLen, Number(d.submissionsCount) || 0)
       };
     } else {
-      const unlockedSlots = Math.max(13, parseInt(await this.getSystemConfig(`unlocked_slots_${cleanGame}`) || '13'));
+      const unlockedSlots = Math.max(3, parseInt(await this.getSystemConfig(`unlocked_slots_${cleanGame}`) || '3'));
       const countRow = sqliteDb.prepare('SELECT COUNT(*) as c FROM high_scores WHERE game_id = ?').get(cleanGame);
       const savedSubCount = parseInt(await this.getSystemConfig(`submissions_count_${cleanGame}`) || '0');
       return {
@@ -1196,11 +1196,11 @@ export const dbAPI = {
     }
   },
 
-  // Actualizar cantidad de puestos habilitados cuando el pozo supera el umbral (> 10 USDC el menor premio)
-  async setUnlockedSlots(gameId = 'blockdrop', newUnlockedSlots = 13) {
+  // Actualizar cantidad de puestos habilitados cuando el pozo supera el umbral (> 10 USDC el 3er puesto o el menor premio)
+  async setUnlockedSlots(gameId = 'blockdrop', newUnlockedSlots = 3) {
     const cleanGame = (gameId || 'blockdrop').toLowerCase().trim();
     const docPath = getCompetitionDocPath(cleanGame);
-    const slots = Math.max(13, Number(newUnlockedSlots) || 13);
+    const slots = Math.max(3, Number(newUnlockedSlots) || 3);
     if (useFirestore) {
       await firestoreDb.doc(docPath).set({ unlockedSlots: slots }, { merge: true });
     } else {
@@ -1209,16 +1209,16 @@ export const dbAPI = {
     return slots;
   },
 
-  // --- Clear all scores (Weekly reset) ---
+  // --- Clear all scores (Weekly reset: reinicia con los 3 primeros puestos habilitados) ---
   clearAllScores: async () => {
     if (useFirestore) {
-      await firestoreDb.doc('leaderboard_torneo/estado_actual').set({ top10: [], unlockedSlots: 13, submissionsCount: 0 });
-      await firestoreDb.doc('leaderboard_torneo/snake').set({ top10: [], unlockedSlots: 13, submissionsCount: 0 });
+      await firestoreDb.doc('leaderboard_torneo/estado_actual').set({ top10: [], unlockedSlots: 3, submissionsCount: 0 });
+      await firestoreDb.doc('leaderboard_torneo/snake').set({ top10: [], unlockedSlots: 3, submissionsCount: 0 });
     } else {
       sqliteDb.prepare('DELETE FROM high_scores').run();
-      sqliteDb.prepare("INSERT OR REPLACE INTO system_config (key, value) VALUES ('unlocked_slots_blockdrop', '13')").run();
+      sqliteDb.prepare("INSERT OR REPLACE INTO system_config (key, value) VALUES ('unlocked_slots_blockdrop', '3')").run();
       sqliteDb.prepare("INSERT OR REPLACE INTO system_config (key, value) VALUES ('submissions_count_blockdrop', '0')").run();
-      sqliteDb.prepare("INSERT OR REPLACE INTO system_config (key, value) VALUES ('unlocked_slots_snake', '13')").run();
+      sqliteDb.prepare("INSERT OR REPLACE INTO system_config (key, value) VALUES ('unlocked_slots_snake', '3')").run();
       sqliteDb.prepare("INSERT OR REPLACE INTO system_config (key, value) VALUES ('submissions_count_snake', '0')").run();
     }
   },

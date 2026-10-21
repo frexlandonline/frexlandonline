@@ -62,7 +62,7 @@ router.post('/', authenticateToken, async (req, res) => {
       platform || 'html5',
       walletAddress,
       gameId || 'blockdrop',
-      unlockedSlots || 13
+      unlockedSlots || 3
     );
 
     res.status(201).json({
@@ -130,15 +130,21 @@ router.get('/leaderboard', async (req, res) => {
     ]);
 
     const currentMeta = gameId === 'snake' ? metaSnake : metaBlockdrop;
-    let unlockedSlots = currentMeta.unlockedSlots || 13;
+    let unlockedSlots = currentMeta.unlockedSlots || 3;
 
-    // Si el premio menor de los puestos siguientes (10% del pozo / cantidad_siguientes) supera 10 USDC,
-    // habilitamos +10 puestos nuevos con resultados vacíos para llenarse a partir de ese momento
+    // Escalado progresivo:
+    // 1) Al principio solo se reparte entre los 3 primeros (unlockedSlots = 3).
+    // 2) Cuando el premio del 3er puesto (10% del pozo) supera 10 USDC, habilita los primeros 10 siguientes (unlockedSlots = 13).
+    // 3) Cuando el premio de esos 10 siguientes supera 10 USDC c/u, habilita los siguientes 10 (23, 33...) y así sucesivamente.
     if (poolBalance > 0) {
+      const thirdPlacePrize = poolBalance * 0.10;
       const tenPercent = poolBalance * 0.10;
-      let dynamicSecondary = Math.max(10, unlockedSlots - 3);
-      while ((tenPercent / dynamicSecondary) > 10) {
-        dynamicSecondary += 10;
+      let dynamicSecondary = Math.max(0, unlockedSlots - 3);
+      if (thirdPlacePrize > 10) {
+        dynamicSecondary = Math.max(10, dynamicSecondary);
+        while ((tenPercent / dynamicSecondary) > 10) {
+          dynamicSecondary += 10;
+        }
       }
       const newTotalSlots = 3 + dynamicSecondary;
       if (newTotalSlots > unlockedSlots) {
@@ -152,10 +158,12 @@ router.get('/leaderboard', async (req, res) => {
     const totalSubs = (metaBlockdrop.submissionsCount || 0) + (metaSnake.submissionsCount || 0);
     const gamesDistribution = {
       blockdrop: {
+        count: metaBlockdrop.submissionsCount || 0,
         submissions: metaBlockdrop.submissionsCount || 0,
         percentage: totalSubs > 0 ? Math.round(((metaBlockdrop.submissionsCount || 0) / totalSubs) * 100) : 100
       },
       snake: {
+        count: metaSnake.submissionsCount || 0,
         submissions: metaSnake.submissionsCount || 0,
         percentage: totalSubs > 0 ? Math.round(((metaSnake.submissionsCount || 0) / totalSubs) * 100) : 0
       },
@@ -165,7 +173,7 @@ router.get('/leaderboard', async (req, res) => {
     res.json({
       leaderboard,
       unlockedSlots,
-      secondarySlots: Math.max(10, unlockedSlots - 3),
+      secondarySlots: Math.max(0, unlockedSlots - 3),
       submissionsCount: currentMeta.submissionsCount || 0,
       gamesDistribution
     });
@@ -184,6 +192,7 @@ router.get('/global-leaderboard', async (req, res) => {
 
     res.json({
       gameId,
+      leaderboard: globalLeaderboard,
       globalLeaderboard
     });
   } catch (error) {

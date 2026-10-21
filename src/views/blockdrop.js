@@ -118,24 +118,24 @@ export async function renderBlockdropPage(container) {
             <div id="slots-expansion-banner" style="width: 100%; max-width: 560px; background: rgba(0, 245, 255, 0.05); border: 1px dashed rgba(0, 245, 255, 0.35); border-radius: 10px; padding: 12px 14px; box-sizing: border-box;">
               <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 6px;">
                 <span id="slots-expansion-title" style="font-family: var(--font-display); font-size: 0.76rem; color: var(--neon-cyan); font-weight: bold;">
-                  🔓 Puestos de Recompensa Activos: 1° al 13°
+                  🔓 Puestos de Recompensa Activos: Solo Top 3 (1°, 2° y 3°)
                 </span>
                 <span id="slots-expansion-badge" style="font-size: 0.7rem; background: rgba(57, 255, 20, 0.12); border: 1px solid rgba(57, 255, 20, 0.4); color: var(--neon-green); padding: 2px 8px; border-radius: 12px; font-weight: bold;">
-                  Meta +10 Puestos: 10 USDC/puesto
+                  Meta +10 Puestos: 3° Puesto &gt; 10 USDC
                 </span>
               </div>
               <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.08); border-radius: 6px; overflow: hidden; margin-bottom: 6px;">
                 <div id="slots-expansion-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green)); transition: width 0.3s ease;"></div>
               </div>
               <div id="slots-expansion-desc" style="font-size: 0.72rem; color: var(--text-secondary); line-height: 1.4;">
-                Cuando el premio menor (Puestos 4° al 13°) supere <strong>10.00 USDC</strong>, se habilitarán automáticamente <strong>+10 nuevos puestos vacantes</strong> para que más jugadores ganen.
+                Al principio solo se reparte entre los <strong>3 primeros puestos</strong>. Cuando el premio del <strong>3° Puesto supere 10.00 USDC</strong>, se habilitarán los primeros <strong>10 puestos siguientes (4° al 13°)</strong>, y cuando estos lleguen a 10 USDC se abrirán los siguientes 10 sucesivamente.
               </div>
             </div>
 
             <!-- Leaderboard Table (Ranks 4 to unlockedSlots) -->
             <div style="width: 100%; max-width: 560px; margin-top: var(--space-xs); border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: var(--space-sm);">
               <h3 id="secondary-positions-header" style="font-family: var(--font-display); font-size: 0.85rem; color: var(--text-secondary); letter-spacing: 1px; margin-bottom: var(--space-xs); text-align: center;">
-                🏅 Puestos de Premio 4° al 13° (10% del Pozo Repartido)
+                🔒 Puestos Siguientes (Se habilitan los primeros 10 cuando el 3° Puesto &gt; 10 USDC)
               </h3>
               <div id="leaderboard-table-container" style="display: flex; flex-direction: column; gap: 5px; max-height: 420px; overflow-y: auto; padding-right: 2px;">
                 <!-- Dynamically populated rows including Vacante slots -->
@@ -278,8 +278,8 @@ async function loadDashboardData(container) {
     ]);
 
     const meta = getLeaderboardMeta();
-    let unlockedSlots = meta.unlockedSlots || 13;
-    let secondarySlots = meta.secondarySlots || 10;
+    let unlockedSlots = meta.unlockedSlots || 3;
+    let secondarySlots = meta.secondarySlots !== undefined ? meta.secondarySlots : Math.max(0, unlockedSlots - 3);
     const gameSharePct = (meta.gamesDistribution?.blockdrop?.percentage ?? 100) / 100;
 
     let totalSimulatedDeposit = (globalStats && typeof globalStats.totalDeposited === 'number')
@@ -295,15 +295,29 @@ async function loadDashboardData(container) {
     const currentUser = getUser();
     const emptyAvatar = (seed) => `https://api.dicebear.com/7.x/bottts/svg?seed=${seed}`;
 
-    // Render Competition Table rows (Ranks 4 to unlockedSlots, showing empty slots as "Vacante")
+    // Render Competition Table rows (When secondarySlots === 0, only Top 3 are rewarded; when >= 10, renders 4 to unlockedSlots)
     const renderCompetitionRows = (currentSecondaryEach) => {
       const tableContainer = document.getElementById('leaderboard-table-container');
       const headerEl = document.getElementById('secondary-positions-header');
+      if (!tableContainer) return;
+      tableContainer.innerHTML = '';
+
+      if (secondarySlots <= 0 || unlockedSlots <= 3) {
+        if (headerEl) {
+          headerEl.textContent = `🔒 Puestos 4° al 13° (Se habilitan cuando el 3° Puesto supere 10 USDC)`;
+        }
+        tableContainer.innerHTML = `
+          <div style="text-align: center; padding: 14px 12px; background: rgba(255, 255, 255, 0.02); border: 1px dashed rgba(255, 255, 255, 0.15); border-radius: 8px; color: var(--text-muted); font-size: 0.78rem; line-height: 1.5;">
+            🏆 <strong>Actualmente el reparto es exclusivo entre los 3 primeros puestos.</strong><br>
+            Apenas el premio del <strong>3° Puesto supere los 10.00 USDC</strong>, se abrirán aquí automáticamente los <strong>primeros 10 puestos siguientes (4° al 13°)</strong> con lugares vacíos para que más jugadores ganen.
+          </div>
+        `;
+        return;
+      }
+
       if (headerEl) {
         headerEl.textContent = `🏅 Puestos de Premio 4° al ${unlockedSlots}° (10% Repartido entre ${secondarySlots} puestos)`;
       }
-      if (!tableContainer) return;
-      tableContainer.innerHTML = '';
 
       for (let rank = 4; rank <= unlockedSlots; rank++) {
         const player = leaderboard[rank - 1];
@@ -359,24 +373,35 @@ async function loadDashboardData(container) {
     };
 
     const updateRewardsUI = (balance) => {
-      const reward1st = balance * 0.50;
-      const reward2nd = balance * 0.30;
-      const reward3rd = balance * 0.10;
+      const reward3rdBase = balance * 0.10;
       const secondaryTotal = balance * 0.10;
 
-      // Check if balance expands secondarySlots dynamically (> 10 USDC per secondary slot)
-      let calcSecondarySlots = Math.max(10, secondarySlots);
-      while ((secondaryTotal / calcSecondarySlots) > 10) {
-        calcSecondarySlots += 10;
+      // Escalado progresivo:
+      // 1) Al principio solo los 3 primeros (secondarySlots = 0).
+      // 2) Cuando el premio del 3er puesto (reward3rdBase) > 10 USDC, habilita los primeros 10 siguientes (secondarySlots = 10).
+      // 3) Cuando el premio de esos 10 siguientes supere 10 USDC c/u, habilita los siguientes 10 (20, 30...) y así sucesivamente.
+      let calcSecondarySlots = secondarySlots;
+      if (reward3rdBase > 10) {
+        calcSecondarySlots = Math.max(10, calcSecondarySlots);
+        while ((secondaryTotal / calcSecondarySlots) > 10) {
+          calcSecondarySlots += 10;
+        }
       }
+
       if (calcSecondarySlots > secondarySlots) {
         secondarySlots = calcSecondarySlots;
         unlockedSlots = 3 + secondarySlots;
+        // Persistir desbloqueo en el servidor
+        fetchLeaderboard(100, 'blockdrop', balance).catch(() => {});
         renderCompetitionRows(secondaryTotal / secondarySlots);
         showSlotsExpansionPopup(unlockedSlots, false, 100);
       }
 
-      const rewardOthersEach = secondaryTotal / secondarySlots;
+      const isTop3Only = secondarySlots === 0;
+      const reward1st = isTop3Only ? (balance * (0.50 / 0.90)) : (balance * 0.50);
+      const reward2nd = isTop3Only ? (balance * (0.30 / 0.90)) : (balance * 0.30);
+      const reward3rd = isTop3Only ? (balance * (0.10 / 0.90)) : (balance * 0.10);
+      const rewardOthersEach = secondarySlots > 0 ? (secondaryTotal / secondarySlots) : 0;
       
       const elTotal = document.getElementById('prize-pool-total');
       const el1st = document.getElementById('prize-amount-1st');
@@ -389,8 +414,14 @@ async function loadDashboardData(container) {
       if (el1st) el1st.textContent = `${reward1st.toLocaleString('es-ES', { minimumFractionDigits: 6, maximumFractionDigits: 6 })} USDC`;
       if (el2nd) el2nd.textContent = `${reward2nd.toLocaleString('es-ES', { minimumFractionDigits: 6, maximumFractionDigits: 6 })} USDC`;
       if (el3rd) el3rd.textContent = `${reward3rd.toLocaleString('es-ES', { minimumFractionDigits: 6, maximumFractionDigits: 6 })} USDC`;
-      if (elOthersLabel) elOthersLabel.textContent = `🏅 4° al ${unlockedSlots}° (10% / ${secondarySlots})`;
-      if (elOthers) elOthers.textContent = `${rewardOthersEach.toLocaleString('es-ES', { minimumFractionDigits: 6, maximumFractionDigits: 6 })} USDC c/u`;
+
+      if (isTop3Only) {
+        if (elOthersLabel) elOthersLabel.textContent = `🔒 4° al 13° (Cuando 3° > 10 USDC)`;
+        if (elOthers) elOthers.textContent = `3° al ${Math.min(100, (reward3rdBase / 10) * 100).toFixed(1)}%`;
+      } else {
+        if (elOthersLabel) elOthersLabel.textContent = `🏅 4° al ${unlockedSlots}° (10% / ${secondarySlots})`;
+        if (elOthers) elOthers.textContent = `${rewardOthersEach.toLocaleString('es-ES', { minimumFractionDigits: 6, maximumFractionDigits: 6 })} USDC c/u`;
+      }
 
       // Update live prize labels inside the competition table
       document.querySelectorAll('.slot-live-prize').forEach(el => {
@@ -398,29 +429,39 @@ async function loadDashboardData(container) {
       });
 
       // Update +10 Slots Expansion Progress Bar & Countdown
-      const progressPct = Math.min(100, (rewardOthersEach / 10) * 100);
       const barEl = document.getElementById('slots-expansion-bar');
       const titleEl = document.getElementById('slots-expansion-title');
       const badgeEl = document.getElementById('slots-expansion-badge');
       const descEl = document.getElementById('slots-expansion-desc');
 
-      if (barEl) barEl.style.width = `${progressPct.toFixed(2)}%`;
-      if (titleEl) titleEl.textContent = `🔓 Puestos de Recompensa Activos: 1° al ${unlockedSlots}° (${secondarySlots} secundarios)`;
-      if (badgeEl) badgeEl.textContent = `Progreso +10 Puestos: ${progressPct.toFixed(1)}% (${rewardOthersEach.toFixed(2)} / 10 USDC)`;
-      if (descEl) {
-        const missingPerSlot = Math.max(0, 10 - rewardOthersEach);
-        const missingPoolTotal = missingPerSlot * secondarySlots * 10; // since secondaryTotal is 10% of pool
-        descEl.innerHTML = `Faltan <strong>${missingPerSlot.toFixed(2)} USDC</strong> por puesto menor (${missingPoolTotal.toFixed(1)} USDC en el pozo del juego) para abrir automáticamente <strong>+10 nuevos puestos vacantes (del ${unlockedSlots + 1}° al ${unlockedSlots + 10}°)</strong>.`;
-      }
-
-      if (progressPct >= 80 && progressPct < 100) {
-        showSlotsExpansionPopup(unlockedSlots + 10, true, progressPct);
-      } else if (unlockedSlots > 13) {
-        showSlotsExpansionPopup(unlockedSlots, false, 100);
+      if (isTop3Only) {
+        const progressPct = Math.min(100, (reward3rdBase / 10) * 100);
+        if (barEl) barEl.style.width = `${progressPct.toFixed(2)}%`;
+        if (titleEl) titleEl.textContent = `🔓 Puestos de Recompensa Activos: Solo los 3 Primeros (1°, 2° y 3°)`;
+        if (badgeEl) badgeEl.textContent = `Meta Primeros 10 Siguientes: ${progressPct.toFixed(1)}% (${reward3rdBase.toFixed(2)} / 10 USDC en 3° Puesto)`;
+        if (descEl) {
+          const missing3rd = Math.max(0, 10 - reward3rdBase);
+          descEl.innerHTML = `Al principio solo se reparte entre los 3 primeros. Faltan <strong>${missing3rd.toFixed(2)} USDC</strong> en el 3° Puesto para habilitar el reparto a los <strong>primeros 10 siguientes (Puestos 4° al 13°)</strong> con lugares vacíos.`;
+        }
+        if (progressPct >= 80 && progressPct < 100) {
+          showSlotsExpansionPopup(13, true, progressPct);
+        }
+      } else {
+        const progressPct = Math.min(100, (rewardOthersEach / 10) * 100);
+        if (barEl) barEl.style.width = `${progressPct.toFixed(2)}%`;
+        if (titleEl) titleEl.textContent = `🔓 Puestos de Recompensa Activos: 1° al ${unlockedSlots}° (Top 3 + ${secondarySlots} siguientes)`;
+        if (badgeEl) badgeEl.textContent = `Meta +10 Puestos: ${progressPct.toFixed(1)}% (${rewardOthersEach.toFixed(2)} / 10 USDC)`;
+        if (descEl) {
+          const missingPerSlot = Math.max(0, 10 - rewardOthersEach);
+          descEl.innerHTML = `Cuando el premio de los puestos 4° al ${unlockedSlots}° supere 10 USDC (faltan <strong>${missingPerSlot.toFixed(2)} USDC/puesto</strong>), se habilitarán automáticamente <strong>+10 puestos vacantes más (del ${unlockedSlots + 1}° al ${unlockedSlots + 10}°)</strong>.`;
+        }
+        if (progressPct >= 80 && progressPct < 100) {
+          showSlotsExpansionPopup(unlockedSlots + 10, true, progressPct);
+        }
       }
     };
     
-    renderCompetitionRows((poolBalance * 0.10) / secondarySlots);
+    renderCompetitionRows(secondarySlots > 0 ? ((poolBalance * 0.10) / secondarySlots) : 0);
     updateRewardsUI(poolBalance);
     
     const interestPerSecond = (totalSimulatedDeposit * 0.04) / (365 * 24 * 60 * 60);

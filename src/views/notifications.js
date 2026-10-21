@@ -52,7 +52,7 @@ export function renderNotificationsPage(container) {
               <div style="font-size: 1.05rem; margin-bottom: 6px; color: var(--neon-green);">💰 <strong>Reparto Semanal 70% / 30% y Puestos Dinámicos</strong></div>
               <p style="font-size: 0.84rem; color: var(--text-secondary); margin: 0; line-height: 1.5;">
                 El reparto de intereses al finalizar cada semana es siempre <strong>70% para los distintos juegos</strong> (proporcional a la cantidad de grabaciones de puntaje en la tabla de competencia de cada juego) y <strong>30% para el proyecto</strong>.<br><br>
-                En cada juego se reparte: <strong>1° Puesto: 50%</strong>, <strong>2° Puesto: 30%</strong>, <strong>3° Puesto: 10%</strong> y el otro <strong>10% repartido entre los primeros 10 siguientes (4° al 13°)</strong>. Cada vez que el menor premio supere los <strong>10 USDC</strong>, se habilitan automáticamente <strong>+10 puestos vacantes más</strong> (20 siguientes, 30 siguientes y así sucesivamente) con aviso y barra de progreso en vivo.
+                <strong>Al principio solo se reparte entre los 3 primeros puestos.</strong> Cuando el premio del <strong>3° Puesto supere los 10 USDC</strong>, se habilita el reparto a los <strong>primeros 10 siguientes (4° al 13°: 1° 50%, 2° 30%, 3° 10% y 10% entre los 10 siguientes)</strong>. Cuando este premio menor llegue a <strong>10 USDC</strong>, se habilitan los <strong>siguientes 10 (20 siguientes, 30 siguientes...)</strong> y así sucesivamente.
               </p>
             </div>
 
