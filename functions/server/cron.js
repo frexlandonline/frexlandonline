@@ -1,5 +1,6 @@
 import { createPublicClient, http } from 'viem';
 import { base } from 'viem/chains';
+import { onSchedule } from 'firebase-functions/v2/scheduler';
 import dbAPI, { calculateDepositCredits } from './db.js';
 
 // CONTRATO SEGURO DESPLEGADO EN BASE
@@ -301,16 +302,13 @@ async function renewAllUsersWeeklyCredits() {
   }
 }
 
+export const distributePrizesCron = onSchedule({
+  schedule: '0 0 * * 4', // Every Thursday at 00:00 UTC
+  timeZone: 'UTC'
+}, async (event) => {
+  await distributePrizes();
+});
+
 export function startCron() {
-  const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
-  const now = Date.now();
-  const timeSinceLastReset = now % WEEK_MS;
-  const timeLeft = WEEK_MS - timeSinceLastReset;
-  
-  console.log(`⏱️ Sincronizando Cron de premios. Primer disparo en ${Math.floor(timeLeft / (60 * 60 * 1000))} horas.`);
-  
-  setTimeout(() => {
-    distributePrizes();
-    setInterval(distributePrizes, WEEK_MS);
-  }, timeLeft);
+  // Dummy function for compatibility with index.js imports in functions environment
 }
