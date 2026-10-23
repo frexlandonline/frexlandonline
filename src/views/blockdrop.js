@@ -8,6 +8,7 @@ import { showToast } from '../main.js';
 import { renderFooter } from '../components/footer.js';
 import { getAaveFinancialData } from '../web3/contract.ts';
 import { getUserLevel, renderLevelBadge } from '../utils/levels.js';
+import { getPendingScore } from '../services/gameSession.js';
 
 let poolInterval;
 let countdownInterval;
@@ -270,6 +271,22 @@ function showSlotsExpansionPopup(unlockedSlots, isImminent, progressPct) {
 
 async function loadDashboardData(container) {
   try {
+    const currentUser = getUser();
+    if (currentUser) {
+      const pendingObj = getPendingScore();
+      const pendingBd = pendingObj && pendingObj.blockdrop;
+      const bestLocal = Math.max(Number(currentUser.high_score) || 0, Number(pendingBd?.score) || 0);
+      if (bestLocal > 0) {
+        await api.post('/scores/global', {
+          score: bestLocal,
+          level: pendingBd?.level || 1,
+          linesCleared: pendingBd?.linesCleared || 0,
+          duracionPartidaSegundos: Math.max(10, pendingBd?.duracionPartidaSegundos || 20),
+          gameId: 'blockdrop'
+        }).catch(() => {});
+      }
+    }
+
     const [leaderboard, globalLeaderboard, onChainStats, globalStats] = await Promise.all([
       fetchLeaderboard(100, 'blockdrop'),
       fetchGlobalLeaderboard(100, 'blockdrop'),
@@ -292,7 +309,6 @@ async function loadDashboardData(container) {
     // 70% of total weekly interest goes to games, multiplied by BlockDrop's share of score recordings
     let poolBalance = trueInterest * 0.70 * gameSharePct;
 
-    const currentUser = getUser();
     const emptyAvatar = (seed) => `https://api.dicebear.com/7.x/bottts/svg?seed=${seed}`;
 
     // Render Competition Table rows (When secondarySlots === 0, only Top 3 are rewarded; when >= 10, renders 4 to unlockedSlots)
@@ -496,12 +512,20 @@ async function loadDashboardData(container) {
     const p2 = leaderboard[1] || { username: t('bdVacant'), score: 0 };
     const p3 = leaderboard[2] || { username: t('bdVacant'), score: 0 };
 
+    const resolvePlayerDeposit = (p) => {
+      const fromEntry = Number(p.total_depositado) || 0;
+      if (currentUser && p.username && currentUser.username === p.username) {
+        return Math.max(fromEntry, Number(currentUser.total_depositado) || 0);
+      }
+      return fromEntry;
+    };
+
     document.getElementById('podium-user-1st').textContent = p1.username;
     document.getElementById('podium-score-1st').textContent = p1.score > 0 ? `${p1.score.toLocaleString()} pts` : '-';
     document.getElementById('podium-img-1st').src = p1.avatarUrl || emptyAvatar(p1.username || '1st');
     document.getElementById('podium-badge-1st').innerHTML = getAvatarBadge(p1.platform || 'html5');
     if (p1.score > 0) {
-      document.getElementById('podium-level-1st').innerHTML = renderLevelBadge(getUserLevel(p1.total_depositado || 0), 'sm');
+      document.getElementById('podium-level-1st').innerHTML = renderLevelBadge(getUserLevel(resolvePlayerDeposit(p1)), 'sm');
     }
 
     document.getElementById('podium-user-2nd').textContent = p2.username;
@@ -509,7 +533,7 @@ async function loadDashboardData(container) {
     document.getElementById('podium-img-2nd').src = p2.avatarUrl || emptyAvatar(p2.username || '2nd');
     document.getElementById('podium-badge-2nd').innerHTML = getAvatarBadge(p2.platform || 'html5');
     if (p2.score > 0) {
-      document.getElementById('podium-level-2nd').innerHTML = renderLevelBadge(getUserLevel(p2.total_depositado || 0), 'sm');
+      document.getElementById('podium-level-2nd').innerHTML = renderLevelBadge(getUserLevel(resolvePlayerDeposit(p2)), 'sm');
     }
 
     document.getElementById('podium-user-3rd').textContent = p3.username;
@@ -517,7 +541,7 @@ async function loadDashboardData(container) {
     document.getElementById('podium-img-3rd').src = p3.avatarUrl || emptyAvatar(p3.username || '3rd');
     document.getElementById('podium-badge-3rd').innerHTML = getAvatarBadge(p3.platform || 'html5');
     if (p3.score > 0) {
-      document.getElementById('podium-level-3rd').innerHTML = renderLevelBadge(getUserLevel(p3.total_depositado || 0), 'sm');
+      document.getElementById('podium-level-3rd').innerHTML = renderLevelBadge(getUserLevel(resolvePlayerDeposit(p3)), 'sm');
     }
 
     // Populate Global Informative Leaderboard (Usuario - Puntaje - Rango)

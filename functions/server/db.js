@@ -905,8 +905,10 @@ export const dbAPI = {
   async getGlobalLeaderboard(gameId = 'blockdrop', limit = 100) {
     const cleanGame = (gameId || 'blockdrop').toLowerCase().trim();
     if (useFirestore) {
-      const [globalDoc, usersSnapshot] = await Promise.all([
+      const compDocPath = getCompetitionDocPath(cleanGame);
+      const [globalDoc, compDoc, usersSnapshot] = await Promise.all([
         firestoreDb.doc(`leaderboard_global/${cleanGame}`).get(),
+        firestoreDb.doc(compDocPath).get(),
         firestoreDb.collection('users').get()
       ]);
 
@@ -919,15 +921,40 @@ export const dbAPI = {
       if (globalDoc.exists) {
         const entries = globalDoc.data().entries || [];
         entries.forEach(e => {
-          const liveUser = usersMap.get(String(e.userId));
+          const uid = String(e.userId);
+          const liveUser = usersMap.get(uid);
           if (e.score > 0) {
-            mergedByUser.set(String(e.userId), {
-              userId: String(e.userId),
+            mergedByUser.set(uid, {
+              userId: uid,
               username: liveUser?.username || e.username || 'Player',
               avatarUrl: liveUser?.avatarUrl || e.avatarUrl || null,
+              platform: liveUser?.platform || e.platform || 'html5',
               score: Number(e.score) || 0,
               total_depositado: liveUser ? (Number(liveUser.total_depositado) || 0) : (Number(e.total_depositado) || 0)
             });
+          }
+        });
+      }
+
+      // Incluir puntajes registrados en la tabla de competencia actual de este juego
+      if (compDoc.exists) {
+        const compEntries = compDoc.data().top10 || [];
+        compEntries.forEach(e => {
+          const uid = String(e.userId);
+          const liveUser = usersMap.get(uid);
+          const sc = Number(e.score) || 0;
+          if (sc > 0) {
+            const current = mergedByUser.get(uid);
+            if (!current || sc > current.score) {
+              mergedByUser.set(uid, {
+                userId: uid,
+                username: liveUser?.username || e.username || 'Player',
+                avatarUrl: liveUser?.avatarUrl || e.avatarUrl || null,
+                platform: e.platform || liveUser?.platform || 'html5',
+                score: sc,
+                total_depositado: liveUser ? (Number(liveUser.total_depositado) || 0) : (Number(e.total_depositado) || 0)
+              });
+            }
           }
         });
       }
@@ -943,6 +970,7 @@ export const dbAPI = {
                 userId: uid,
                 username: u.username || 'Player',
                 avatarUrl: u.avatarUrl || null,
+                platform: u.platform || 'html5',
                 score: hs,
                 total_depositado: Number(u.total_depositado) || 0
               });
@@ -1127,24 +1155,38 @@ export const dbAPI = {
     const docPath = getCompetitionDocPath(cleanGame);
 
     if (useFirestore) {
-      const doc = await firestoreDb.doc(docPath).get();
+      const [doc, usersSnapshot] = await Promise.all([
+        firestoreDb.doc(docPath).get(),
+        firestoreDb.collection('users').get()
+      ]);
       if (!doc.exists) return [];
+
+      const usersMap = new Map();
+      usersSnapshot.docs.forEach(uDoc => {
+        usersMap.set(uDoc.id, uDoc.data());
+      });
       
       const topList = doc.data().top10 || [];
-      return topList.slice(0, limit).map((data, index) => ({
-        id: data.userId,
-        userId: data.userId,
-        username: data.username,
-        avatarUrl: data.avatarUrl || null,
-        platform: data.platform || 'html5',
-        gameId: data.gameId || cleanGame,
-        score: data.score,
-        level: data.level,
-        linesCleared: data.linesCleared,
-        total_depositado: Number(data.total_depositado) || 0,
-        createdAt: toIsoString(data.createdAt),
-        rank: index + 1
-      }));
+      return topList.slice(0, limit).map((data, index) => {
+        const liveUser = usersMap.get(String(data.userId));
+        const liveDeposit = liveUser && liveUser.total_depositado !== undefined
+          ? (Number(liveUser.total_depositado) || 0)
+          : (Number(data.total_depositado) || 0);
+        return {
+          id: data.userId,
+          userId: data.userId,
+          username: liveUser?.username || data.username,
+          avatarUrl: liveUser?.avatarUrl || data.avatarUrl || null,
+          platform: data.platform || liveUser?.platform || 'html5',
+          gameId: data.gameId || cleanGame,
+          score: data.score,
+          level: data.level,
+          linesCleared: data.linesCleared,
+          total_depositado: liveDeposit,
+          createdAt: toIsoString(data.createdAt),
+          rank: index + 1
+        };
+      });
     } else {
       const scores = sqliteDb.prepare(`
         SELECT h.id, h.user_id, h.score, h.level, h.lines_cleared, h.platform, h.game_id, h.created_at, u.username, u.avatar_url, u.total_depositado

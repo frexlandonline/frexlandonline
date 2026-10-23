@@ -1,6 +1,6 @@
 import { TetrisEngine } from '../game/TetrisEngine.ts';
 import { renderNavbar } from '../components/navbar.js';
-import { getUser } from '../services/auth.js';
+import { getUser, updateLocalUser } from '../services/auth.js';
 import { showToast } from '../main.js';
 import { getConnectedAddress } from '../web3/wallet.ts';
 import { t } from '../utils/i18n.js';
@@ -13,6 +13,25 @@ let engine = null;
 let gameStartTime = 0;
 let resizeHandler = null;
 let currentRenderedMode = null;
+let lastActiveScore = 0;
+let lastActiveLevel = 1;
+let lastActiveLines = 0;
+
+function flushActiveScoreToGlobal(score, level, lines, durationSecs) {
+  const user = getUser();
+  if (!user || !score || score <= 0) return;
+  if (score > (user.high_score || 0)) {
+    user.high_score = score;
+    updateLocalUser(user);
+  }
+  api.post('/scores/global', {
+    score,
+    level: level || 1,
+    linesCleared: lines || 0,
+    duracionPartidaSegundos: Math.max(6, durationSecs || 10),
+    gameId: 'blockdrop'
+  }).catch(() => {});
+}
 
 const PLAYLIST = [
   '/assets/audio/musicaTetris.mp3',
@@ -284,6 +303,9 @@ function setupDesktopGame() {
   engine = new TetrisEngine(canvas, nextCanvas, holdCanvas);
 
   engine.onScoreUpdate = (score, level, lines, combo) => {
+    lastActiveScore = score;
+    lastActiveLevel = level;
+    lastActiveLines = lines;
     const scoreEl = document.getElementById('stat-score');
     const levelEl = document.getElementById('stat-level');
     const linesEl = document.getElementById('stat-lines');
@@ -293,10 +315,10 @@ function setupDesktopGame() {
   };
 
   engine.onGameOver = async (score, level, lines) => {
+    lastActiveScore = 0;
     const durationSecs = Math.floor((Date.now() - gameStartTime) / 1000);
     renderDesktopGameOverOverlay(score, level, lines);
 
-    const user = getUser();
     const userWallet = getConnectedAddress();
     const packet = { 
       score, 
@@ -309,15 +331,7 @@ function setupDesktopGame() {
     showToast('Puntaje listo para guardar.', 'info');
 
     // Auto-record personal best in the Global Informative Leaderboard (no credits consumed)
-    if (user && score > 0) {
-      api.post('/scores/global', {
-        score,
-        level,
-        linesCleared: lines,
-        duracionPartidaSegundos: durationSecs,
-        gameId: 'blockdrop'
-      }).catch(() => {});
-    }
+    flushActiveScoreToGlobal(score, level, lines, durationSecs);
   };
 
   document.getElementById('btn-start')?.addEventListener('click', startDesktopGame);
@@ -579,6 +593,9 @@ function setupMobileGameEngine() {
   engine = new TetrisEngine(canvas, nextCanvas, holdCanvas);
 
   engine.onScoreUpdate = (score, level, lines, combo) => {
+    lastActiveScore = score;
+    lastActiveLevel = level;
+    lastActiveLines = lines;
     const scoreEl = document.getElementById('stat-score');
     const levelEl = document.getElementById('stat-level');
     const linesEl = document.getElementById('stat-lines');
@@ -588,6 +605,7 @@ function setupMobileGameEngine() {
   };
 
   engine.onGameOver = async (score, level, lines) => {
+    lastActiveScore = 0;
     const durationSecs = Math.floor((Date.now() - gameStartTime) / 1000);
     renderMobileGameOverOverlay(score, level, lines);
 
@@ -606,15 +624,7 @@ function setupMobileGameEngine() {
     showToast('Puntaje listo para guardar. Ve a Registro.', 'info');
 
     // Auto-record personal best in the Global Informative Leaderboard (no credits consumed)
-    if (user && score > 0) {
-      api.post('/scores/global', {
-        score,
-        level,
-        linesCleared: lines,
-        duracionPartidaSegundos: durationSecs,
-        gameId: 'blockdrop'
-      }).catch(() => {});
-    }
+    flushActiveScoreToGlobal(score, level, lines, durationSecs);
   };
 
   setupMobileAudio();
@@ -684,6 +694,18 @@ function startMobileGame() {
 }
 
 function exitMobileToLobby() {
+  if (lastActiveScore > 0) {
+    const durationSecs = Math.floor((Date.now() - gameStartTime) / 1000);
+    setPendingScore({
+      score: lastActiveScore,
+      level: lastActiveLevel,
+      linesCleared: lastActiveLines,
+      duracionPartidaSegundos: durationSecs,
+      platform: isWorldAppWebView() ? 'worldchain' : 'html5',
+    }, 'blockdrop');
+    flushActiveScoreToGlobal(lastActiveScore, lastActiveLevel, lastActiveLines, durationSecs);
+    lastActiveScore = 0;
+  }
   if (engine) {
     engine.stop();
   }
@@ -772,6 +794,18 @@ function renderMobileGameOverOverlay(score, level, lines) {
 // Cleanup & Fullscreen Helpers
 // ═════════════════════════════════════════════════════════════════
 export function cleanupPlayPage() {
+  if (lastActiveScore > 0) {
+    const durationSecs = Math.floor((Date.now() - gameStartTime) / 1000);
+    setPendingScore({
+      score: lastActiveScore,
+      level: lastActiveLevel,
+      linesCleared: lastActiveLines,
+      duracionPartidaSegundos: durationSecs,
+      platform: isWorldAppWebView() ? 'worldchain' : 'html5',
+    }, 'blockdrop');
+    flushActiveScoreToGlobal(lastActiveScore, lastActiveLevel, lastActiveLines, durationSecs);
+    lastActiveScore = 0;
+  }
   if (resizeHandler) {
     window.removeEventListener('resize', resizeHandler);
     resizeHandler = null;
